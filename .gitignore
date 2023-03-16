@@ -1,0 +1,4 @@
+build
+temp
+.*
+pico_sdk_import.cmake
