@@ -86,13 +86,6 @@ size_t VariableByteInteger::pushToClient(Client *client)
     return length;
 };
 
-size_t VariableByteInteger::pushToBuffer(void *buffer)
-{
-    size_t length = size();
-    memcpy(buffer, &value, length);
-    return length;
-};
-
 uint32_t VariableByteInteger::calculateValue(uint32_t input)
 {
     return (((input & 0x800000) > 0) * (input & 0x7F000000)) >> 3 |

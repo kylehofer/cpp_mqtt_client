@@ -35,6 +35,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "properties/Property.h"
+#include "types/EndianLength.h"
 
 namespace PicoMqtt
 {
@@ -45,19 +46,47 @@ namespace PicoMqtt
     class WordProperty : public Property
     {
     private:
-        uint16_t value;
+        IntWriter<uint16_t> value;
 
     protected:
-        size_t pushDataToBuffer(void *buffer);
-        size_t pushPropertyToClient(Client *client);
+        /**
+         * @brief Pushes the raw data of the Property to a communications client
+         *
+         * @param client The client to push data to
+         * @return size_t The amount of bytes written
+         */
+        virtual size_t pushPropertyToClient(Client *client) override;
 
     public:
         WordProperty();
         WordProperty(PropertyCodes identifier);
         WordProperty(PropertyCodes identifier, uint16_t value);
-        size_t propertySize();
-        bool readFromClient(Client *, uint32_t *);
+        /**
+         * @brief Returns the byte size of the properties value
+         *
+         * @return size_t
+         */
+        virtual size_t propertySize() override;
+        /**
+         * @brief Reads data from a client which will then be used to fill in the Word Property
+         *
+         * @param client The client to read data from
+         * @param read The amount of bytes read
+         * @return true If more data is required from the client
+         * @return false If the class has finished reading data from the client
+         */
+        virtual bool readFromClient(Client *client, uint32_t *read) override;
+        /**
+         * @brief Set the Value of the property
+         *
+         * @param value
+         */
         void setValue(uint16_t value);
+        /**
+         * @brief Get the Value of the property
+         *
+         * @return uint16_t
+         */
         uint16_t getValue();
     };
 

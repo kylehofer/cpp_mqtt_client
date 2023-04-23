@@ -34,6 +34,7 @@
 
 #include <stdint.h>
 #include "types/VariableByteInteger.h"
+#include "types/EncodedString.h"
 #include "Client.h"
 #include "ClientInteractor.h"
 
@@ -105,8 +106,8 @@ namespace PicoMqtt
 
     };
 
-#define PROTOCOL_NAME_LENGTH 6
-    const uint8_t PROTOCOL_NAME[] = {0, 0x4, 'M', 'Q', 'T', 'T'};
+#define PROTOCOL_NAME_LENGTH 7
+    const uint8_t PROTOCOL_NAME[] = {0, 0x4, 'M', 'Q', 'T', 'T', 0x5};
 
     union FixedHeader
     {
@@ -123,7 +124,7 @@ namespace PicoMqtt
      * Packets can Read and/or Write to a communication client
      * All packets contain a Fixed Header, however all other data is Packet dependant
      */
-    class Packet : public ClientInteractor
+    class Packet : public virtual ClientInteractor
     {
     private:
         FixedHeader fixedHeader;
@@ -142,12 +143,15 @@ namespace PicoMqtt
     public:
         Packet(uint8_t fixedHeaderByte);
         Packet(FixedHeader fixedHeader);
+        virtual ~Packet();
         virtual size_t size() = 0;
-        size_t pushToBuffer(void *) { return 0; }
-        virtual bool readFromClient(Client *, uint32_t *) = 0;
-        virtual size_t pushToClient(Client *) = 0;
-        static Packet *constructPacketFromId(uint8_t identifier);
+        virtual bool readFromClient(Client *client, uint32_t *read) = 0;
+        virtual size_t pushToClient(Client *client) = 0;
+        void setRemainingLength(VariableByteInteger remainingLength);
+        void setRemainingLength(uint32_t remainingLength);
+        uint8_t getPacketType();
     };
+
 }
 
 #endif /* PACKET */

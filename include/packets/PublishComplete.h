@@ -41,7 +41,7 @@ namespace PicoMqtt
      * Contains a reason code with result of the Publish packet
      * Fourth and final part of QoS 2 Delivery
      */
-    class PublishComplete : Acknowledge
+    class PublishComplete : public Acknowledge
     {
     public:
         PublishComplete();

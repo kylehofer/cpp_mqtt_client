@@ -35,7 +35,7 @@ using namespace PicoMqtt;
 
 #define REASON_CODE_SIZE 1
 
-size_t ReasonsAcknowledge::pushToClient(Client *client)
+size_t ReasonsAcknowledge::pushToClient([[maybe_unused]] Client *client)
 {
     // Not Required
     return 0;
@@ -63,4 +63,9 @@ bool ReasonsAcknowledge::readFromClient(Client *client, uint32_t *bytes)
     }
 
     return dataRemaining();
+}
+
+size_t ReasonsAcknowledge::size()
+{
+    return Acknowledge::size() + reasonCodes.size();
 }

@@ -44,16 +44,29 @@ enum ReadingState
 };
 
 #define QOS_FLAGS 0x6
+#define QOS_1 0x2
+#define QOS_2 0x4
 
 #define PACKET_IDENTIFIER_SIZE 2
 
-Publish::Publish() : Packet(PUBLISH_ID)
+Publish::Publish() : PropertiesPacket(PUBLISH_ID)
 {
 }
 
-uint8_t Publish::getQos()
+QoS Publish::getQos()
 {
-    return (getFixedHeaderFlags() & QOS_FLAGS) >> 1;
+    uint8_t qos = (getFixedHeaderFlags() & QOS_FLAGS);
+    switch (qos)
+    {
+    case QOS_1:
+        return QoS::ONE;
+    case QOS_2:
+        return QoS::TWO;
+    default:
+        break;
+    }
+
+    return QoS::ZERO;
 }
 
 bool Publish::readFromClient(Client *client, uint32_t *bytes)
@@ -74,7 +87,7 @@ bool Publish::readFromClient(Client *client, uint32_t *bytes)
         case VARIABLE_HEADER_TOPIC:
             if (!topic.readFromClient(client, &read))
             {
-                state = (getQos() > 0) ? VARIABLE_HEADER_IDENTIFIER : VARIABLE_HEADER_PROPERTIES;
+                state = (getQos() != QoS::ZERO) ? VARIABLE_HEADER_IDENTIFIER : VARIABLE_HEADER_PROPERTIES;
             }
             break;
         case VARIABLE_HEADER_IDENTIFIER:
@@ -83,16 +96,19 @@ bool Publish::readFromClient(Client *client, uint32_t *bytes)
                 read += client->read(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
                 state = VARIABLE_HEADER_PROPERTIES;
             }
+            break;
         case VARIABLE_HEADER_PROPERTIES:
             if (!properties.readFromClient(client, &read))
             {
                 state = VARIABLE_HEADER_PAYLOAD;
             }
+            break;
         case VARIABLE_HEADER_PAYLOAD:
             if (!payload.readFromClient(client, &read))
             {
                 state = COMPLETE;
             }
+            break;
         default:
             break;
         }
@@ -107,7 +123,21 @@ bool Publish::readFromClient(Client *client, uint32_t *bytes)
 
 size_t Publish::size()
 {
-    return 0;
+    size_t bytes = 0;
+
+    bytes += topic.size();
+
+    if (getQos() != QoS::ZERO)
+    {
+        bytes += PACKET_IDENTIFIER_SIZE;
+    }
+
+    bytes += properties.totalSize();
+
+    // Payload
+    bytes += payload.size();
+
+    return bytes;
 }
 
 size_t Publish::pushToClient(Client *client)
@@ -115,9 +145,9 @@ size_t Publish::pushToClient(Client *client)
     // Fixed Header
     size_t written = Packet::pushToClient(client);
 
-    // Variable Header
     written += topic.pushToClient(client);
-    if (getQos() > 0)
+
+    if (getQos() != QoS::ZERO)
     {
         written += client->write(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
     }
@@ -128,4 +158,64 @@ size_t Publish::pushToClient(Client *client)
     written += payload.pushToClient(client);
 
     return written;
+}
+
+Payload &Publish::getPayload()
+{
+    return payload;
+}
+
+EncodedString &Publish::getTopic()
+{
+    return topic;
+}
+
+void Publish::setTopic(const char *data, uint32_t length)
+{
+    topic = EncodedString(data, length);
+}
+
+void Publish::setTopic(EncodedString value)
+{
+    topic = value;
+}
+
+void Publish::setPayload(void *data, uint32_t length)
+{
+    payload = Payload(data, length);
+}
+
+void Publish::setPayload(Payload value)
+{
+    payload = value;
+}
+
+uint16_t Publish::getPacketIdentifier()
+{
+    return packetIdentifier;
+}
+
+void Publish::setPacketIdentifier(uint16_t packetIdentifier)
+{
+    this->packetIdentifier = packetIdentifier;
+}
+
+void Publish::setQos(QoS qos)
+{
+
+    uint8_t currentFlags = (getFixedHeaderFlags() & ~QOS_FLAGS);
+
+    switch (qos)
+    {
+    case QoS::ONE:
+        currentFlags |= QOS_1;
+        break;
+    case QoS::TWO:
+        currentFlags |= QOS_2;
+        break;
+    default:
+        break;
+    }
+
+    setFlags(currentFlags);
 }

@@ -29,129 +29,18 @@
  * HISTORY:
  */
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "types/EncodedString.h"
 
 using namespace PicoMqtt;
 
-#define STRING_LENGTH_SIZE sizeof(uint32_t)
-
-enum ReadingState
+EncodedString::EncodedString() : BufferData()
 {
-    IDLE = 0,
-    LENGTH,
-    DATA
-};
-
-EncodedString::EncodedString()
-{
-    state = IDLE;
 }
 
-EncodedString::EncodedString(const char *string, uint32_t length)
+EncodedString::EncodedString(const char *string, uint16_t length) : BufferData(string, length)
 {
-    state = IDLE;
-    data = (char *)malloc(length);
-    memcpy(data, string, length);
-    this->length = length;
 }
 
-EncodedString::EncodedString(const EncodedString &source)
+EncodedString::EncodedString(const BufferData &source) : BufferData(source)
 {
-    state = source.state;
-    if (source.data)
-    {
-        data = (char *)malloc(source.length);
-        memcpy(data, source.data, source.length);
-    }
-    else
-    {
-        data = NULL;
-    }
-
-    length = source.length;
-}
-
-EncodedString &EncodedString::operator=(const EncodedString &right)
-{
-    if (&right != this)
-    {
-        EncodedString temp(right);
-        // std::swap(data, tmp.data);
-        char *tempData = data;
-        uint32_t tempLength = length;
-        data = temp.data;
-        length = temp.length;
-        temp.data = tempData;
-        temp.length = tempLength;
-    }
-    return *this;
-}
-
-EncodedString::~EncodedString()
-{
-    if (data)
-    {
-        free(data);
-        data = NULL;
-    }
-}
-
-size_t EncodedString::pushToClient(Client *client)
-{
-    size_t lengthLength = client->write(&length, STRING_LENGTH_SIZE);
-    size_t valueLength = client->write(data, length);
-
-    return size();
-}
-
-size_t EncodedString::pushToBuffer(void *buffer)
-{
-    char *charBuffer = (char *)buffer;
-    memcpy(charBuffer, &length, STRING_LENGTH_SIZE);
-    charBuffer += STRING_LENGTH_SIZE;
-    memcpy(charBuffer, data, length);
-    return size();
-};
-
-size_t EncodedString::size()
-{
-    return length + STRING_LENGTH_SIZE;
-}
-
-bool EncodedString::readFromClient(Client *client, uint32_t *read)
-{
-    if (state == IDLE)
-    {
-        state = LENGTH;
-        if (data != NULL)
-        {
-            free(data);
-            data = NULL;
-        }
-    }
-
-    if (state == LENGTH && client->available() >= STRING_LENGTH_SIZE)
-    {
-        *read += client->read(&length, STRING_LENGTH_SIZE);
-        state = DATA;
-        if (length > 0)
-        {
-            data = (char *)malloc(length);
-            memset(data, 0, length);
-        }
-    }
-
-    if (state == DATA && client->available() >= length)
-    {
-        *read += client->read(data, length);
-        state = IDLE;
-        return false;
-    }
-
-    return true;
 }

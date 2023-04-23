@@ -38,8 +38,24 @@ Payload::Payload()
 {
 }
 
+Payload::Payload(Payload &payload)
+{
+    if (payload.data)
+    {
+        length = payload.length;
+        data = (uint8_t *)malloc(payload.length);
+        memcpy(data, payload.data, length);
+    }
+    else
+    {
+        length = 0;
+        data = NULL;
+    }
+}
+
 Payload::Payload(uint32_t length)
 {
+    this->length = length;
     data = (uint8_t *)malloc(length);
 }
 
@@ -54,6 +70,30 @@ Payload::~Payload()
     {
         free(data);
     }
+}
+
+Payload &Payload::operator=(const Payload &right)
+{
+    if (&right != this)
+    {
+        if (data)
+        {
+            free(data);
+        }
+
+        if (right.data)
+        {
+            length = right.length;
+            data = (uint8_t *)malloc(right.length);
+            memcpy(data, right.data, length);
+        }
+        else
+        {
+            length = 0;
+            data = NULL;
+        }
+    }
+    return *this;
 }
 
 uint8_t *Payload::getData()

@@ -46,32 +46,27 @@ DWordProperty::DWordProperty(PropertyCodes identifier, uint32_t value) : Propert
 {
 }
 
-size_t DWordProperty::pushDataToBuffer(void *buffer)
-{
-    size_t length = propertySize();
-    memcpy(buffer, &value, length);
-    return length;
-}
-
 size_t DWordProperty::propertySize()
 {
-    return sizeof(uint32_t);
+    return value.size();
 }
 
 bool DWordProperty::readFromClient(Client *client, uint32_t *read)
 {
-    if (client->available() < propertySize())
-    {
-        return true;
-    }
+    return value.readFromClient(client, read);
+    // if ((size_t)client->available() < propertySize())
+    // {
+    //     return true;
+    // }
 
-    *read += client->read(&value, propertySize());
-    return false;
+    // // *read += client->read(&value, propertySize());
+    // return false;
 }
 
 size_t DWordProperty::pushPropertyToClient(Client *client)
 {
-    return client->write(&value, propertySize());
+    return value.pushToClient(client);
+    // return client->write(&value, propertySize());
 }
 
 void DWordProperty::setValue(uint32_t value)

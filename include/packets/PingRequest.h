@@ -31,7 +31,7 @@
 
 #ifndef PINGREQUEST
 #define PINGREQUEST
-#include "Packet.h"
+#include "BlankPacket.h"
 
 namespace PicoMqtt
 {
@@ -40,7 +40,7 @@ namespace PicoMqtt
      * A basic packet that contains no other data other than a fixed header
      *
      */
-    class PingRequest : public Packet
+    class PingRequest : public BlankPacket
     {
 
     private:

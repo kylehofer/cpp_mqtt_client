@@ -11,7 +11,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
  * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copiessrc/packets/Connect.cpp
  * of the Software, and to permit persons to whom the Software is furnished to do
  * so, subject to the following conditions:
  *
@@ -35,13 +35,25 @@
 
 using namespace PicoMqtt;
 
-Connect::Connect() : Packet(CONNECT_ID)
+Connect::Connect() : PropertiesPacket(CONNECT_ID)
 {
+    memset(connectFlags.data, 0, CONNECT_FLAGS_SIZE);
 }
 
 size_t Connect::size()
 {
-    return 0;
+    size_t size = PROTOCOL_NAME_LENGTH + CONNECT_FLAGS_SIZE + properties.totalSize();
+
+    if (connectFlags.will)
+        size += willProperties->size();
+
+    if (connectFlags.username)
+        size += userName->size();
+
+    if (connectFlags.password)
+        size += password->size();
+
+    return size;
 }
 
 size_t Connect::pushToClient(Client *client)
@@ -51,18 +63,15 @@ size_t Connect::pushToClient(Client *client)
 
     // Variable Header
     written += client->write(PROTOCOL_NAME, PROTOCOL_NAME_LENGTH);
-    written += client->write(connectFlags.data);
+    written += client->write(connectFlags.data, CONNECT_FLAGS_SIZE);
+
     written += properties.pushToClient(client);
 
-    // Payload
-    written += clientId.pushToClient(client);
+    // Client Id
+    written += clientIdentifier.pushToClient(client);
 
     if (connectFlags.will)
-    {
         written += willProperties->pushToClient(client);
-        written += willTopic->pushToClient(client);
-        written += willPayload->pushToClient(client);
-    }
 
     if (connectFlags.username)
         written += userName->pushToClient(client);
@@ -71,4 +80,31 @@ size_t Connect::pushToClient(Client *client)
         written += password->pushToClient(client);
 
     return written;
+}
+
+void Connect::setClientId(EncodedString value)
+{
+    clientIdentifier = value;
+}
+
+void Connect::setWill(WillProperties *will)
+{
+
+    connectFlags.will = (will != NULL);
+    willProperties = will;
+}
+
+void Connect::setCleanStart(bool value)
+{
+    connectFlags.clean = value;
+}
+
+void Connect::setKeepAliveInterval(uint16_t value)
+{
+    connectFlags.keepAliveInterval = value;
+}
+
+uint16_t Connect::getKeepAliveInterval()
+{
+    return connectFlags.keepAliveInterval;
 }

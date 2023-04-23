@@ -29,6 +29,11 @@
  * HISTORY:
  */
 
+/**
+ * @brief Utility file for handling Packets
+ *
+ */
+
 #ifndef PACKETUTILITY
 #define PACKETUTILITY
 
@@ -48,49 +53,27 @@
 #include "SubscribeAcknowledge.h"
 #include "Unsubscribe.h"
 #include "UnsubscribeAcknowledge.h"
+#include "Client.h"
 
 namespace PicoMqtt
 {
+    /**
+     * @brief Attempts to read a packet from the client.
+     * Keeps a progressively running buffer of data until the entire packet is read and
+     * the packet can be processed
+     *
+     * @return Packet* The processed packet, NULL if a complete packet has not been receieved.
+     * Packet destruction must be handled by the caller
+     */
+    Packet *readPacketFromClient(Client *);
 
-    Packet *constructPacketFromId(uint8_t identifier)
-    {
-        switch (identifier & 0xF0) // Strip lower 4 bits
-        {
-        case CONNECT_ID:
-            return (Packet *)new Connect();
-        case CONNECT_ACKNOWLEDGE_ID:
-            return (Packet *)new ConnectAcknowledge();
-        case PUBLISH_ID:
-            return (Packet *)new Publish();
-        case PUBLISH_ACKNOWLEDGE_ID:
-            return (Packet *)new PublishAcknowledge();
-        case PUBLISH_RECEIVED_ID:
-            return (Packet *)new PublishReceived();
-        case PUBLISH_RELEASE_ID:
-            return (Packet *)new PublishRelease();
-        case PUBLISH_COMPLETE_ID:
-            return (Packet *)new PublishComplete();
-        case SUBSCRIBE_ID:
-            return (Packet *)new Subscribe();
-        case SUBSCRIBE_ACKNOWLEDGE_ID:
-            return (Packet *)new SubscribeAcknowledge();
-        case UNSUBSCRIBE_ID:
-            return (Packet *)new Unsubscribe();
-        case UNSUBSCRIBE_ACKNOWLEDGE_ID:
-            return (Packet *)new UnsubscribeAcknowledge();
-        case PING_REQUEST_ID:
-            return (Packet *)new PingRequest();
-        case PING_RESPONSE_ID:
-            return (Packet *)new PingResponse();
-        case DISCONNECT_ID:
-            return (Packet *)new Disconnect();
-        case AUTHENTICATION_ID:
-            return (Packet *)new Authentication();
-        default:
-            break;
-        }
-        return NULL;
-    }
+    // /**
+    //  * @brief Constructs a packet from an identifier
+    //  *
+    //  * @param identifier
+    //  * @return Packet*
+    //  */
+    // static Packet *constructPacketFromId(uint8_t identifier);
 }
 
 #endif /* PACKETUTILITY */

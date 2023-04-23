@@ -48,13 +48,8 @@ StringProperty::StringProperty(PropertyCodes identifier, EncodedString value)
 {
 }
 
-StringProperty::StringProperty(PropertyCodes identifier, const char *buffer, uint32_t size) : StringProperty(identifier, EncodedString(buffer, size))
+StringProperty::StringProperty(PropertyCodes identifier, const char *buffer, uint16_t size) : StringProperty(identifier, EncodedString(buffer, size))
 {
-}
-
-size_t StringProperty::pushDataToBuffer(void *buffer)
-{
-    return value.pushToBuffer(buffer);
 }
 
 size_t StringProperty::propertySize()

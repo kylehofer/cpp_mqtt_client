@@ -17,10 +17,11 @@ struct WordValueTestSet
     size_t encodedSize;
 };
 
+/* Must be in Big Endian format for MQTT 5 */
 const uint8_t NONE_BUFFER[] = {0x0, 0x0};
-const uint8_t ONE_MIN_BUFFER[] = {0x7F, 0x0};
-const uint8_t ONE_MAX_BUFFER[] = {0xFF, 0x0};
-const uint8_t TWO_MIN_BUFFER[] = {0x7F, 0xFF};
+const uint8_t ONE_MIN_BUFFER[] = {0x0, 0x7F};
+const uint8_t ONE_MAX_BUFFER[] = {0x0, 0xFF};
+const uint8_t TWO_MIN_BUFFER[] = {0xFF, 0x7F};
 const uint8_t TWO_MAX_BUFFER[] = {0xFF, 0xFF};
 
 static std::vector<WordValueTestSet> testData{

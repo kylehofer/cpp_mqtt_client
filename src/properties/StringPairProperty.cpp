@@ -58,11 +58,6 @@ StringPairProperty::StringPairProperty(PropertyCodes identifier, EncodedString k
     state = IDLE;
 }
 
-size_t StringPairProperty::pushDataToBuffer(void *buffer)
-{
-    return key.pushToBuffer(buffer) + value.pushToBuffer(buffer);
-}
-
 size_t StringPairProperty::propertySize()
 {
     return key.size() + value.size();
@@ -99,7 +94,7 @@ void StringPairProperty::setKey(EncodedString key)
     this->key = key;
 }
 
-EncodedString StringPairProperty::getKey()
+EncodedString &StringPairProperty::getKey()
 {
 
     return key;
@@ -110,7 +105,7 @@ void StringPairProperty::setValue(EncodedString value)
     this->value = value;
 }
 
-EncodedString StringPairProperty::getValue()
+EncodedString &StringPairProperty::getValue()
 {
     return value;
 }

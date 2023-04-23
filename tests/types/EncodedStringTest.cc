@@ -12,9 +12,10 @@ using namespace std;
 struct EncodedTestSet
 {
     const char *input;
-    uint32_t inputSize;
+    uint16_t inputSize;
     const char *expected;
-    uint32_t expectedSize;
+    uint16_t expectedSize;
+    uint8_t sizeRaw[2];
 };
 
 using namespace PicoMqtt;
@@ -23,18 +24,18 @@ class EncodedStringTest : public ::testing::TestWithParam<EncodedTestSet>
 {
 };
 
-#define LENGTH_SIZE sizeof(uint32_t)
+#define LENGTH_SIZE sizeof(uint16_t)
 
 TEST(EncodedStringTest, EncodeDecode)
 {
     vector<EncodedTestSet> encodedTestSet{
 
-        {"This is 16 Char", 16, "This is 16 Char", 16},
-        {"four", 5, "four", 4},
-        {"two", 4, "tw", 2},
-        {"Long sentence with small", 25, "Long sente", 10},
-        {"", 1, "", 0},
-        {"should be ignored", 18, "", 0},
+        {"This is 16 Char", 16, "This is 16 Char", 16, {0x0, 0x10}},
+        {"four", 5, "four", 4, {0x0, 0x4}},
+        {"two", 4, "tw", 2, {0x0, 0x2}},
+        {"Long sentence with small", 25, "Long sente", 10, {0x0, 0xA}},
+        {"", 1, "", 0, {0x0, 0x0}},
+        {"should be ignored", 18, "", 0, {0x0, 0x0}},
     };
 
     for (auto &testData : encodedTestSet)
@@ -53,7 +54,7 @@ TEST(EncodedStringTest, EncodeDecode)
         char *readBuffer = client.getReadBuffer();
         char *writeBuffer = client.getWriteBuffer();
 
-        memcpy(readBuffer, &testData.expectedSize, LENGTH_SIZE);
+        memcpy(readBuffer, testData.sizeRaw, LENGTH_SIZE);
         memcpy(readBuffer + LENGTH_SIZE, testData.input, stringSize);
 
         decodedString.readFromClient(clientPtr, &bytesRead);
@@ -86,26 +87,17 @@ TEST(EncodedStringTest, PartialDecoding)
 
     Client *clientPtr = (Client *)&client;
 
-    uint8_t byte = LARGE_SIZE;
+    // Push using Big Endian ordering
+    uint8_t byte = 0;
 
     client.pushToReadBuffer(&byte, 1);
 
     decodedString.readFromClient(clientPtr, &bytesRead);
 
-    EXPECT_EQ(decodedString.size(), 4);
+    EXPECT_EQ(decodedString.size(), 2);
     EXPECT_EQ(decodedString.data, nullptr);
 
-    byte = 0;
-
-    client.pushToReadBuffer(&byte, 1);
-
-    EXPECT_EQ(decodedString.size(), LENGTH_SIZE);
-    EXPECT_EQ(decodedString.data, nullptr);
-
-    client.pushToReadBuffer(&byte, 1);
-
-    EXPECT_EQ(decodedString.size(), LENGTH_SIZE);
-    EXPECT_EQ(decodedString.data, nullptr);
+    byte = LARGE_SIZE;
 
     client.pushToReadBuffer(&byte, 1);
 
@@ -114,12 +106,12 @@ TEST(EncodedStringTest, PartialDecoding)
 
     decodedString.readFromClient(clientPtr, &bytesRead);
 
-    EXPECT_EQ(decodedString.size(), 53);
+    EXPECT_EQ(decodedString.size(), 51);
     EXPECT_NE(decodedString.data, nullptr);
 
     decodedString.readFromClient(clientPtr, &bytesRead);
 
-    ASSERT_EQ(decodedString.size(), 53);
+    ASSERT_EQ(decodedString.size(), 51);
     EXPECT_NE(decodedString.data, nullptr);
 
     for (size_t i = 0; i < LARGE_SIZE; i++)
@@ -131,7 +123,7 @@ TEST(EncodedStringTest, PartialDecoding)
 
     decodedString.readFromClient(clientPtr, &bytesRead);
 
-    ASSERT_EQ(decodedString.size(), 53);
+    ASSERT_EQ(decodedString.size(), 51);
     ASSERT_NE(decodedString.data, nullptr);
 
     for (size_t i = 0; i < LARGE_SIZE; i++)
@@ -143,14 +135,14 @@ TEST(EncodedStringTest, PartialDecoding)
 
     decodedString.readFromClient(clientPtr, &bytesRead);
 
-    ASSERT_EQ(decodedString.size(), 53);
+    ASSERT_EQ(decodedString.size(), 51);
     ASSERT_NE(decodedString.data, nullptr);
 
     const char *testValue = "A fairly large string but not large enough, but thi";
 
     for (size_t i = 0; i < LARGE_SIZE; i++)
     {
-        ASSERT_EQ(decodedString.data[i], testValue[i]);
+        ASSERT_EQ(decodedString.data[i], testValue[i]) << "at position " << i;
     }
 }
 

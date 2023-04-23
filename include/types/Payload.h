@@ -44,7 +44,7 @@ namespace PicoMqtt
     class Payload : ClientInteractor
     {
     private:
-        uint8_t *data;
+        uint8_t *data = NULL;
         uint32_t length = 0;
         uint32_t bytesRead = 0;
 
@@ -53,13 +53,30 @@ namespace PicoMqtt
         Payload();
         Payload(uint32_t length);
         Payload(void *data, uint32_t length);
+        Payload(Payload &payload);
         ~Payload();
 
+        Payload &operator=(const Payload &right);
+
         uint8_t *getData();
+        void setData(void *data, uint32_t length);
         size_t size();
-        size_t pushToClient(Client *);
-        size_t pushToBuffer(void *) { return 0; };
-        bool readFromClient(Client *, uint32_t *);
+        /**
+         * @brief Pushes the contents of the Payload to a communications client
+         *
+         * @param client The client to push data to
+         * @return size_t The amount of bytes written
+         */
+        virtual size_t pushToClient(Client *client) override;
+        /**
+         * @brief Reads data from a client which will then be used to fill in the Payload
+         *
+         * @param client The client to read data from
+         * @param read The amount of bytes read
+         * @return true If more data is required from the client
+         * @return false If the class has finished reading data from the client
+         */
+        virtual bool readFromClient(Client *client, uint32_t *read) override;
     };
 }
 #endif /* PAYLOAD */
