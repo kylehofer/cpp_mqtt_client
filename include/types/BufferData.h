@@ -33,7 +33,7 @@
 #define BUFFERDATA
 
 #include "ClientInteractor.h"
-#include "types/EndianLength.h"
+#include "types/BigEndianInt.h"
 
 namespace PicoMqtt
 {
@@ -46,7 +46,7 @@ namespace PicoMqtt
         uint16_t state;
 
     public:
-        IntWriter<uint16_t> length = 0;
+        BigEndianInt<uint16_t> length = 0;
         char *data = NULL;
         BufferData();
         BufferData(const char *, uint16_t);
@@ -73,7 +73,7 @@ namespace PicoMqtt
          * @return true If more data is required from the client
          * @return false If the class has finished reading data from the client
          */
-        virtual bool readFromClient(Client *client, uint32_t *read) override;
+        virtual bool readFromClient(Client *client, uint32_t &read) override;
     };
 
 }

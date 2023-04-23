@@ -51,14 +51,14 @@ size_t WordProperty::propertySize()
     return value.size();
 }
 
-bool WordProperty::readFromClient(Client *client, uint32_t *read)
+bool WordProperty::readFromClient(Client *client, uint32_t &read)
 {
     // if ((size_t)client->available() < propertySize())
     // {
     //     return true;
     // }
     // value.readFromClient(client, read);
-    // // *read += client->read(&value, propertySize());
+    // // read += client->read(&value, propertySize());
     // return false;
     return value.readFromClient(client, read);
 }

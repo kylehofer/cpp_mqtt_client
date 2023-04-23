@@ -75,7 +75,7 @@ TYPED_TEST_P(BytePropertyTest, Decode)
 
         client.pushToReadBuffer(&data.encoded, 1);
 
-        byteProperty->readFromClient(clientPtr, &bytesRead);
+        byteProperty->readFromClient(clientPtr, bytesRead);
 
         ASSERT_EQ(bytesRead, 1);
 

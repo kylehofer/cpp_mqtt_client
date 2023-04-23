@@ -85,7 +85,7 @@ namespace PicoMqtt
          * @return size_t The amount of bytes written
          */
         virtual size_t pushToClient(Client *client) override;
-        bool readFromClient(Client *, uint32_t *) { return false; };
+        bool readFromClient(Client *, uint32_t &) { return false; };
 
         // Properties
         void sessionExpiryInterval(uint32_t value);

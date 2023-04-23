@@ -87,7 +87,7 @@ TEST(PropertiesTest, Decode)
 
         ASSERT_EQ(properties.length(), 0);
 
-        properties.readFromClient(clientPtr, &bytesRead);
+        properties.readFromClient(clientPtr, bytesRead);
 
         ASSERT_EQ(properties.length(), 27);
     }

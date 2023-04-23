@@ -69,7 +69,7 @@ QoS Publish::getQos()
     return QoS::ZERO;
 }
 
-bool Publish::readFromClient(Client *client, uint32_t *bytes)
+bool Publish::readFromClient(Client *client, uint32_t &bytes)
 {
     uint32_t start = getRemainingLength();
 
@@ -85,7 +85,7 @@ bool Publish::readFromClient(Client *client, uint32_t *bytes)
         switch (state)
         {
         case VARIABLE_HEADER_TOPIC:
-            if (!topic.readFromClient(client, &read))
+            if (!topic.readFromClient(client, read))
             {
                 state = (getQos() != QoS::ZERO) ? VARIABLE_HEADER_IDENTIFIER : VARIABLE_HEADER_PROPERTIES;
             }
@@ -98,13 +98,13 @@ bool Publish::readFromClient(Client *client, uint32_t *bytes)
             }
             break;
         case VARIABLE_HEADER_PROPERTIES:
-            if (!properties.readFromClient(client, &read))
+            if (!properties.readFromClient(client, read))
             {
                 state = VARIABLE_HEADER_PAYLOAD;
             }
             break;
         case VARIABLE_HEADER_PAYLOAD:
-            if (!payload.readFromClient(client, &read))
+            if (!payload.readFromClient(client, read))
             {
                 state = COMPLETE;
             }
@@ -116,7 +116,7 @@ bool Publish::readFromClient(Client *client, uint32_t *bytes)
         readBytes(read);
     }
 
-    *bytes += getRemainingLength() - start;
+    bytes += getRemainingLength() - start;
 
     return state == COMPLETE;
 }

@@ -57,7 +57,7 @@ TEST(EncodedStringTest, EncodeDecode)
         memcpy(readBuffer, testData.sizeRaw, LENGTH_SIZE);
         memcpy(readBuffer + LENGTH_SIZE, testData.input, stringSize);
 
-        decodedString.readFromClient(clientPtr, &bytesRead);
+        decodedString.readFromClient(clientPtr, bytesRead);
 
         ASSERT_EQ(decodedString.size(), testData.expectedSize + LENGTH_SIZE);
 
@@ -92,7 +92,7 @@ TEST(EncodedStringTest, PartialDecoding)
 
     client.pushToReadBuffer(&byte, 1);
 
-    decodedString.readFromClient(clientPtr, &bytesRead);
+    decodedString.readFromClient(clientPtr, bytesRead);
 
     EXPECT_EQ(decodedString.size(), 2);
     EXPECT_EQ(decodedString.data, nullptr);
@@ -104,12 +104,12 @@ TEST(EncodedStringTest, PartialDecoding)
     EXPECT_EQ(decodedString.size(), LENGTH_SIZE);
     EXPECT_EQ(decodedString.data, nullptr);
 
-    decodedString.readFromClient(clientPtr, &bytesRead);
+    decodedString.readFromClient(clientPtr, bytesRead);
 
     EXPECT_EQ(decodedString.size(), 51);
     EXPECT_NE(decodedString.data, nullptr);
 
-    decodedString.readFromClient(clientPtr, &bytesRead);
+    decodedString.readFromClient(clientPtr, bytesRead);
 
     ASSERT_EQ(decodedString.size(), 51);
     EXPECT_NE(decodedString.data, nullptr);
@@ -121,7 +121,7 @@ TEST(EncodedStringTest, PartialDecoding)
 
     client.pushToReadBuffer((void *)"A fairly large string but not large enough", 42);
 
-    decodedString.readFromClient(clientPtr, &bytesRead);
+    decodedString.readFromClient(clientPtr, bytesRead);
 
     ASSERT_EQ(decodedString.size(), 51);
     ASSERT_NE(decodedString.data, nullptr);
@@ -133,7 +133,7 @@ TEST(EncodedStringTest, PartialDecoding)
 
     client.pushToReadBuffer((void *)", but this should finish off the string", 40);
 
-    decodedString.readFromClient(clientPtr, &bytesRead);
+    decodedString.readFromClient(clientPtr, bytesRead);
 
     ASSERT_EQ(decodedString.size(), 51);
     ASSERT_NE(decodedString.data, nullptr);

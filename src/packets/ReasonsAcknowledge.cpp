@@ -41,7 +41,7 @@ size_t ReasonsAcknowledge::pushToClient([[maybe_unused]] Client *client)
     return 0;
 }
 
-bool ReasonsAcknowledge::readFromClient(Client *client, uint32_t *bytes)
+bool ReasonsAcknowledge::readFromClient(Client *client, uint32_t &bytes)
 {
     if (!Acknowledge::readFromClient(client, bytes))
     {
@@ -59,7 +59,7 @@ bool ReasonsAcknowledge::readFromClient(Client *client, uint32_t *bytes)
             readBytes(read);
         }
 
-        *bytes += getRemainingLength() - start;
+        bytes += getRemainingLength() - start;
     }
 
     return dataRemaining();

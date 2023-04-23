@@ -71,7 +71,7 @@ size_t Subscription::pushToClient(Client *client)
     return written;
 }
 
-bool Subscription::readFromClient([[maybe_unused]] Client *client, [[maybe_unused]] uint32_t *bytes)
+bool Subscription::readFromClient([[maybe_unused]] Client *client, [[maybe_unused]] uint32_t &bytes)
 {
     // Not Used
     return false;

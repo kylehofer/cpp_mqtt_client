@@ -93,7 +93,7 @@ void Properties::addProperty(Property *property)
     properties.push_back(property);
 }
 
-bool Properties::readFromClient(Client *client, uint32_t *read)
+bool Properties::readFromClient(Client *client, uint32_t &read)
 {
     static VariableByteInteger propertiesLength;
     static VariableByteInteger propertyIdentifier;
@@ -107,7 +107,7 @@ bool Properties::readFromClient(Client *client, uint32_t *read)
         case PropertiesReadState::LENGTH:
             while (client->available() > 0)
             {
-                if (!propertiesLength.readFromClient(client, &bytesRead))
+                if (!propertiesLength.readFromClient(client, bytesRead))
                 {
                     bytesRead = 0;
                     state = PropertiesReadState::IDENTIFIER;
@@ -118,7 +118,7 @@ bool Properties::readFromClient(Client *client, uint32_t *read)
         case PropertiesReadState::IDENTIFIER:
             while (client->available() > 0)
             {
-                if (!propertyIdentifier.readFromClient(client, &bytesRead))
+                if (!propertyIdentifier.readFromClient(client, bytesRead))
                 {
                     state = PropertiesReadState::PROPERTY_VALUE;
                     property = constructPropertyFromId(static_cast<PropertyCodes>(propertyIdentifier.value));
@@ -127,7 +127,7 @@ bool Properties::readFromClient(Client *client, uint32_t *read)
             }
             break;
         case PropertiesReadState::PROPERTY_VALUE:
-            if (!property->readFromClient(client, &bytesRead))
+            if (!property->readFromClient(client, bytesRead))
             {
                 addProperty(property);
                 propertyIdentifier.value = 0;

@@ -50,14 +50,14 @@ size_t ByteProperty::propertySize()
     return sizeof(uint8_t);
 }
 
-bool ByteProperty::readFromClient(Client *client, uint32_t *read)
+bool ByteProperty::readFromClient(Client *client, uint32_t &read)
 {
     if (client->available() < 1)
     {
         return true;
     }
 
-    *read += client->read(&value, 1);
+    read += client->read(&value, 1);
     return false;
 }
 

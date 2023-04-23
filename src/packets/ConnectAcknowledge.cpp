@@ -48,7 +48,7 @@ ConnectAcknowledge::ConnectAcknowledge() : PropertiesPacket(CONNECT_ACKNOWLEDGE_
     header.data = 0;
 }
 
-bool ConnectAcknowledge::readFromClient(Client *client, uint32_t *bytes)
+bool ConnectAcknowledge::readFromClient(Client *client, uint32_t &bytes)
 {
     uint32_t start = getRemainingLength();
 
@@ -71,7 +71,7 @@ bool ConnectAcknowledge::readFromClient(Client *client, uint32_t *bytes)
             }
             break;
         case VARIABLE_HEADER_PROPERTIES:
-            if (!properties.readFromClient(client, &bytes))
+            if (!properties.readFromClient(client, bytes))
             {
                 state = COMPLETE;
             }
@@ -82,7 +82,7 @@ bool ConnectAcknowledge::readFromClient(Client *client, uint32_t *bytes)
         readBytes(bytes);
     }
 
-    *bytes += getRemainingLength() - start;
+    bytes += getRemainingLength() - start;
 
     return state != COMPLETE;
 }

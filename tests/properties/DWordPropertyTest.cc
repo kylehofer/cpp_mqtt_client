@@ -98,7 +98,7 @@ TYPED_TEST_P(DWordPropertyTest, Decode)
         readBuffer = client.getReadBuffer();
         memcpy(readBuffer, data.encoded, data.encodedSize);
 
-        dWordProperty->readFromClient(clientPtr, &dWordsRead);
+        dWordProperty->readFromClient(clientPtr, dWordsRead);
 
         ASSERT_EQ(dWordsRead, data.encodedSize);
 

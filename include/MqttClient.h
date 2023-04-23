@@ -32,173 +32,6 @@
 #ifndef MQTTCLIENT
 #define MQTTCLIENT
 
-#define IDLE 0x0
-#define CLIENT_CONNECTING 0x1
-#define SSL_IN_PROGRESS 0x2
-#define WAIT_FOR_CONNACK 0x4
-#define DISCONNECTED -2
-
-// typedef struct
-// {
-//     /** The eyecatcher for this structure.  must be MQTC. */
-//     char struct_id[4];
-//     /** The version number of this structure.  Must be 0, 1, 2, 3, 4, 5, 6, 7 or 8.
-//      * 0 signifies no SSL options and no serverURIs
-//      * 1 signifies no serverURIs
-//      * 2 signifies no MQTTVersion
-//      * 3 signifies no returned values
-//      * 4 signifies no binary password option
-//      * 5 signifies no maxInflightMessages and cleanstart
-//      * 6 signifies no HTTP headers option
-//      * 7 signifies no HTTP proxy and HTTPS proxy options
-//      */
-//     int struct_version;
-//     /** The "keep alive" interval, measured in seconds, defines the maximum time
-//      * that should pass without communication between the client and the server
-//      * The client will ensure that at least one message travels across the
-//      * network within each keep alive period.  In the absence of a data-related
-//      * message during the time period, the client sends a very small MQTT
-//      * "ping" message, which the server will acknowledge. The keep alive
-//      * interval enables the client to detect when the server is no longer
-//      * available without having to wait for the long TCP/IP timeout.
-//      */
-//     int keepAliveInterval;
-//     /**
-//      * This is a boolean value. The cleansession setting controls the behaviour
-//      * of both the client and the server at connection and disconnection time.
-//      * The client and server both maintain session state information. This
-//      * information is used to ensure "at least once" and "exactly once"
-//      * delivery, and "exactly once" receipt of messages. Session state also
-//      * includes subscriptions created by an MQTT client. You can choose to
-//      * maintain or discard state information between sessions.
-//      *
-//      * When cleansession is true, the state information is discarded at
-//      * connect and disconnect. Setting cleansession to false keeps the state
-//      * information. When you connect an MQTT client application with
-//      * MQTTClient_connect(), the client identifies the connection using the
-//      * client identifier and the address of the server. The server checks
-//      * whether session information for this client
-//      * has been saved from a previous connection to the server. If a previous
-//      * session still exists, and cleansession=true, then the previous session
-//      * information at the client and server is cleared. If cleansession=false,
-//      * the previous session is resumed. If no previous session exists, a new    uint32_t sessionExpiryInterval;
-// uint16_t receiveMaximum;
-// uint32_t maximumPacketSize;
-// uint16_t topicAliasMaximum;
-//      * session is started.
-//      */
-//     int cleansession;
-//     /**
-//      * This is a boolean value that controls how many messages can be in-flight
-//      * simultaneously. Setting <i>reliable</i> to true means that a published
-//      * message must be completed (acknowledgements received) before another
-//      * can be sent. Attempts to publish additional messages receive an
-//      * ::MQTTCLIENT_MAX_MESSAGES_INFLIGHT return code. Setting this flag to
-//      * false allows up to 10 messages to be in-flight. This can increase
-//      * overall throughput in some circumstances.
-//      */
-//     int reliable;
-//     /**
-//      * MQTT servers that support the MQTT v3.1.1 protocol provide authentication
-//      * and authorisation by user name and password. This is the user name
-//      * parameter.
-//      */
-//     const char *username;
-//     /**
-//      * MQTT servers that support the MQTT v3.1.1 protocol provide authentication
-//      * and authorisation by user name and password. This is the password
-//      * parameter.
-//      */
-//     const char *password;
-//     /**
-//      * The time interval in seconds to allow a connect to complete.
-//      */
-//     int connectTimeout;
-//     /**
-//      * The time interval in seconds after which unacknowledged publish requests are
-//      * retried during a TCP session.  With MQTT 3.1.1 and later, retries are
-//      * not required except on reconnect.  0 turns off in-session retries, and is the
-//      * recommended setting.  Adding retries to an already overloaded network only
-//      * exacerbates the problem.
-//      */
-//     int retryInterval;
-//     /**
-//      * This is a pointer to an MQTTClient_SSLOptions structure. If your
-//      * application does not make use of SSL, set this pointer to NULL.
-//      */
-//     MQTTClient_SSLOptions *ssl;
-//     /**
-//      * The number of entries in the optional serverURIs array. Defaults to 0.
-//      */
-//     int serverURIcount;
-//     /**
-//      * An optional array of null-terminated strings specifying the servers to
-//      * which the client will connect. Each string takes the form <i>protocol://host:port</i>.
-//      * <i>protocol</i> must be <i>tcp</i>, <i>ssl</i>, <i>ws</i> or <i>wss</i>.
-//      * The TLS enabled prefixes (ssl, wss) are only valid if a TLS version of the library
-//      * is linked with.
-//      * For <i>host</i>, you can
-//      * specify either an IP address or a host name. For instance, to connect to
-//      * a server running on the local machines with the default MQTT port, specify
-//      * <i>tcp://localhost:1883</i>.
-//      * If this list is empty (the default), the server URI specified on MQTTClient_create()
-//      * is used.
-//      */
-//     char *const *serverURIs;
-//     /**
-//      * Sets the version of MQTT to be used on the connect.
-//      * MQTTVERSION_DEFAULT (0) = default: start with 3.1.1, and if that fails, fall back to 3.1
-//      * MQTTVERSION_3_1 (3) = only try version 3.1
-//      * MQTTVERSION_3_1_1 (4) = only try version 3.1.1
-//      * MQTTVERSION_5 (5) = only try version 5.0
-//      */
-//     int MQTTVersion;
-//     /**
-//      * Returned from the connect when the MQTT version used to connect is 3.1.1
-//      */
-//     struct
-//     {
-//         const char *serverURI; /**< the serverURI connected to */
-//         int MQTTVersion;       /**< the MQTT version used to connect with */
-//         int sessionPresent;    /**< if the MQTT version is 3.1.1, the value of sessionPresent returned in the connack */
-//     } returned;
-//     /**
-//      * Optional binary password.  Only checked and used if the password option is NULL
-//      */
-//     struct
-//     {
-//         int len;          /**< binary password length */
-//         const void *data; /**< binary password data */
-//     } binarypwd;
-//     /**
-//      * The maximum number of messages in flight
-//      */
-//     int maxInflightMessages;
-//     /*
-//      * MQTT V5 clean start flag.  Only clears state at the beginning of the session.
-//      */
-//     int cleanstart;
-//     /**
-//      * HTTP headers for websockets
-//      */
-//     const MQTTClient_nameValue *httpHeaders;
-//     /**
-//      * HTTP proxy
-//      */
-//     const char *httpProxy;
-//     /**
-//      * HTTPS proxy
-//      */
-//     const char *httpsProxy;
-
-//     const char *address;
-//     int port;
-//     const char *uri;
-//     int connectTimeout;
-//     bool reliable;
-
-// } ConnectOptions;
-
 #include "properties/WillProperties.h"
 #include "types/SubscriptionPayload.h"
 #include "types/Payload.h"
@@ -207,7 +40,6 @@
 #include "packets/Packet.h"
 #include "packets/ConnectAcknowledge.h"
 #include "packets/Disconnect.h"
-#include <tuple>
 #include <functional>
 #include <map>
 #include "Client.h"
@@ -260,6 +92,11 @@ namespace PicoMqtt
         vector<uint16_t> clientTokens;
         vector<uint16_t> serverTokens;
 
+        /**
+         * @brief Attempts to read the next MQTT Packet
+         *
+         * @return Packet* The packet read. Returns NULL if a complete packet has not been read
+         */
         Packet *readNextPacket();
         void ping();
         void pingResponse();
@@ -273,10 +110,35 @@ namespace PicoMqtt
         void onPublishRelease(PublishRelease *packet);
         void onPublishComplete(PublishComplete *packet);
 
+        /**
+         * @brief Whether the client has the token in its list of active tokens
+         *
+         * @param token
+         * @return true
+         * @return false
+         */
         bool hasClientToken(uint16_t token);
+        /**
+         * @brief Removes a token from the list of active tokens
+         *
+         * @param token
+         */
         void removeClientToken(uint16_t token);
 
+        /**
+         * @brief Get the next unique packet identifier
+         * Also known as a packet token
+         *
+         * @return uint16_t
+         */
+        uint16_t getPacketIdentifier();
+
     protected:
+        /**
+         * @brief Return the elapsed time since the last call
+         *
+         * @return uint32_t elapsed time in milliseconds
+         */
         uint32_t getElapsed();
 
     public:
@@ -296,7 +158,13 @@ namespace PicoMqtt
         bool connected();
 
         /* Utilities */
-        uint16_t getPacketIdentifier();
+        /**
+         * @brief Whether a token has been delivered
+         *
+         * @param token
+         * @return true
+         * @return false
+         */
         bool isDelivered(uint16_t token);
 
         /* Client properties Getters/Setters */
@@ -320,6 +188,14 @@ namespace PicoMqtt
         void setPassword(EncodedString value);
 
         /* Publish Actions */
+        /**
+         * @brief Publish a payload over MQTT
+         *
+         * @param topic The topic to publish the payload with
+         * @param payload The payload to publish
+         * @param qos The QOS of the payload to publish
+         * @return uint16_t The unique token used to identify a publish packet
+         */
         uint16_t publish(EncodedString &topic, Payload &payload, QoS qos);
 
         /* Subscribe Actions */
