@@ -68,7 +68,7 @@ namespace PicoMqtt
                 // TODO: Malformed packet check
                 break;
             case ReadState::PACKET_LENGTH:
-                if (!length.readFromClient(client, &read))
+                if (!length.readFromClient(client, read))
                 {
                     // TODO: Max Packet length check
                     state = ReadState::PACKET_CONTENTS;
@@ -76,7 +76,7 @@ namespace PicoMqtt
                 }
                 break;
             case ReadState::PACKET_CONTENTS:
-                if (!packet->readFromClient(client, &read))
+                if (!packet->readFromClient(client, read))
                 {
                     state = ReadState::IDENTIFIER_FLAGS;
                     length = 0;

@@ -68,7 +68,7 @@ namespace PicoMqtt
          * @return true If more data is required from the client
          * @return false If the class has finished reading data from the client
          */
-        virtual bool readFromClient(Client *client, uint32_t *read) override;
+        virtual bool readFromClient(Client *client, uint32_t &read) override;
         bool addByte(uint8_t byte);
 
         VariableByteInteger &operator=(const uint32_t);

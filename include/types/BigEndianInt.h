@@ -1,5 +1,5 @@
 /*
- * File: EndianLength.h
+ * File: BigEndianInt.h
  * Project: cpp_mqtt_client
  * Created Date: Saturday April 22nd 2023
  * Author: Kyle Hofer
@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef ENDIANLENGTH
-#define ENDIANLENGTH
+#ifndef BIGENDIANINT
+#define BIGENDIANINT
 
 #include <stdint.h>
 #include "Client.h"
@@ -44,7 +44,7 @@ namespace PicoMqtt
      * @tparam T int type
      */
     template <class T>
-    class IntWriter : ClientInteractor
+    class BigEndianInt : ClientInteractor
     {
     private:
         //
@@ -55,21 +55,21 @@ namespace PicoMqtt
         };
 
     public:
-        IntWriter(){};
+        BigEndianInt(){};
         /**
          * @brief Constructor so this class can be initialized with the base integer type
          *
          * @param value
          */
-        IntWriter(T value) : value(value){};
+        BigEndianInt(T value) : value(value){};
 
         /**
          * @brief Operator so this class can be treated as the base integer type with assignments
          *
          * @param right
-         * @return IntWriter&
+         * @return BigEndianInt&
          */
-        IntWriter &operator=(const T right)
+        BigEndianInt &operator=(const T right)
         {
             this->value = right;
             return *this;
@@ -93,7 +93,7 @@ namespace PicoMqtt
          * @return true
          * @return false
          */
-        bool readFromClient(Client *client, uint32_t *read)
+        bool readFromClient(Client *client, uint32_t &read)
         {
             if (client->available() >= size())
             {
@@ -106,7 +106,7 @@ namespace PicoMqtt
                 }
 #endif
 
-                *read += size();
+                read += size();
                 return false;
             }
             return true;
@@ -144,4 +144,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* ENDIANLENGTH */
+#endif /* BIGENDIANINT */

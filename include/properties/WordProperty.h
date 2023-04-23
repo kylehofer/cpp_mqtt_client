@@ -35,7 +35,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "properties/Property.h"
-#include "types/EndianLength.h"
+#include "types/BigEndianInt.h"
 
 namespace PicoMqtt
 {
@@ -46,7 +46,7 @@ namespace PicoMqtt
     class WordProperty : public Property
     {
     private:
-        IntWriter<uint16_t> value;
+        BigEndianInt<uint16_t> value;
 
     protected:
         /**
@@ -75,7 +75,7 @@ namespace PicoMqtt
          * @return true If more data is required from the client
          * @return false If the class has finished reading data from the client
          */
-        virtual bool readFromClient(Client *client, uint32_t *read) override;
+        virtual bool readFromClient(Client *client, uint32_t &read) override;
         /**
          * @brief Set the Value of the property
          *

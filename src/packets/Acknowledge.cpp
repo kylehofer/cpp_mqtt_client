@@ -78,7 +78,7 @@ size_t Acknowledge::pushToClient(Client *client)
     return written;
 }
 
-bool Acknowledge::readFromClient(Client *client, uint32_t *bytes)
+bool Acknowledge::readFromClient(Client *client, uint32_t &bytes)
 {
     uint32_t start = getRemainingLength();
 
@@ -110,7 +110,7 @@ bool Acknowledge::readFromClient(Client *client, uint32_t *bytes)
             break;
         case PROPERTIES:
 
-            if (!properties.readFromClient(client, &read))
+            if (!properties.readFromClient(client, read))
             {
                 state = COMPLETE;
             }
@@ -121,7 +121,7 @@ bool Acknowledge::readFromClient(Client *client, uint32_t *bytes)
         readBytes(read);
     }
 
-    *bytes += getRemainingLength() - start;
+    bytes += getRemainingLength() - start;
 
     if (!dataRemaining())
     {

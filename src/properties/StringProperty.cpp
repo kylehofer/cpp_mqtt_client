@@ -57,7 +57,7 @@ size_t StringProperty::propertySize()
     return value.size();
 }
 
-bool StringProperty::readFromClient(Client *client, uint32_t *read)
+bool StringProperty::readFromClient(Client *client, uint32_t &read)
 {
     return value.readFromClient(client, read);
 }

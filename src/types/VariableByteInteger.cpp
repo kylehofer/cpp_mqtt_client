@@ -124,12 +124,12 @@ bool VariableByteInteger::addByte(uint8_t byte)
     return true;
 }
 
-bool VariableByteInteger::readFromClient(Client *client, uint32_t *read)
+bool VariableByteInteger::readFromClient(Client *client, uint32_t &read)
 {
     while (client->available() > 0)
     {
         uint8_t byte;
-        *read += client->read(&byte, 1);
+        read += client->read(&byte, 1);
         if (!addByte(byte))
         {
             return false;

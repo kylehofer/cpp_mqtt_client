@@ -111,7 +111,7 @@ size_t Payload::pushToClient(Client *client)
     return client->write(data, length);
 }
 
-bool Payload::readFromClient(Client *client, uint32_t *bytes)
+bool Payload::readFromClient(Client *client, uint32_t &bytes)
 {
     while (client->available() > 0 && bytesRead < length)
     {
@@ -119,7 +119,7 @@ bool Payload::readFromClient(Client *client, uint32_t *bytes)
         client->read(data + bytesRead, toRead);
 
         bytesRead += toRead;
-        *bytes += toRead;
+        bytes += toRead;
     }
     return bytesRead < length;
 }

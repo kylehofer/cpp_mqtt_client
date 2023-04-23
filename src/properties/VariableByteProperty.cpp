@@ -52,7 +52,7 @@ size_t VariableByteProperty::propertySize()
     return value.size();
 }
 
-bool VariableByteProperty::readFromClient(Client *client, uint32_t *read)
+bool VariableByteProperty::readFromClient(Client *client, uint32_t &read)
 {
     return value.readFromClient(client, read);
 }

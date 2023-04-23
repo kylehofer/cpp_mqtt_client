@@ -139,7 +139,7 @@ size_t BufferData::size()
     return length + STRING_LENGTH_SIZE;
 }
 
-bool BufferData::readFromClient(Client *client, uint32_t *read)
+bool BufferData::readFromClient(Client *client, uint32_t &read)
 {
     if (state == IDLE)
     {
@@ -153,7 +153,7 @@ bool BufferData::readFromClient(Client *client, uint32_t *read)
 
     if (state == LENGTH && (size_t)client->available() >= STRING_LENGTH_SIZE)
     {
-        // *read += client->read(&length, STRING_LENGTH_SIZE);
+        // read += client->read(&length, STRING_LENGTH_SIZE);
         length.readFromClient(client, read);
         state = DATA;
         if (length > 0)
@@ -165,7 +165,7 @@ bool BufferData::readFromClient(Client *client, uint32_t *read)
 
     if (state == DATA && (size_t)client->available() >= length)
     {
-        *read += client->read(data, length);
+        read += client->read(data, length);
         state = IDLE;
         return false;
     }

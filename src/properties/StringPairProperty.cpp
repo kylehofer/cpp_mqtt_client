@@ -63,7 +63,7 @@ size_t StringPairProperty::propertySize()
     return key.size() + value.size();
 }
 
-bool StringPairProperty::readFromClient(Client *client, uint32_t *read)
+bool StringPairProperty::readFromClient(Client *client, uint32_t &read)
 {
     if (state == IDLE)
     {

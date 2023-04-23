@@ -72,7 +72,7 @@ namespace PicoMqtt
          * @return true If more data is required from the client
          * @return false If the class has finished reading data from the client
          */
-        virtual bool readFromClient(Client *client, uint32_t *read) override;
+        virtual bool readFromClient(Client *client, uint32_t &read) override;
         EncodedString &getTopic();
         void setTopic(const char *data, uint32_t length);
         void setTopic(EncodedString value);

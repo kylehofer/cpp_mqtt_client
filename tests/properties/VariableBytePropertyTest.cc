@@ -98,7 +98,7 @@ TYPED_TEST_P(VariableBytePropertyTest, Decode)
 
         client.pushToReadBuffer((void *)data.encoded, data.encodedSize);
 
-        variableByteProperty->readFromClient(clientPtr, &variableBytesRead);
+        variableByteProperty->readFromClient(clientPtr, variableBytesRead);
 
         ASSERT_EQ(variableBytesRead, data.encodedSize);
 

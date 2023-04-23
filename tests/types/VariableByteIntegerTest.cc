@@ -54,7 +54,7 @@ TEST_P(VariableByteIntegerTest, EncodeDecode)
 
     memcpy(readBuffer, &testData.raw, testData.length);
 
-    decodeInteger.readFromClient(clientPtr, &bytesRead);
+    decodeInteger.readFromClient(clientPtr, bytesRead);
 
     EXPECT_EQ(decodeInteger.value, testData.expected);
     EXPECT_EQ(decodeInteger.size(), testData.length);

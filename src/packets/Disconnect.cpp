@@ -58,7 +58,7 @@ size_t Disconnect::pushToClient(Client *client)
     return written;
 }
 
-bool Disconnect::readFromClient(Client *client, uint32_t *bytes)
+bool Disconnect::readFromClient(Client *client, uint32_t &bytes)
 {
     uint32_t start = getRemainingLength();
 
@@ -82,7 +82,7 @@ bool Disconnect::readFromClient(Client *client, uint32_t *bytes)
             }
             break;
         case PROPERTIES:
-            if (!properties.readFromClient(client, &read))
+            if (!properties.readFromClient(client, read))
             {
                 state = COMPLETE;
             }
@@ -94,7 +94,7 @@ bool Disconnect::readFromClient(Client *client, uint32_t *bytes)
         readBytes(read);
     }
 
-    *bytes += getRemainingLength() - start;
+    bytes += getRemainingLength() - start;
     return state == COMPLETE;
 }
 

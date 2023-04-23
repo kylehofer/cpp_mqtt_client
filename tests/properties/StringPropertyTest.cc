@@ -86,7 +86,7 @@ TYPED_TEST_P(StringPropertyTest, Decode)
 
         client.pushToReadBuffer((void *)data.encoded, data.encodedSize);
 
-        stringProperty->readFromClient(clientPtr, &bytesRead);
+        stringProperty->readFromClient(clientPtr, bytesRead);
 
         ASSERT_EQ(bytesRead, data.encodedSize);
 

@@ -51,7 +51,7 @@ size_t DWordProperty::propertySize()
     return value.size();
 }
 
-bool DWordProperty::readFromClient(Client *client, uint32_t *read)
+bool DWordProperty::readFromClient(Client *client, uint32_t &read)
 {
     return value.readFromClient(client, read);
     // if ((size_t)client->available() < propertySize())
@@ -59,7 +59,7 @@ bool DWordProperty::readFromClient(Client *client, uint32_t *read)
     //     return true;
     // }
 
-    // // *read += client->read(&value, propertySize());
+    // // read += client->read(&value, propertySize());
     // return false;
 }
 
