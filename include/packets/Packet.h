@@ -56,7 +56,7 @@
 
 namespace PicoMqtt
 {
-    enum class ReasonCode
+    enum ReasonCode
     {
         SUCCESS = 0,                                  // CONNACK, PUBACK, PUBREC, PUBREL, PUBCOMP, UNSUBACK, AUTH
         NORMAL_DISCONNECTION = 0,                     // Disconnect

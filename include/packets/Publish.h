@@ -44,7 +44,7 @@ namespace PicoMqtt
      * Contains a Variable Header with customziable Flags and Properties
      * Contains a Payload of bytes
      */
-    class Publish : PropertiesPacket
+    class Publish : public PropertiesPacket
     {
     private:
         uint8_t state = 0;

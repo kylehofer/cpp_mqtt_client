@@ -1,7 +1,7 @@
 /*
- * File: BlankPacket.cpp
+ * File: MockMqttClient.h
  * Project: cpp_mqtt_client
- * Created Date: Saturday March 18th 2023
+ * Created Date: Sunday April 23rd 2023
  * Author: Kyle Hofer
  *
  * MIT License
@@ -29,23 +29,38 @@
  * HISTORY:
  */
 
-#include "packets/BlankPacket.h"
+#ifndef MOCKMQTTCLIENT
+#define MOCKMQTTCLIENT
 
-#define BLANK_PACKET_SIZE 0
-
-using namespace PicoMqtt;
-
-bool BlankPacket::readFromClient(Client *client, uint32_t &read)
+#include "MqttClient.h"
+namespace PicoMqtt
 {
-    return false;
+    /**
+     * @brief Mock Client for controlling time
+     *
+     */
+    class MockMqttClient : public MqttClient
+    {
+    private:
+        uint32_t elapsed = 0;
+
+    protected:
+        virtual uint32_t getElapsed() override
+        {
+            uint32_t value = elapsed;
+            elapsed = 0;
+            return value;
+        }
+
+    public:
+        MockMqttClient() : MqttClient() {}
+        MockMqttClient(Client *client) : MqttClient(client) {}
+
+        void setElapsedTime(uint32_t value)
+        {
+            elapsed = value;
+        }
+    };
 }
 
-size_t BlankPacket::pushToClient(Client *client)
-{
-    return Packet::pushToClient(client);
-}
-
-size_t BlankPacket::size()
-{
-    return BLANK_PACKET_SIZE;
-}
+#endif /* MOCKMQTTCLIENT */
