@@ -46,32 +46,27 @@ WordProperty::WordProperty(PropertyCodes identifier, uint16_t value) : Property(
 {
 }
 
-size_t WordProperty::pushDataToBuffer(void *buffer)
-{
-    size_t length = propertySize();
-    memcpy(buffer, &value, length);
-    return length;
-}
-
 size_t WordProperty::propertySize()
 {
-    return sizeof(uint16_t);
+    return value.size();
 }
 
 bool WordProperty::readFromClient(Client *client, uint32_t *read)
 {
-    if (client->available() < propertySize())
-    {
-        return true;
-    }
-
-    *read += client->read(&value, propertySize());
-    return false;
+    // if ((size_t)client->available() < propertySize())
+    // {
+    //     return true;
+    // }
+    // value.readFromClient(client, read);
+    // // *read += client->read(&value, propertySize());
+    // return false;
+    return value.readFromClient(client, read);
 }
 
 size_t WordProperty::pushPropertyToClient(Client *client)
 {
-    return client->write(&value, propertySize());
+    return value.pushToClient(client);
+    // return client->write(&value, propertySize());
 }
 
 void WordProperty::setValue(uint16_t value)

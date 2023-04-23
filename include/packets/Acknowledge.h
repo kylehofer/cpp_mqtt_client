@@ -33,8 +33,7 @@
 #define ACKNOWLEDGE
 
 #include <stdint.h>
-#include "Packet.h"
-#include "PicoMqttProperties.h"
+#include "PropertiesPacket.h"
 
 namespace PicoMqtt
 {
@@ -43,21 +42,43 @@ namespace PicoMqtt
      * Contains common functionality to process a reason code used by other Acknowledge packets
      *
      */
-    class Acknowledge : public Packet
+    class Acknowledge : public PropertiesPacket
     {
     private:
         uint8_t state = 0;
         uint16_t packetIdentifier;
         uint8_t reasonCode;
-        Properties properties;
 
     protected:
-        Acknowledge(uint8_t fixedHeaderByte) : Packet(fixedHeaderByte){};
+        Acknowledge(uint8_t fixedHeaderByte) : PropertiesPacket(fixedHeaderByte){};
 
     public:
+        /**
+         * @brief Returns the byte size of the packet
+         *
+         * @return size_t
+         */
         size_t size();
-        size_t pushToClient(Client *);
-        bool readFromClient(Client *, uint32_t *);
+        /**
+         * @brief Pushes the contents of the Acknowledge Packet to a communications client
+         *
+         * @param client The client to push data to
+         * @return size_t The amount of bytes written
+         */
+        virtual size_t pushToClient(Client *client) override;
+        /**
+         * @brief Reads data from a client which will then be used to fill in the Acknowledge Packet
+         *
+         * @param client The client to read data from
+         * @param read The amount of bytes read
+         * @return true If more data is required from the client
+         * @return false If the class has finished reading data from the client
+         */
+        virtual bool readFromClient(Client *client, uint32_t *read) override;
+        uint8_t getReasonCode();
+        void setReasonCode(uint16_t value);
+        uint16_t getPacketIdentifier();
+        void setPacketIdentifier(uint16_t value);
     };
 
 }

@@ -33,6 +33,6 @@
 
 using namespace PicoMqtt;
 
-PingResponse::PingResponse() : Packet(PING_RESPONSE_ID)
+PingResponse::PingResponse() : BlankPacket(PING_RESPONSE_ID)
 {
 }

@@ -1,7 +1,7 @@
 /*
- * File: PicoMqttClient.cpp
+ * File: BinaryData.h
  * Project: cpp_mqtt_client
- * Created Date: Friday December 30th 2022
+ * Created Date: Friday March 17th 2023
  * Author: Kyle Hofer
  *
  * MIT License
@@ -28,3 +28,25 @@
  *
  * HISTORY:
  */
+
+#ifndef BINARYDATA
+#define BINARYDATA
+
+#include "types/BufferData.h"
+
+namespace PicoMqtt
+{
+    /**
+     * @brief Represents a MQTT 5 Binary data
+     * Used for reading and writing Binary data to a communication client
+     */
+    class BinaryData : public BufferData
+    {
+    public:
+        BinaryData();
+        BinaryData(const char *, uint16_t);
+        BinaryData(const BufferData &);
+    };
+}
+
+#endif /* BINARYDATA */

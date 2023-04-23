@@ -43,8 +43,9 @@ enum ReadingState
 
 #define VARIABLE_HEADER_FIXED_SIZE 2
 
-ConnectAcknowledge::ConnectAcknowledge() : Packet(CONNECT_ACKNOWLEDGE_ID)
+ConnectAcknowledge::ConnectAcknowledge() : PropertiesPacket(CONNECT_ACKNOWLEDGE_ID)
 {
+    header.data = 0;
 }
 
 bool ConnectAcknowledge::readFromClient(Client *client, uint32_t *bytes)
@@ -65,7 +66,7 @@ bool ConnectAcknowledge::readFromClient(Client *client, uint32_t *bytes)
         case VARIABLE_HEADER_FIXED:
             if (client->available() > VARIABLE_HEADER_FIXED_SIZE)
             {
-                bytes += client->read(&flags.data, VARIABLE_HEADER_FIXED_SIZE);
+                bytes += client->read(&(header.data), VARIABLE_HEADER_FIXED_SIZE);
                 state = VARIABLE_HEADER_PROPERTIES;
             }
             break;
@@ -83,5 +84,196 @@ bool ConnectAcknowledge::readFromClient(Client *client, uint32_t *bytes)
 
     *bytes += getRemainingLength() - start;
 
-    return state == COMPLETE;
+    return state != COMPLETE;
+}
+
+uint8_t ConnectAcknowledge::getReasonCode()
+{
+    return header.reasonCode;
+}
+
+uint32_t ConnectAcknowledge::getSessionExpiryInterval()
+{
+    Property *property = properties.get(SESSION_EXPIRY_INTERVAL);
+
+    if (property != NULL)
+    {
+        return ((SessionExpiryInterval *)property)->getValue();
+    }
+    return 0;
+}
+
+uint16_t ConnectAcknowledge::getReceiveMaximum()
+{
+    Property *property = properties.get(RECEIVE_MAXIMUM);
+
+    if (property != NULL)
+    {
+        return ((ReceiveMaxium *)property)->getValue();
+    }
+    // MQTT 5 specifies if not present to use 16 bit max.
+    return 0xFFFF;
+}
+
+uint8_t ConnectAcknowledge::getMaximumQoS()
+{
+    Property *property = properties.get(MAXIMUM_QOS);
+
+    if (property != NULL)
+    {
+        return ((MaxiumumQoS *)property)->getValue();
+    }
+    // MQTT 5 specifies if not present to use a max QOS of 2
+    return 2;
+}
+
+bool ConnectAcknowledge::getRetainAvailable()
+{
+    Property *property = properties.get(RETAIN_AVAILABLE);
+
+    if (property != NULL)
+    {
+        return ((RetainAvailable *)property)->getValue();
+    }
+    return true;
+}
+
+uint32_t ConnectAcknowledge::getMaximumPacketSize()
+{
+    Property *property = properties.get(MAXIMUM_PACKET_SIZE);
+
+    if (property != NULL)
+    {
+        return ((MaximumPacketSize *)property)->getValue();
+    }
+    // MQTT 5 specifies if not present to allow packet size upto what is supported
+    // by the communication protocol
+    return 0;
+}
+
+EncodedString ConnectAcknowledge::getAssignedClientIdentifier()
+{
+    Property *property = properties.get(ASSIGNED_CLIENT_IDENTIFER);
+
+    if (property != NULL)
+    {
+        return ((AssignedClientIdentifier *)property)->getValue();
+    }
+    return EncodedString();
+}
+
+uint16_t ConnectAcknowledge::getTopicAliasMaximum()
+{
+    Property *property = properties.get(TOPIC_ALIAS_MAXIMUM);
+
+    if (property != NULL)
+    {
+        return ((TopicAliasMaximum *)property)->getValue();
+    }
+    // MQTT 5 specifies no value means that Topic Alias are not supported
+    return 0;
+}
+
+EncodedString ConnectAcknowledge::getReasonString()
+{
+    Property *property = properties.get(REASON_STRING);
+
+    if (property != NULL)
+    {
+        return ((ReasonString *)property)->getValue();
+    }
+    // MQTT 5 specifies no value means that Topic Alias are not supported
+    return EncodedString();
+}
+
+bool ConnectAcknowledge::getWildcardSubscriptionAvailable()
+{
+    Property *property = properties.get(WILDCARD_SUBSCRIPTION_AVAILABLE);
+
+    if (property != NULL)
+    {
+        return ((WildcardSubscriptionAvailable *)property)->getValue();
+    }
+    // MQTT 5 specifies no value means that Wildcard Subscriptions are Available
+    return true;
+}
+
+bool ConnectAcknowledge::getSubscriptionIdentifiersAvailable()
+{
+    Property *property = properties.get(SUBSCRIPTION_IDENTIFIERS_AVAILABLE);
+
+    if (property != NULL)
+    {
+        return ((SubscriptionIdentifierAvailable *)property)->getValue();
+    }
+    // MQTT 5 specifies no value means that Subscription Identifiers are Available
+    return true;
+}
+
+bool ConnectAcknowledge::getSharedSubscriptionAvailable()
+{
+    Property *property = properties.get(SHARED_SUBSCRIPTION_AVAILABLE);
+
+    if (property != NULL)
+    {
+        return ((SharedSubscriptionAvailable *)property)->getValue();
+    }
+    // MQTT 5 specifies no value means that Shared Subscriptions are Available
+    return true;
+}
+
+uint16_t ConnectAcknowledge::getServerKeepAlive()
+{
+    Property *property = properties.get(SERVER_KEEP_ALIVE);
+
+    if (property != NULL)
+    {
+        return ((ServerKeepAlive *)property)->getValue();
+    }
+    // Will treat zero as no value
+    return 0;
+}
+
+EncodedString ConnectAcknowledge::getResponseInformation()
+{
+    Property *property = properties.get(RESPONSE_INFORMATION);
+
+    if (property != NULL)
+    {
+        return ((ResponseInformation *)property)->getValue();
+    }
+    return EncodedString();
+}
+
+EncodedString ConnectAcknowledge::getServerReference()
+{
+    Property *property = properties.get(SERVER_REFERENCE);
+
+    if (property != NULL)
+    {
+        return ((ServerReference *)property)->getValue();
+    }
+    return EncodedString();
+}
+
+EncodedString ConnectAcknowledge::getAuthenticationMethod()
+{
+    Property *property = properties.get(AUTHENTICATION_METHOD);
+
+    if (property != NULL)
+    {
+        return ((AuthenticationMethod *)property)->getValue();
+    }
+    return EncodedString();
+}
+
+BinaryData ConnectAcknowledge::getAuthenticationData()
+{
+    Property *property = properties.get(AUTHENTICATION_METHOD);
+
+    if (property != NULL)
+    {
+        return ((AuthenticationMethod *)property)->getValue();
+    }
+    return BinaryData();
 }

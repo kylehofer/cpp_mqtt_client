@@ -32,7 +32,7 @@
 #ifndef ENCODEDSTRING
 #define ENCODEDSTRING
 
-#include "ClientInteractor.h"
+#include "types/BufferData.h"
 
 namespace PicoMqtt
 {
@@ -40,27 +40,13 @@ namespace PicoMqtt
      * @brief Represents a MQTT 5 UTF-8 Encoded String
      * Used for reading and writing UTF-8 Encoded Strings to a communication client
      */
-    class EncodedString : ClientInteractor
+    class EncodedString : public BufferData
     {
-        uint16_t state;
-
     public:
-        uint32_t length = 0;
-        char *data = NULL;
         EncodedString();
-        EncodedString(const char *, uint32_t);
-        EncodedString(const EncodedString &);
-        EncodedString &operator=(const EncodedString &rhs);
-        ~EncodedString();
-
-        size_t pushToClient(Client *client);
-        size_t pushToBuffer(void *buffer);
-        size_t size();
-
-        bool readFromClient(Client *, uint32_t *);
+        EncodedString(const char *, uint16_t);
+        EncodedString(const BufferData &);
     };
-
-    typedef EncodedString BinaryData;
 }
 
 #endif /* ENCODEDSTRING */

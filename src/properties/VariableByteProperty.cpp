@@ -47,11 +47,6 @@ VariableByteProperty::VariableByteProperty(PropertyCodes identifier, VariableByt
 {
 }
 
-size_t VariableByteProperty::pushDataToBuffer(void *buffer)
-{
-    return value.pushToBuffer(buffer);
-}
-
 size_t VariableByteProperty::propertySize()
 {
     return value.size();

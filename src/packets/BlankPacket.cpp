@@ -1,12 +1,12 @@
 /*
- * File: PicoMqttClient.h
+ * File: BlankPacket.cpp
  * Project: cpp_mqtt_client
- * Created Date: Friday December 30th 2022
+ * Created Date: Saturday March 18th 2023
  * Author: Kyle Hofer
  *
  * MIT License
  *
- * Copyright (c) 2022 Kyle Hofer
+ * Copyright (c) 2023 Kyle Hofer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -29,7 +29,23 @@
  * HISTORY:
  */
 
-#ifndef PICOMQTTCLIENT
-#define PICOMQTTCLIENT
+#include "packets/BlankPacket.h"
 
-#endif /* PICOMQTTCLIENT */
+#define BLANK_PACKET_SIZE 0
+
+using namespace PicoMqtt;
+
+bool BlankPacket::readFromClient(Client *, uint32_t *)
+{
+    return false;
+}
+
+size_t BlankPacket::pushToClient(Client *)
+{
+    return 0;
+}
+
+size_t BlankPacket::size()
+{
+    return BLANK_PACKET_SIZE;
+}

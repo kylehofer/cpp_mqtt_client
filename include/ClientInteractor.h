@@ -37,13 +37,27 @@
 
 /**
  * @brief Interface for interacting with a communication client
+ * Used for MQTT Data types and Packets to push and read data from a communication client
  */
 class ClientInteractor
 {
 public:
-    virtual bool readFromClient(Client *, uint32_t *) = 0;
-    virtual size_t pushToClient(Client *) = 0;
-    size_t pushToBuffer(void *) { return 0; };
+    /**
+     * @brief Reads data from a client which will then be used to fill in properties of the class
+     *
+     * @param client The client to read data from
+     * @param read The amount of bytes read
+     * @return true If more data is required from the client
+     * @return false If the class has finished reading data from the client
+     */
+    virtual bool readFromClient(Client *client, uint32_t *read) = 0;
+    /**
+     * @brief Pushes the contents of the class to a communications client
+     *
+     * @param client The client to push data to
+     * @return size_t The amount of bytes written
+     */
+    virtual size_t pushToClient(Client *client) = 0;
 };
 
 #endif /* CLIENTINTERACTOR */

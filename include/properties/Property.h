@@ -81,8 +81,18 @@ namespace PicoMqtt
         VariableByteInteger identifier;
 
     protected:
-        virtual size_t pushDataToBuffer(void *buffer) = 0;
+        /**
+         * @brief Pushes the raw data of the Property to  a communications client
+         *
+         * @param client The client to push data to
+         * @return size_t The amount of bytes written
+         */
         virtual size_t pushPropertyToClient(Client *client) = 0;
+        /**
+         * @brief Returns the byte size of the properties value
+         *
+         * @return size_t
+         */
         virtual size_t propertySize() = 0;
 
     public:
@@ -91,6 +101,7 @@ namespace PicoMqtt
         {
             this->identifier.value = identifier;
         };
+        virtual ~Property(){};
 
         VariableByteInteger getIdentifier()
         {
@@ -102,14 +113,13 @@ namespace PicoMqtt
             return this->identifier.size() + propertySize();
         }
 
-        size_t pushToBuffer(void *buffer)
-        {
-            char *charBuffer = (char *)buffer;
-            size_t identifierLength = this->identifier.pushToBuffer(buffer);
-            charBuffer += identifierLength;
-            return this->identifier.pushToBuffer(charBuffer) + identifierLength;
-        };
-
+        /**
+         * @brief Pushes the contents of the Property to a communications client
+         * It will write the Property identifier, followed by the raw data of the Property
+         *
+         * @param client The client to push data to
+         * @return size_t The amount of bytes written
+         */
         size_t pushToClient(Client *client)
         {
             size_t identifierLength = this->identifier.pushToClient(client);

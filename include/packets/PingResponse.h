@@ -32,7 +32,7 @@
 #ifndef PINGRESPONSE
 #define PINGRESPONSE
 
-#include "Packet.h"
+#include "BlankPacket.h"
 
 namespace PicoMqtt
 {
@@ -41,7 +41,7 @@ namespace PicoMqtt
      * A basic packet that contains no other data other than a fixed header
      *
      */
-    class PingResponse : public Packet
+    class PingResponse : public BlankPacket
     {
 
     private:

@@ -46,20 +46,59 @@ namespace PicoMqtt
         EncodedString value;
 
     protected:
-        size_t pushDataToBuffer(void *buffer);
-        size_t pushPropertyToClient(Client *client);
+        /**
+         * @brief Pushes the raw data of the Property to a communications client
+         *
+         * @param client The client to push data to
+         * @return size_t The amount of bytes written
+         */
+        virtual size_t pushPropertyToClient(Client *client) override;
 
     public:
         StringPairProperty();
         StringPairProperty(PropertyCodes identifier);
         StringPairProperty(PropertyCodes identifier, EncodedString key, EncodedString value);
-        StringPairProperty(PropertyCodes identifier, const char *, uint32_t, const char *, uint32_t);
-        size_t propertySize();
-        bool readFromClient(Client *, uint32_t *);
+        StringPairProperty(PropertyCodes identifier, const char *, uint16_t, const char *, uint16_t);
+        /**
+         * @brief Returns the byte size of the properties value
+         *
+         * @return size_t
+         */
+        virtual size_t propertySize() override;
+        /**
+         * @brief Reads data from a client which will then be used to fill in the String Pair Property
+         *
+         * @param client The client to read data from
+         * @param read The amount of bytes read
+         * @return true If more data is required from the client
+         * @return false If the class has finished reading data from the client
+         */
+        virtual bool readFromClient(Client *client, uint32_t *read) override;
+        /**
+         * @brief Set the key of the User Property
+         *
+         * @param value
+         */
         void setKey(EncodedString value);
-        EncodedString getKey();
+        /**
+         * @brief Get the key of the User Property
+         *
+         * @return EncodedString&
+         */
+        EncodedString &getKey();
+        /**
+         * @brief Set the value of the User Property
+         *
+         * @param value
+         */
         void setValue(EncodedString value);
-        EncodedString getValue();
+        /**
+         * @brief Get the value of the User Property
+         *
+         * @return EncodedString&
+         */
+        EncodedString &getValue();
     };
+
 }
 #endif /* STRINGPAIRPROPERTY */

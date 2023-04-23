@@ -47,20 +47,33 @@ enum ReadingState
 
 size_t Acknowledge::size()
 {
-    return 0;
+    if (properties.length() > 0)
+    {
+        return PACKET_IDENTIFIER_SIZE + REASON_CODE_SIZE + properties.size();
+    }
+    if (reasonCode > 0)
+    {
+        return PACKET_IDENTIFIER_SIZE + REASON_CODE_SIZE;
+    }
+    return PACKET_IDENTIFIER_SIZE;
 }
 
 size_t Acknowledge::pushToClient(Client *client)
 {
+    size_t bytes = size();
     // Fixed Header
     size_t written = Packet::pushToClient(client);
 
     written += client->write(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
 
-    if (size() > 2)
+    if (bytes > 2)
     {
         written += client->write(reasonCode);
         written += properties.pushToClient(client);
+    }
+    else if (bytes > 1)
+    {
+        written += client->write(reasonCode);
     }
     return written;
 }
@@ -92,9 +105,11 @@ bool Acknowledge::readFromClient(Client *client, uint32_t *bytes)
             if (client->available() >= REASON_CODE_SIZE)
             {
                 read += client->read(&reasonCode, REASON_CODE_SIZE);
-                state = REASON_CODE;
+                state = PROPERTIES;
             }
+            break;
         case PROPERTIES:
+
             if (!properties.readFromClient(client, &read))
             {
                 state = COMPLETE;
@@ -113,5 +128,25 @@ bool Acknowledge::readFromClient(Client *client, uint32_t *bytes)
         state = COMPLETE;
     }
 
-    return state == COMPLETE;
+    return state != COMPLETE;
+}
+
+uint8_t Acknowledge::getReasonCode()
+{
+    return reasonCode;
+}
+
+uint16_t Acknowledge::getPacketIdentifier()
+{
+    return packetIdentifier;
+}
+
+void Acknowledge::setReasonCode(uint16_t value)
+{
+    reasonCode = value;
+}
+
+void Acknowledge::setPacketIdentifier(uint16_t value)
+{
+    packetIdentifier = value;
 }

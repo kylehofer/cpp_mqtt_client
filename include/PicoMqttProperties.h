@@ -35,6 +35,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <vector>
+#include <functional>
+#include <algorithm>
 #include "types/VariableByteInteger.h"
 #include "types/EncodedString.h"
 #include "Client.h"
@@ -70,15 +72,51 @@ namespace PicoMqtt
         Properties(uint32_t count);
         ~Properties();
         size_t size();
+        size_t totalSize();
         uint32_t length();
         void addProperty(Property *property);
         void clear();
 
         static Property *constructPropertyFromId(PropertyCodes identifier);
 
-        bool readFromClient(Client *, uint32_t *);
-        size_t pushToClient(Client *);
-        size_t pushToBuffer(void *);
+        bool has(PropertyCodes identifier);
+        Property *get(PropertyCodes identifier);
+        template <typename T>
+        void each(PropertyCodes identifier, std::function<bool(T *)> const &callback)
+        {
+            // void Properties::each(PropertyCodes identifier, void (*callback)(T *))
+
+            auto result = properties.begin();
+            auto end = properties.end();
+
+            while (end != (result = ranges::find_if(result, end,
+                                                    [identifier](Property *property)
+                                                    { return property->getIdentifier() == identifier; })))
+            {
+                if (!callback((T *)*result))
+                {
+                    break;
+                }
+            };
+        }
+        void each(bool (*filter)(Property *), void (*callback)(Property *));
+
+        /**
+         * @brief Reads data from a client which will then be used to fill in Mqtt Properties class
+         *
+         * @param client The client to read data from
+         * @param read The amount of bytes read
+         * @return true If more data is required from the client
+         * @return false If the class has finished reading data from the client
+         */
+        virtual bool readFromClient(Client *client, uint32_t *read) override;
+        /**
+         * @brief Pushes the contents of the Property to a communications client
+         *
+         * @param client The client to push data to
+         * @return size_t The amount of bytes written
+         */
+        virtual size_t pushToClient(Client *client) override;
     };
 
     class PayloadFormatIndicatorProperty : public ByteProperty

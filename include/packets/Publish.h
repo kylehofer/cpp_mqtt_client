@@ -33,9 +33,9 @@
 #define PUBLISH
 
 #include <stdint.h>
-#include "Packet.h"
-#include "PicoMqttProperties.h"
+#include "PropertiesPacket.h"
 #include "types/Payload.h"
+#include "types/Common.h"
 
 namespace PicoMqtt
 {
@@ -44,13 +44,12 @@ namespace PicoMqtt
      * Contains a Variable Header with customziable Flags and Properties
      * Contains a Payload of bytes
      */
-    class Publish : Packet
+    class Publish : PropertiesPacket
     {
     private:
         uint8_t state = 0;
-        Properties properties;
         EncodedString topic;
-        uint8_t getQos();
+
         uint16_t packetIdentifier = 0;
         Payload payload;
 
@@ -58,8 +57,32 @@ namespace PicoMqtt
     public:
         Publish();
         size_t size();
-        size_t pushToClient(Client *);
-        bool readFromClient(Client *, uint32_t *);
+        /**
+         * @brief Pushes the contents of the Publish Packet to a communications client
+         *
+         * @param client The client to push data to
+         * @return size_t The amount of bytes written
+         */
+        virtual size_t pushToClient(Client *client) override;
+        /**
+         * @brief Reads data from a client which will then be used to fill in the Publish Packet
+         *
+         * @param client The client to read data from
+         * @param read The amount of bytes read
+         * @return true If more data is required from the client
+         * @return false If the class has finished reading data from the client
+         */
+        virtual bool readFromClient(Client *client, uint32_t *read) override;
+        EncodedString &getTopic();
+        void setTopic(const char *data, uint32_t length);
+        void setTopic(EncodedString value);
+        Payload &getPayload();
+        void setPayload(void *data, uint32_t length);
+        void setPayload(Payload value);
+        uint16_t getPacketIdentifier();
+        void setPacketIdentifier(uint16_t packetIdentifier);
+        void setQos(QoS value);
+        QoS getQos();
     };
 
 }

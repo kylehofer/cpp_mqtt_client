@@ -33,12 +33,15 @@
 #define CONNECT
 
 #include <stdint.h>
-#include "Packet.h"
-#include "PicoMqttProperties.h"
+#include "PropertiesPacket.h"
+#include "properties/WillProperties.h"
 #include "types/VariableByteInteger.h"
+#include "types/EncodedString.h"
+#include "types/BinaryData.h"
 
 namespace PicoMqtt
 {
+#define CONNECT_FLAGS_SIZE 3
     typedef union
     {
         struct
@@ -50,25 +53,23 @@ namespace PicoMqtt
             unsigned char willretain : 1;
             unsigned char password : 1;
             unsigned char username : 1;
+            uint16_t keepAliveInterval;
         };
-        uint8_t data;
+        uint8_t data[CONNECT_FLAGS_SIZE];
     } ConnectFlags;
 
     /**
      * @brief Represents a MQTT 5 Connect Packet
      *
      */
-    class Connect : Packet
+    class Connect : PropertiesPacket
     {
     private:
         uint8_t state = 0;
         ConnectFlags connectFlags;
-        Properties properties;
 
-        StringProperty clientId;
-        Properties *willProperties;
-        EncodedString *willTopic;
-        BinaryData *willPayload;
+        EncodedString clientIdentifier;
+        WillProperties *willProperties = NULL;
         EncodedString *userName;
         BinaryData *password;
 
@@ -76,10 +77,35 @@ namespace PicoMqtt
     public:
         Connect();
         size_t size();
-        size_t pushToClient(Client *);
-        bool readFromClient(Client *, uint32_t *) { return false; };
-    };
 
+        /**
+         * @brief Pushes the contents of the Connect Packet to a communications client
+         *
+         * @param client The client to push data to
+         * @return size_t The amount of bytes written
+         */
+        virtual size_t pushToClient(Client *client) override;
+        bool readFromClient(Client *, uint32_t *) { return false; };
+
+        // Properties
+        void sessionExpiryInterval(uint32_t value);
+        void setReceiveMaximum(uint32_t value);
+        // Useful for embedded systems
+        void setMaximumPacketSize(uint32_t value);
+        // 0 or absent means no topic alias
+        void setTopicAliasMaximum(uint16_t value);
+        // Request Connect Acknowledge
+        void setRequestResponseInformation(bool value);
+        void setRequestProblemInformation(bool value);
+        void addUserProperty(EncodedString key, EncodedString value);
+        void setAuthenticationMethod(EncodedString value);
+
+        void setClientId(EncodedString value);
+        void setWill(WillProperties *will);
+        void setCleanStart(bool value);
+        void setKeepAliveInterval(uint16_t value);
+        uint16_t getKeepAliveInterval();
+    };
 }
 
 #endif /* CONNECT */

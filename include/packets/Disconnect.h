@@ -33,8 +33,7 @@
 #define DISCONNECT
 
 #include <stdint.h>
-#include "Packet.h"
-#include "PicoMqttProperties.h"
+#include "PropertiesPacket.h"
 #include "types/VariableByteInteger.h"
 
 namespace PicoMqtt
@@ -43,19 +42,35 @@ namespace PicoMqtt
      * @brief Represents a MQTT 5 Disconnect Packet
      *
      */
-    class Disconnect : public Packet
+    class Disconnect : public PropertiesPacket
     {
     private:
         uint8_t state = 0;
         uint8_t reasonCode = 0;
-        Properties properties;
 
     protected:
     public:
         Disconnect();
-        size_t pushToClient(Client *);
-        bool readFromClient(Client *, uint32_t *);
+        /**
+         * @brief Pushes the contents of the Disconnect Packet to a communications client
+         *
+         * @param client The client to push data to
+         * @return size_t The amount of bytes written
+         */
+        virtual size_t pushToClient(Client *client) override;
+        /**
+         * @brief Reads data from a client which will then be used to fill in the Disconnect Packet
+         *
+         * @param client The client to read data from
+         * @param read The amount of bytes read
+         * @return true If more data is required from the client
+         * @return false If the class has finished reading data from the client
+         */
+
+        virtual bool readFromClient(Client *client, uint32_t *read) override;
+        size_t size();
     };
+
 }
 
 #endif /* DISCONNECT */

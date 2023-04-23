@@ -45,12 +45,6 @@ ByteProperty::ByteProperty(PropertyCodes identifier, uint8_t value) : Property(i
 {
 }
 
-size_t ByteProperty::pushDataToBuffer(void *buffer)
-{
-    ((char *)buffer)[0] = value;
-    return propertySize();
-}
-
 size_t ByteProperty::propertySize()
 {
     return sizeof(uint8_t);

@@ -45,7 +45,14 @@ enum ReadingState
 
 size_t Subscription::size()
 {
-    return 0;
+    size_t bytes = PACKET_IDENTIFIER_SIZE;
+    bytes += properties.size();
+
+    for (auto &payload : payloads)
+    {
+        bytes += payload.size();
+    }
+    return bytes;
 }
 
 size_t Subscription::pushToClient(Client *client)
@@ -64,7 +71,7 @@ size_t Subscription::pushToClient(Client *client)
     return written;
 }
 
-bool Subscription::readFromClient(Client *client, uint32_t *bytes)
+bool Subscription::readFromClient([[maybe_unused]] Client *client, [[maybe_unused]] uint32_t *bytes)
 {
     // Not Used
     return false;

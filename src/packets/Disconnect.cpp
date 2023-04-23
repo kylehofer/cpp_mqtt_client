@@ -43,7 +43,7 @@ enum ReadingState
 
 #define REASON_CODE_SIZE 1
 
-Disconnect::Disconnect() : Packet(DISCONNECT_ID)
+Disconnect::Disconnect() : PropertiesPacket(DISCONNECT_ID)
 {
 }
 
@@ -80,11 +80,13 @@ bool Disconnect::readFromClient(Client *client, uint32_t *bytes)
                 read += client->read(&reasonCode, REASON_CODE_SIZE);
                 state = REASON_CODE;
             }
+            break;
         case PROPERTIES:
             if (!properties.readFromClient(client, &read))
             {
                 state = COMPLETE;
             }
+            break;
         default:
             break;
         }
@@ -94,4 +96,9 @@ bool Disconnect::readFromClient(Client *client, uint32_t *bytes)
 
     *bytes += getRemainingLength() - start;
     return state == COMPLETE;
+}
+
+size_t Disconnect::size()
+{
+    return REASON_CODE_SIZE + properties.size();
 }

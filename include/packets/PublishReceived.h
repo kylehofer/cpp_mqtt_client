@@ -41,7 +41,7 @@ namespace PicoMqtt
      * Contains a reason code with result of the Publish packet
      * Second part of QoS 2 Delivery
      */
-    class PublishReceived : Acknowledge
+    class PublishReceived : public Acknowledge
     {
     public:
         PublishReceived();

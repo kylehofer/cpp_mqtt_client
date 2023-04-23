@@ -30,6 +30,7 @@
  */
 
 #include "packets/Packet.h"
+#include <cstdio>
 
 using namespace PicoMqtt;
 
@@ -41,9 +42,14 @@ Packet::Packet(uint8_t fixedHeader)
 {
     this->fixedHeader.data = fixedHeader;
 }
+
+Packet::~Packet()
+{
+}
+
 uint8_t Packet::getFixedHeaderFlags()
 {
-    return fixedHeader.flags;
+    return fixedHeader.data & 0xF;
 }
 
 uint32_t Packet::getRemainingLength()
@@ -57,7 +63,7 @@ void Packet::readBytes(uint32_t count)
 
 bool Packet::dataRemaining()
 {
-    return bytesRead >= getRemainingLength();
+    return bytesRead < getRemainingLength();
 }
 
 bool Packet::isValid()
@@ -74,5 +80,21 @@ size_t Packet::pushToClient(Client *client)
 
 void Packet::setFlags(uint8_t flags)
 {
-    fixedHeader.flags = flags;
+    uint8_t packetType = getPacketType();
+    fixedHeader.data = (flags & 0xF) | packetType;
+}
+
+void Packet::setRemainingLength(VariableByteInteger remainingLength)
+{
+    this->remainingLength = remainingLength;
+}
+
+void Packet::setRemainingLength(uint32_t remainingLength)
+{
+    this->remainingLength = remainingLength;
+}
+
+uint8_t Packet::getPacketType()
+{
+    return (fixedHeader.data & 0xF0);
 }

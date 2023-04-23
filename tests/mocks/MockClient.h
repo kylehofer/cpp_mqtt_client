@@ -14,6 +14,7 @@ private:
     size_t writeTotal = 0;
     size_t readCount = 0;
     size_t writeCount = 0;
+    bool isConnected = false;
 
 public:
     MockClient(){};
@@ -40,11 +41,16 @@ public:
 
     bool resizeReadBuffer(size_t);
     bool resizeWriteBuffer(size_t);
+    void clearWriteBuffer();
 
     char *getReadBuffer();
     char *getWriteBuffer();
 
     bool pushToReadBuffer(void *buffer, size_t size);
+
+    void setIsConnected(bool connected);
+
+    size_t written();
 };
 
 #endif /* MOCKCLIENT */

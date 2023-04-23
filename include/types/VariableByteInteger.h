@@ -50,12 +50,25 @@ namespace PicoMqtt
         VariableByteInteger(uint32_t);
         uint32_t value = 0;
 
-        size_t pushToClient(Client *client);
-        size_t pushToBuffer(void *buffer);
+        /**
+         * @brief Pushes the contents of the Variable Byte Integer to a communications client
+         *
+         * @param client The client to push data to
+         * @return size_t The amount of bytes written
+         */
+        virtual size_t pushToClient(Client *client) override;
         size_t size();
 
         bool isValid();
-        bool readFromClient(Client *, uint32_t *);
+        /**
+         * @brief Reads data from a client which will then be used to fill in the Variable Byte Integer
+         *
+         * @param client The client to read data from
+         * @param read The amount of bytes read
+         * @return true If more data is required from the client
+         * @return false If the class has finished reading data from the client
+         */
+        virtual bool readFromClient(Client *client, uint32_t *read) override;
         bool addByte(uint8_t byte);
 
         VariableByteInteger &operator=(const uint32_t);

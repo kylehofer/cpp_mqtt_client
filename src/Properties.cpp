@@ -31,9 +31,10 @@
 
 #include "PicoMqttProperties.h"
 #include "stdlib.h"
-#include "string.h"
 
 #define PROPERTY_POINTER_SIZE sizeof(Property *)
+
+using namespace std;
 
 enum PropertiesReadState
 {
@@ -48,6 +49,15 @@ using namespace PicoMqtt;
 uint32_t Properties::length()
 {
     return properties.size();
+}
+
+size_t Properties::totalSize()
+{
+    VariableByteInteger propertiesLength;
+
+    propertiesLength = size();
+
+    return propertiesLength.size() + propertiesLength.value;
 }
 
 size_t Properties::size()
@@ -76,23 +86,6 @@ size_t Properties::pushToClient(Client *client)
     };
 
     return written;
-}
-
-size_t Properties::pushToBuffer(void *buffer)
-{
-    char *charBuffer = (char *)buffer;
-    VariableByteInteger propertiesLength;
-
-    propertiesLength = size();
-
-    charBuffer += propertiesLength.pushToBuffer(charBuffer);
-
-    for (auto &property : properties)
-    {
-        charBuffer += property->pushToBuffer(charBuffer);
-    };
-
-    return propertiesLength + propertiesLength.size();
 }
 
 void Properties::addProperty(Property *property)
@@ -149,8 +142,11 @@ bool Properties::readFromClient(Client *client, uint32_t *read)
         }
     }
 
+    read += bytesRead;
+
     if (bytesRead >= propertiesLength.value)
     {
+
         state = PropertiesReadState::LENGTH;
         bytesRead = 0;
         propertiesLength.value = 0;
@@ -227,7 +223,7 @@ Properties::Properties()
 {
 }
 
-Properties::Properties(uint32_t count)
+Properties::Properties(__attribute__((unused)) uint32_t count)
 {
 }
 
@@ -246,3 +242,53 @@ Properties::~Properties()
 
     clear();
 }
+
+bool Properties::has(PropertyCodes identifier)
+{
+    return (get(identifier) != NULL);
+}
+
+Property *Properties::get(PropertyCodes identifier)
+{
+    auto result = ranges::find_if(properties.begin(), properties.end(),
+                                  [identifier](Property *property)
+                                  { return property->getIdentifier() == identifier; });
+
+    return (result != properties.end()) ? *result : NULL;
+}
+
+// // void Properties::each(PropertyCodes identifier, void (*callback)(T *))
+// template <typename T>
+// void Properties::each(PropertyCodes identifier, std::function<void(T *)> const &lambda)
+// {
+
+//     auto result = properties.begin();
+//     auto end = properties.end();
+
+//     while (end != (result = std::ranges::find_if(result, end,
+//                                                  [identifier](Property *property)
+//                                                  { return property->getIdentifier() == identifier; })))
+//     {
+//         callback((T *)*result);
+//     };
+// }
+void Properties::each(bool (*filter)(Property *), void (*callback)(Property *))
+{
+
+    auto result = properties.begin();
+    auto end = properties.end();
+
+    while (end != (result = ranges::find_if(result, end, filter)))
+    {
+        callback(*result);
+    };
+}
+
+// for (auto property : properties)
+// {
+//     if (property->getIdentifier() == identifier)
+//     {
+//         return property;
+//     }
+// }
+// return NULL;

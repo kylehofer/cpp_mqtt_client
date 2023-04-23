@@ -33,8 +33,9 @@
 #define CONNECTACKNOWLEDGE
 
 #include <stdint.h>
-#include "Packet.h"
-#include "PicoMqttProperties.h"
+#include "PropertiesPacket.h"
+#include "types/EncodedString.h"
+#include "types/BinaryData.h"
 #include "types/VariableByteInteger.h"
 
 namespace PicoMqtt
@@ -43,31 +44,62 @@ namespace PicoMqtt
     {
         struct
         {
-            uint16_t reserved : 7;
-            uint16_t session : 1;
-            uint16_t reasonCode : 8;
+            uint8_t reserved : 7;
+            uint8_t session : 1;
+            uint8_t reasonCode;
         };
         uint16_t data;
-    } ConnackFlags;
+    } ConnackHeader;
 
     /**
      * @brief Represents a MQTT 5 Connect Acknowledge Packet
      *
      */
-    class ConnectAcknowledge : public Packet
+    class ConnectAcknowledge : public PropertiesPacket
     {
     private:
         uint8_t state = 0;
-        ConnackFlags flags;
-        Properties properties;
+        ConnackHeader header;
 
     protected:
     public:
         ConnectAcknowledge();
         size_t size() { return 0; };
-        size_t pushToClient(Client *) { return 0; };
-        bool readFromClient(Client *, uint32_t *);
+        /**
+         * @brief Pushes the contents of the Connect Acknowledge to a communications client
+         *
+         * @param client The client to push data to
+         * @return size_t The amount of bytes written
+         */
+        virtual size_t pushToClient(Client *client) override { return 0; };
+        /**
+         * @brief Reads data from a client which will then be used to fill in the Connect Acknowledge Packet
+         *
+         * @param client The client to read data from
+         * @param read The amount of bytes read
+         * @return true If more data is required from the client
+         * @return false If the class has finished reading data from the client
+         */
+        virtual bool readFromClient(Client *client, uint32_t *read) override;
+        uint32_t getSessionExpiryInterval();
+        uint16_t getReceiveMaximum();
+        uint8_t getMaximumQoS();
+        bool getRetainAvailable();
+        uint32_t getMaximumPacketSize();
+        EncodedString getAssignedClientIdentifier();
+        uint16_t getTopicAliasMaximum();
+        EncodedString getReasonString();
+        bool getWildcardSubscriptionAvailable();
+        bool getSubscriptionIdentifiersAvailable();
+        bool getSharedSubscriptionAvailable();
+        uint16_t getServerKeepAlive();
+        EncodedString getResponseInformation();
+        EncodedString getServerReference();
+        EncodedString getAuthenticationMethod();
+        BinaryData getAuthenticationData();
+        uint8_t getReasonCode();
     };
+
 }
 
 #endif /* CONNECTACKNOWLEDGE */
