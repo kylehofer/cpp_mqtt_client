@@ -68,6 +68,8 @@ namespace PicoMqtt
         // However hard coded responses would be more practical
         map<uint8_t, packetResponse> responses;
         bool isAcknowledged = false;
+        bool waitingAcknowledge = false;
+        bool disconnecting = false;
 
         /* Connect and Acknowledge properties */
         EncodedString username;
@@ -80,6 +82,10 @@ namespace PicoMqtt
         uint32_t maximumPacketSize;
         uint16_t topicAliasMaximum;
         uint16_t packetIdentifier = 0;
+
+        /* Timers */
+        uint32_t clientKeepAliveTimeRemaining = 0;
+        uint32_t serverKeepAliveTimeRemaining = 0;
 
         uint8_t state = 0;
 #if defined(PICO)
@@ -133,13 +139,28 @@ namespace PicoMqtt
          */
         uint16_t getPacketIdentifier();
 
+        /**
+         * @brief Sends a packet through the client
+         *
+         * @param packet
+         */
+        void sendPacket(Packet *packet);
+
+        /**
+         * @brief Updates the keep alive period timers
+         * Will handle disconnections or ping requests based off inactivity
+         *
+         * @param timeElapsed
+         */
+        void updateKeepAlivePeriod(uint32_t timeElapsed);
+
     protected:
         /**
          * @brief Return the elapsed time since the last call
          *
          * @return uint32_t elapsed time in milliseconds
          */
-        uint32_t getElapsed();
+        virtual uint32_t getElapsed();
 
     public:
         MqttClient();
@@ -148,7 +169,7 @@ namespace PicoMqtt
         MqttClient(Client *client);
         int setWill(WillProperties *);
         int connect(const char *address, int port, uint32_t connectTimeout);
-        int disconnect();
+        int disconnect(uint8_t reasonCode);
         int subscribe(SubscriptionPayload &payload...);
         int unsubscribe(SubscriptionPayload &payload...);
         void sync();

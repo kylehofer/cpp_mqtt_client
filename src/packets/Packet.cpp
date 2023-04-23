@@ -75,7 +75,7 @@ size_t Packet::pushToClient(Client *client)
 {
     client->write(fixedHeader.data);
     remainingLength = size();
-    return remainingLength.pushToClient(client) + 1;
+    return remainingLength.pushToClient(client) + remainingLength.size();
 }
 
 void Packet::setFlags(uint8_t flags)

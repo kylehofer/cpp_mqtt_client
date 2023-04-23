@@ -53,7 +53,7 @@ namespace PicoMqtt
             unsigned char willretain : 1;
             unsigned char password : 1;
             unsigned char username : 1;
-            uint16_t keepAliveInterval;
+            uint16_t keepAliveInterval = 0;
         };
         uint8_t data[CONNECT_FLAGS_SIZE];
     } ConnectFlags;
@@ -62,7 +62,7 @@ namespace PicoMqtt
      * @brief Represents a MQTT 5 Connect Packet
      *
      */
-    class Connect : PropertiesPacket
+    class Connect : public PropertiesPacket
     {
     private:
         uint8_t state = 0;

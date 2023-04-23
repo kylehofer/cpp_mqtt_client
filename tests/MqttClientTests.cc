@@ -1,3 +1,34 @@
+/*
+ * File: MqttClientTests.cc
+ * Project: cpp_mqtt_client
+ * Created Date: Sunday April 23rd 2023
+ * Author: Kyle Hofer
+ *
+ * MIT License
+ *
+ * Copyright (c) 2023 Kyle Hofer
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is furnished to do
+ * so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * HISTORY:
+ */
+
 #include <iostream>
 #include <vector>
 #include "gtest/gtest.h"
@@ -6,6 +37,7 @@
 #include "mocks/MockClient.h"
 #include "PicoMqttProperties.h"
 #include "MqttClient.h"
+#include "mocks/MockMqttClient.h"
 #include "packets/ConnectAcknowledge.h"
 
 using namespace std;
@@ -307,4 +339,57 @@ TEST(MqttClientTests, PublishQos2)
     mqttClient.sync();
 
     ASSERT_TRUE(mqttClient.isDelivered(token));
+}
+
+TEST(MqttClientTests, TestKeepAlivePeriod)
+{
+    MockClient client;
+    Client *clientPtr = (Client *)&client;
+
+    MockMqttClient mqttClient(clientPtr);
+
+    mqttClient.setKeepAliveInterval(500);
+
+    setupConnected(client, mqttClient);
+
+    client.clearWriteBuffer();
+
+    mqttClient.setElapsedTime(500);
+
+    mqttClient.sync();
+
+    ASSERT_NE(client.getWriteBuffer(), nullptr);
+
+    char *writeBuffer = client.getWriteBuffer();
+
+    uint8_t expectedData[] = {
+        0xC0, // Ping ID
+        0x00, // Remaining Length
+    };
+
+    for (size_t i = 0; i < 2; i++)
+    {
+        ASSERT_EQ(writeBuffer[i], (char)expectedData[i]) << "at position " << i;
+    }
+
+    client.clearWriteBuffer();
+
+    mqttClient.setElapsedTime(250);
+
+    mqttClient.sync();
+
+    ASSERT_NE(client.getWriteBuffer(), nullptr);
+
+    writeBuffer = client.getWriteBuffer();
+
+    uint8_t disconnectPacket[] = {
+        0xE0, // Ping ID
+        0x01, // Remaining Length
+        0x8D, // Reason Code: 141 Timeout
+    };
+
+    for (size_t i = 0; i < 3; i++)
+    {
+        ASSERT_EQ(writeBuffer[i], (char)disconnectPacket[i]) << "at position " << i;
+    }
 }

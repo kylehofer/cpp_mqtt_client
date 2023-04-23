@@ -35,6 +35,9 @@
 
 using namespace std;
 
+// MQTT 5 Specifies that that 1.5 times the Keep Alive Time is limit of the Keep Alive Timeout
+#define KEEP_ALIVE_SCALER 1.5
+
 namespace PicoMqtt
 {
     Packet *MqttClient::readNextPacket()
@@ -45,6 +48,8 @@ namespace PicoMqtt
         {
             return NULL;
         }
+
+        serverKeepAliveTimeRemaining = (getKeepAliveInterval() * KEEP_ALIVE_SCALER);
 
         uint8_t packetType = packet->getPacketType();
 
@@ -94,7 +99,7 @@ namespace PicoMqtt
         case PING_REQUEST_ID:
         {
             PingResponse response;
-            response.pushToClient(client);
+            sendPacket(&response);
             break;
         }
         case PING_RESPONSE_ID:
@@ -113,10 +118,8 @@ namespace PicoMqtt
         return NULL;
     }
 
-    // template <typename CommunicationClient>
     MqttClient::MqttClient()
     {
-        // client = new CommunicationClient();
     }
 
     template <typename CommunicationClient>
@@ -138,9 +141,10 @@ namespace PicoMqtt
 
     int MqttClient::connect(const char *address, int port, uint32_t connectTimeout)
     {
-        if (client->connect(address, port))
+        if (!client->connect(address, port))
         {
             // TODO: Error handle
+            return -1;
         }
 
         if (!client->connected())
@@ -149,13 +153,28 @@ namespace PicoMqtt
             return -1;
         }
 
-        connectPacket.pushToClient(client);
+        if (waitingAcknowledge)
+        {
+            return 0;
+        }
+
+        waitingAcknowledge = true;
+        sendPacket(&connectPacket);
 
         return 0;
     }
 
-    int MqttClient::disconnect()
+    int MqttClient::disconnect(uint8_t reasonCode)
     {
+        if (!connected())
+        {
+            return -1;
+        }
+        waitingAcknowledge = false;
+        isAcknowledged = false;
+        Disconnect disconnect;
+        disconnect.setReasonCode(reasonCode);
+        sendPacket(&disconnect);
         return 0;
     }
 
@@ -175,11 +194,42 @@ namespace PicoMqtt
 
         if (client->connected())
         {
+            updateKeepAlivePeriod(elapsed);
             readNextPacket();
         }
         else
         {
             // TODO: Not Connected
+        }
+    }
+
+    void MqttClient::sendPacket(Packet *packet)
+    {
+        clientKeepAliveTimeRemaining = getKeepAliveInterval();
+        packet->pushToClient(client);
+    }
+
+    void MqttClient::updateKeepAlivePeriod(uint32_t timeElapsed)
+    {
+        if (getKeepAliveInterval() > 0)
+        {
+            if (serverKeepAliveTimeRemaining <= timeElapsed)
+            {
+                disconnect(KEEP_ALIVE_TIMEOUT); // KEEP ALIVE TIMEOUT
+            }
+            else
+            {
+                serverKeepAliveTimeRemaining -= timeElapsed;
+            }
+
+            if (clientKeepAliveTimeRemaining <= timeElapsed)
+            {
+                ping();
+            }
+            else
+            {
+                clientKeepAliveTimeRemaining -= timeElapsed;
+            }
         }
     }
 
@@ -200,7 +250,6 @@ namespace PicoMqtt
             // TODO: Recheck connection timeout
         }
         return false;
-        // return client->connected() && isAcknowledged;
     }
 
     uint16_t MqttClient::getPacketIdentifier()
@@ -216,7 +265,7 @@ namespace PicoMqtt
     void MqttClient::ping()
     {
         PingRequest ping;
-        ping.pushToClient(client);
+        sendPacket(&ping);
     }
 
     void MqttClient::pingResponse()
@@ -231,9 +280,10 @@ namespace PicoMqtt
     void MqttClient::connectionAcknowledged(ConnectAcknowledge *packet)
     {
         uint8_t reasonCode = packet->getReasonCode();
+        waitingAcknowledge = false;
+
         if (reasonCode != 0)
         {
-            printf("Failed to Connect. Reason: %d\n", reasonCode);
             return;
         }
         // TODO: Connection Validation
@@ -263,7 +313,7 @@ namespace PicoMqtt
             PublishAcknowledge acknowledge;
             acknowledge.setPacketIdentifier(identifier);
             acknowledge.setReasonCode(0);
-            acknowledge.pushToClient(client);
+            sendPacket(&acknowledge);
         }
         break;
         case QoS::TWO:
@@ -271,7 +321,7 @@ namespace PicoMqtt
             PublishReceived received;
             received.setPacketIdentifier(identifier);
             received.setReasonCode(0);
-            received.pushToClient(client);
+            sendPacket(&received);
         }
         break;
         default:
@@ -311,7 +361,7 @@ namespace PicoMqtt
                 PublishRelease release;
                 release.setPacketIdentifier(identifier);
                 release.setReasonCode(0);
-                release.pushToClient(client);
+                sendPacket(&release);
             }
             else
             {
@@ -329,7 +379,7 @@ namespace PicoMqtt
         PublishComplete complete;
         complete.setPacketIdentifier(identifier);
         complete.setReasonCode(0);
-        complete.pushToClient(client);
+        sendPacket(&complete);
     }
 
     void MqttClient::onPublishComplete(PublishComplete *packet)
@@ -400,7 +450,7 @@ namespace PicoMqtt
 
     uint16_t MqttClient::getKeepAliveInterval()
     {
-        return 0;
+        return connectPacket.getKeepAliveInterval();
     }
 
     void MqttClient::setKeepAliveInterval(uint16_t value)
@@ -497,7 +547,7 @@ namespace PicoMqtt
             clientTokens.push_back(packetIdentifier);
         }
 
-        publishPacket.pushToClient(client);
+        sendPacket(&publishPacket);
 
         return packetIdentifier;
     }

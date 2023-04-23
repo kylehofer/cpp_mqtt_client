@@ -69,6 +69,20 @@ namespace PicoMqtt
 
         virtual bool readFromClient(Client *client, uint32_t &read) override;
         size_t size();
+
+        /**
+         * @brief Set the Reason Code
+         *
+         * @param value
+         */
+        void setReasonCode(uint8_t value);
+
+        /**
+         * @brief Get the Reason Code
+         *
+         * @param value
+         */
+        uint8_t getReasonCode();
     };
 
 }

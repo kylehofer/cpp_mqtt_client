@@ -102,3 +102,13 @@ size_t Disconnect::size()
 {
     return REASON_CODE_SIZE + properties.size();
 }
+
+void Disconnect::setReasonCode(uint8_t value)
+{
+    reasonCode = value;
+}
+
+uint8_t Disconnect::getReasonCode()
+{
+    return reasonCode;
+}
