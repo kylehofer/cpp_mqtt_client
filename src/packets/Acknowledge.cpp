@@ -66,12 +66,12 @@ size_t Acknowledge::pushToClient(Client *client)
 
     written += client->write(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
 
-    if (bytes > 2)
+    if (bytes > (PACKET_IDENTIFIER_SIZE + REASON_CODE_SIZE))
     {
         written += client->write(reasonCode);
         written += properties.pushToClient(client);
     }
-    else if (bytes > 1)
+    else if (bytes > PACKET_IDENTIFIER_SIZE)
     {
         written += client->write(reasonCode);
     }

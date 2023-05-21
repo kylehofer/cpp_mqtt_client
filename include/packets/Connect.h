@@ -76,6 +76,7 @@ namespace PicoMqtt
     protected:
     public:
         Connect();
+        Connect(EncodedString id);
         size_t size();
 
         /**
@@ -100,12 +101,15 @@ namespace PicoMqtt
         void addUserProperty(EncodedString key, EncodedString value);
         void setAuthenticationMethod(EncodedString value);
 
-        void setClientId(EncodedString value);
         void setWill(WillProperties *will);
         void setCleanStart(bool value);
         void setKeepAliveInterval(uint16_t value);
         uint16_t getKeepAliveInterval();
+
+        void setClientId(EncodedString &id);
+        void setClientId(const char *data, uint16_t length);
     };
+
 }
 
 #endif /* CONNECT */

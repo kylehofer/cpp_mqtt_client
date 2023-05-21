@@ -40,9 +40,14 @@ Connect::Connect() : PropertiesPacket(CONNECT_ID)
     memset(connectFlags.data, 0, CONNECT_FLAGS_SIZE);
 }
 
+Connect::Connect(EncodedString id) : Connect()
+{
+    setClientId(id);
+}
+
 size_t Connect::size()
 {
-    size_t size = PROTOCOL_NAME_LENGTH + CONNECT_FLAGS_SIZE + properties.totalSize();
+    size_t size = PROTOCOL_NAME_LENGTH + CONNECT_FLAGS_SIZE + properties.totalSize() + clientIdentifier.size();
 
     if (connectFlags.will)
         size += willProperties->size();
@@ -64,7 +69,6 @@ size_t Connect::pushToClient(Client *client)
     // Variable Header
     written += client->write(PROTOCOL_NAME, PROTOCOL_NAME_LENGTH);
     written += client->write(connectFlags.data, CONNECT_FLAGS_SIZE);
-
     written += properties.pushToClient(client);
 
     // Client Id
@@ -82,9 +86,14 @@ size_t Connect::pushToClient(Client *client)
     return written;
 }
 
-void Connect::setClientId(EncodedString value)
+void Connect::setClientId(EncodedString &id)
 {
-    clientIdentifier = value;
+    clientIdentifier = EncodedString(id);
+}
+
+void Connect::setClientId(const char *data, uint16_t length)
+{
+    clientIdentifier = EncodedString(data, length);
 }
 
 void Connect::setWill(WillProperties *will)

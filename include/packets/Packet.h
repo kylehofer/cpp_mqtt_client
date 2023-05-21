@@ -147,6 +147,7 @@ namespace PicoMqtt
         virtual size_t size() = 0;
         virtual bool readFromClient(Client *client, uint32_t &read) = 0;
         virtual size_t pushToClient(Client *client) = 0;
+        void write(Client *client);
         void setRemainingLength(VariableByteInteger remainingLength);
         void setRemainingLength(uint32_t remainingLength);
         uint8_t getPacketType();

@@ -68,7 +68,7 @@ TEST(MqttClientTests, SuccessfulConnect)
 
     uint8_t expectedData[] = {
         0x10, // Connect ID
-        0x0B, // Remaining Length
+        0x0D, // Remaining Length
         0x00,
         0x04,
         'M',
@@ -130,7 +130,7 @@ TEST(MqttClientTests, FailedConnect)
 
     uint8_t expectedData[] = {
         0x10, // Connect ID
-        0x0B, // Remaining Length
+        0x0D, // Remaining Length
         0x00,
         0x04,
         'M',
@@ -147,6 +147,8 @@ TEST(MqttClientTests, FailedConnect)
     {
         ASSERT_EQ(writeBuffer[i], expectedData[i]) << "at position " << i;
     }
+
+    ASSERT_EQ(client.written(), 15);
 
     mqttClient.sync();
 
@@ -186,7 +188,7 @@ void setupConnected(MockClient &client, MqttClient &mqttClient)
 
     uint8_t expectedData[] = {
         0x10, // Connect ID
-        0x0B, // Remaining Length
+        0x0D, // Remaining Length
         0x00,
         0x04,
         'M',

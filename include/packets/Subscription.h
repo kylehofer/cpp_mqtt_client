@@ -72,6 +72,8 @@ namespace PicoMqtt
          * @return false If the class has finished reading data from the client
          */
         virtual bool readFromClient(Client *client, uint32_t &read) override;
+
+        void addPayload(SubscriptionPayload &payload);
     };
 
 }

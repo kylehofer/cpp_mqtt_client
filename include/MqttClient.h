@@ -98,6 +98,10 @@ namespace PicoMqtt
         vector<uint16_t> clientTokens;
         vector<uint16_t> serverTokens;
 
+        template <typename... T>
+        void addSubscriptionPayload(Subscribe &packet, SubscriptionPayload &payload, T &...args);
+        void addSubscriptionPayload(Subscribe &packet, SubscriptionPayload &payload);
+
         /**
          * @brief Attempts to read the next MQTT Packet
          *
@@ -187,6 +191,9 @@ namespace PicoMqtt
          * @return false
          */
         bool isDelivered(uint16_t token);
+
+        void setClientId(EncodedString &id);
+        void setClientId(const char *data, uint16_t length);
 
         /* Client properties Getters/Setters */
         uint16_t getKeepAliveInterval();

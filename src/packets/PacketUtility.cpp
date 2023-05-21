@@ -71,7 +71,20 @@ namespace PicoMqtt
                 if (!length.readFromClient(client, read))
                 {
                     // TODO: Max Packet length check
+                    if (length == 0)
+                    {
+                        state = ReadState::IDENTIFIER_FLAGS;
+                        length = 0;
+                        controlPacket = 0;
+                        {
+                            Packet *result = packet;
+                            packet = NULL;
+                            return result;
+                        }
+                    }
+
                     state = ReadState::PACKET_CONTENTS;
+
                     packet->setRemainingLength(length);
                 }
                 break;
@@ -82,7 +95,6 @@ namespace PicoMqtt
                     length = 0;
                     controlPacket = 0;
                     {
-
                         Packet *result = packet;
                         packet = NULL;
                         return result;

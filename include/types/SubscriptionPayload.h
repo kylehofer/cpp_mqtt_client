@@ -35,6 +35,8 @@
 #include <stdint.h>
 #include "ClientInteractor.h"
 #include "types/EncodedString.h"
+#include "types/Common.h"
+#include "types/VariableByteInteger.h"
 
 namespace PicoMqtt
 {
@@ -82,6 +84,21 @@ namespace PicoMqtt
          */
         virtual bool readFromClient(Client *client, uint32_t &read) override;
         size_t size();
+
+        void setSubscriptionIdentifier(VariableByteInteger value);
+        VariableByteInteger getSubscriptionIdentifier();
+
+        void setMaximumQos(QoS qos);
+        QoS getMaximumQos();
+
+        void setNoLocal(bool value);
+        bool gettNoLocal();
+
+        void setRetainAsPublished(bool value);
+        bool gettRetainAsPublished();
+
+        void setRetainHandling();
+        void getRetainHandling();
     };
 
 }

@@ -35,4 +35,6 @@ using namespace PicoMqtt;
 
 PublishRelease::PublishRelease() : Acknowledge(PUBLISH_RELEASE_ID)
 {
+    // Publish release must set the 2nd bit in the Fixed Header
+    setFlags(2);
 }

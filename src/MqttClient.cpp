@@ -94,7 +94,6 @@ namespace PicoMqtt
             // TODO: Should never receieve
             break;
         case UNSUBSCRIBE_ACKNOWLEDGE_ID:
-            // TODO: Should never receieve
             break;
         case PING_REQUEST_ID:
         {
@@ -106,7 +105,6 @@ namespace PicoMqtt
             pingResponse();
             break;
         case DISCONNECT_ID:
-
             break;
         case AUTHENTICATION_ID:
         default:
@@ -178,8 +176,30 @@ namespace PicoMqtt
         return 0;
     }
 
+    template <typename... T>
+    void MqttClient::addSubscriptionPayload(Subscribe &packet, SubscriptionPayload &payload, T &...args)
+    {
+        addSubscriptionPayload(packet, payload);
+        addSubscriptionPayload(packet, args...);
+    }
+
+    void MqttClient::addSubscriptionPayload(Subscribe &packet, SubscriptionPayload &payload)
+    {
+        packet.addPayload(payload);
+    }
+
     int MqttClient::subscribe(SubscriptionPayload &payload...)
     {
+        if (!connected())
+        {
+            return -1;
+        }
+
+        Subscribe packet;
+        addSubscriptionPayload(packet, payload);
+
+        sendPacket(&packet);
+
         return 0;
     }
 
@@ -205,7 +225,7 @@ namespace PicoMqtt
 
     void MqttClient::sendPacket(Packet *packet)
     {
-        clientKeepAliveTimeRemaining = getKeepAliveInterval();
+
         packet->pushToClient(client);
     }
 
@@ -224,7 +244,15 @@ namespace PicoMqtt
 
             if (clientKeepAliveTimeRemaining <= timeElapsed)
             {
-                ping();
+
+                if (waitingAcknowledge)
+                {
+                    return;
+                }
+                else
+                {
+                    ping();
+                }
             }
             else
             {
@@ -254,7 +282,7 @@ namespace PicoMqtt
 
     uint16_t MqttClient::getPacketIdentifier()
     {
-        return packetIdentifier++;
+        return ++packetIdentifier ? packetIdentifier : ++packetIdentifier;
     }
 
     bool MqttClient::isDelivered(uint16_t token)
@@ -262,8 +290,19 @@ namespace PicoMqtt
         return !hasClientToken(token);
     }
 
+    void MqttClient::setClientId(EncodedString &id)
+    {
+        connectPacket.setClientId(id);
+    }
+
+    void MqttClient::setClientId(const char *data, uint16_t length)
+    {
+        connectPacket.setClientId(data, length);
+    }
+
     void MqttClient::ping()
     {
+        clientKeepAliveTimeRemaining = getKeepAliveInterval();
         PingRequest ping;
         sendPacket(&ping);
     }
@@ -532,18 +571,23 @@ namespace PicoMqtt
 
     uint16_t MqttClient::publish(EncodedString &topic, Payload &payload, QoS qos)
     {
+        if (!connected())
+        {
+            return -1;
+        }
+
         Publish publishPacket;
 
         publishPacket.setTopic(topic);
         publishPacket.setPayload(payload);
         publishPacket.setQos(qos);
 
-        uint16_t packetIdentifier = getPacketIdentifier();
-
-        publishPacket.setPacketIdentifier(packetIdentifier);
+        uint16_t packetIdentifier = 0;
 
         if (qos != QoS::ZERO)
         {
+            packetIdentifier = getPacketIdentifier();
+            publishPacket.setPacketIdentifier(packetIdentifier);
             clientTokens.push_back(packetIdentifier);
         }
 

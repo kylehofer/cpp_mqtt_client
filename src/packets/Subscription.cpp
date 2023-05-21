@@ -76,3 +76,8 @@ bool Subscription::readFromClient([[maybe_unused]] Client *client, [[maybe_unuse
     // Not Used
     return false;
 }
+
+void Subscription::addPayload(SubscriptionPayload &payload)
+{
+    payloads.push_back(payload);
+}
