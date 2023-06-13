@@ -59,14 +59,15 @@ TYPED_TEST_P(DWordPropertyTest, Encode)
         size_t bytesWritten;
 
         dWordProperty->setValue(data.raw);
-        bytesWritten = dWordProperty->pushToClient(clientPtr);
+        PacketBuffer packetBuffer(dWordProperty->size());
+        bytesWritten = dWordProperty->push(packetBuffer);
 
-        char *writeBuffer = client.getWriteBuffer();
+        // char *writeBuffer = client.getWriteBuffer();
 
         ASSERT_EQ(bytesWritten, data.encodedSize + identifier.size());
 
-        char *identifierBuffer = writeBuffer;
-        char *dWordBuffer = writeBuffer + identifier.size();
+        // char *identifierBuffer = writeBuffer;
+        uint8_t *dWordBuffer = packetBuffer.getBuffer() + identifier.size();
 
         // for (size_t i = 0; i < identifier.size(); i++)
         // {

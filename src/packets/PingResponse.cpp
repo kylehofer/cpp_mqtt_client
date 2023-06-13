@@ -36,3 +36,12 @@ using namespace PicoMqtt;
 PingResponse::PingResponse() : BlankPacket(PING_RESPONSE_ID)
 {
 }
+
+PingResponse::PingResponse(uint8_t flags) : BlankPacket(PING_RESPONSE_ID | (flags & HEADER_BYTES_MASK))
+{
+}
+
+bool PingResponse::validate()
+{
+    return true;
+}

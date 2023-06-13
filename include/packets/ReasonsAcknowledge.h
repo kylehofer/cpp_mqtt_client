@@ -32,7 +32,7 @@
 #ifndef REASONSACKNOWLEDGE
 #define REASONSACKNOWLEDGE
 
-#include "Acknowledge.h"
+#include "PropertiesPacket.h"
 #include <vector>
 
 namespace PicoMqtt
@@ -42,13 +42,15 @@ namespace PicoMqtt
      * Base class for Subscribe and Unsubscribe Acknowledge packets
      *
      */
-    class ReasonsAcknowledge : public Acknowledge
+    class ReasonsAcknowledge : public PropertiesPacket
     {
     private:
+        uint8_t state = 0;
+        uint16_t packetIdentifier;
         vector<uint8_t> reasonCodes;
 
     protected:
-        ReasonsAcknowledge(uint8_t fixedHeaderByte) : Acknowledge(fixedHeaderByte){};
+        ReasonsAcknowledge(uint8_t fixedHeaderByte) : PropertiesPacket(fixedHeaderByte){};
 
     public:
         /**
@@ -57,7 +59,7 @@ namespace PicoMqtt
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
-        virtual size_t pushToClient(Client *client) override;
+        virtual size_t push(PacketBuffer &buffer) override;
         /**
          * @brief Reads data from a client which will then be used to fill in the Reasons Acknowledge Packet
          *
@@ -68,6 +70,9 @@ namespace PicoMqtt
          */
         virtual bool readFromClient(Client *client, uint32_t &read) override;
         size_t size();
+
+        vector<uint8_t> getReasonCodes();
+        uint16_t getPacketIdentifier();
     };
 }
 

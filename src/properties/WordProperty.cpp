@@ -63,10 +63,10 @@ bool WordProperty::readFromClient(Client *client, uint32_t &read)
     return value.readFromClient(client, read);
 }
 
-size_t WordProperty::pushPropertyToClient(Client *client)
+size_t WordProperty::pushProperty(PacketBuffer &buffer)
 {
-    return value.pushToClient(client);
-    // return client->write(&value, propertySize());
+    return value.push(buffer);
+    // return buffer.push(&value, propertySize());
 }
 
 void WordProperty::setValue(uint16_t value)

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-PacketBuffer::PacketBuffer(size_t size)
+PacketBuffer::PacketBuffer(size_t size) : length(size)
 {
     buffer = position = (uint8_t *)malloc(size);
 }
@@ -16,7 +16,7 @@ PacketBuffer::~PacketBuffer()
     }
 }
 
-inline size_t PacketBuffer::push(const void *input, size_t size)
+size_t PacketBuffer::push(const void *input, size_t size)
 {
     memcpy(position, input, size);
     position += size;

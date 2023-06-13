@@ -46,26 +46,26 @@ enum ReadingState
 size_t Subscription::size()
 {
     size_t bytes = PACKET_IDENTIFIER_SIZE;
-    bytes += properties.size();
+    bytes += properties.totalSize();
 
     for (auto &payload : payloads)
     {
-        bytes += payload.size();
+        bytes += payload->size();
     }
     return bytes;
 }
 
-size_t Subscription::pushToClient(Client *client)
+size_t Subscription::push(PacketBuffer &buffer)
 {
     // Fixed Header
-    size_t written = Packet::pushToClient(client);
+    size_t written = Packet::push(buffer);
 
-    written += client->write(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
-    written += properties.pushToClient(client);
+    written += buffer.push(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
+    written += properties.push(buffer);
 
     for (auto &payload : payloads)
     {
-        written += payload.pushToClient(client);
+        written += payload->push(buffer);
     }
 
     return written;
@@ -77,7 +77,17 @@ bool Subscription::readFromClient([[maybe_unused]] Client *client, [[maybe_unuse
     return false;
 }
 
-void Subscription::addPayload(SubscriptionPayload &payload)
+void Subscription::addPayload(SubscriptionPayload *payload)
 {
     payloads.push_back(payload);
+}
+
+void Subscription::setPacketIdentifier(uint16_t packetIdentifier)
+{
+    this->packetIdentifier = packetIdentifier;
+}
+
+uint16_t Subscription::getPacketIdentifier()
+{
+    return packetIdentifier;
 }

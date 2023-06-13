@@ -87,7 +87,7 @@ namespace PicoMqtt
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
-        virtual size_t pushPropertyToClient(Client *client) = 0;
+        virtual size_t pushProperty(PacketBuffer &buffer) = 0;
         /**
          * @brief Returns the byte size of the properties value
          *
@@ -120,10 +120,10 @@ namespace PicoMqtt
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
-        size_t pushToClient(Client *client)
+        size_t push(PacketBuffer &buffer)
         {
-            size_t identifierLength = this->identifier.pushToClient(client);
-            size_t propertyLength = pushPropertyToClient(client);
+            size_t identifierLength = this->identifier.push(buffer);
+            size_t propertyLength = pushProperty(buffer);
             return identifierLength + propertyLength;
         };
     };

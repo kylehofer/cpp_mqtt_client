@@ -49,7 +49,7 @@ namespace PicoMqtt
     private:
         uint8_t state = 0;
         uint16_t packetIdentifier;
-        vector<SubscriptionPayload> payloads;
+        vector<SubscriptionPayload *> payloads;
 
     protected:
         Subscription(uint8_t fixedHeaderByte) : PropertiesPacket(fixedHeaderByte){};
@@ -62,7 +62,7 @@ namespace PicoMqtt
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
-        virtual size_t pushToClient(Client *client) override;
+        virtual size_t push(PacketBuffer &buffer) override;
         /**
          * @brief Reads data from a client which will then be used to fill in the Subscription Packet
          *
@@ -73,7 +73,10 @@ namespace PicoMqtt
          */
         virtual bool readFromClient(Client *client, uint32_t &read) override;
 
-        void addPayload(SubscriptionPayload &payload);
+        void addPayload(SubscriptionPayload *payload);
+
+        void setPacketIdentifier(uint16_t packetIdentifier);
+        uint16_t getPacketIdentifier();
     };
 
 }

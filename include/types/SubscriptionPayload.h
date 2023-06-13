@@ -40,19 +40,6 @@
 
 namespace PicoMqtt
 {
-    typedef union
-    {
-        struct
-        {
-            unsigned char reserved : 2;
-            unsigned char retainHandling : 2;
-            unsigned char retainAsPublished : 1;
-            unsigned char noLocal : 1;
-            unsigned char maximumQos : 2;
-        };
-        uint8_t data;
-    } SubscriptionOptions;
-
     /**
      * @brief Represents a MQTT 5 Subscription Payload
      * Used for representing a single topic with a set of options for Un/subscribing.
@@ -62,18 +49,16 @@ namespace PicoMqtt
     {
     private:
         EncodedString topic;
-        SubscriptionOptions options;
 
     protected:
     public:
-        SubscriptionPayload();
         /**
          * @brief Pushes the contents of the Subscription Payload to a communications client
          *
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
-        virtual size_t pushToClient(Client *client) override;
+        virtual size_t push(PacketBuffer &buffer) override;
         /**
          * @brief Reads data from a client which will then be used to fill in the Subscription Payload
          *
@@ -83,22 +68,13 @@ namespace PicoMqtt
          * @return false If the class has finished reading data from the client
          */
         virtual bool readFromClient(Client *client, uint32_t &read) override;
-        size_t size();
+        virtual size_t size();
 
         void setSubscriptionIdentifier(VariableByteInteger value);
         VariableByteInteger getSubscriptionIdentifier();
 
-        void setMaximumQos(QoS qos);
-        QoS getMaximumQos();
-
-        void setNoLocal(bool value);
-        bool gettNoLocal();
-
-        void setRetainAsPublished(bool value);
-        bool gettRetainAsPublished();
-
-        void setRetainHandling();
-        void getRetainHandling();
+        void setTopic(EncodedString &topic);
+        void setTopic(const char *data, uint16_t length);
     };
 
 }

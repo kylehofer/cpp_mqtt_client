@@ -122,13 +122,13 @@ BufferData::~BufferData()
     }
 }
 
-size_t BufferData::pushToClient(Client *client)
+size_t BufferData::push(PacketBuffer &buffer)
 {
-    length.pushToClient(client);
+    length.push(buffer);
 
     if (length > 0)
     {
-        client->write(data, length);
+        buffer.push(data, length);
     }
 
     return size();

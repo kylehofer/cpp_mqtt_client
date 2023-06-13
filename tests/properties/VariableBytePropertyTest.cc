@@ -58,9 +58,10 @@ TYPED_TEST_P(VariableBytePropertyTest, Encode)
         size_t bytesWritten;
 
         variableByteProperty->setValue(VariableByteInteger(data.raw));
-        bytesWritten = variableByteProperty->pushToClient(clientPtr);
+        PacketBuffer packetBuffer(variableByteProperty->size());
+        bytesWritten = variableByteProperty->push(packetBuffer);
 
-        char *writeBuffer = client.getWriteBuffer();
+        char *writeBuffer = (char *)packetBuffer.getBuffer();
 
         ASSERT_EQ(bytesWritten, data.encodedSize + identifier.size());
 

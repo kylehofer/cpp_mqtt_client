@@ -16,10 +16,13 @@ public:
     PacketBuffer(size_t size);
     ~PacketBuffer();
     size_t push(const void *input, size_t size);
-    inline size_t push(uint8_t value)
+    size_t push(uint8_t value)
     {
         return push(&value, 1);
     };
+
+    uint8_t *getBuffer() { return buffer; };
+    size_t getLength() { return length; };
 };
 
 #endif /* PACKETBUFFER */

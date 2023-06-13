@@ -59,14 +59,14 @@ public:
      * @param client The client to push data to
      * @return size_t The amount of bytes written
      */
-    virtual size_t pushToClient(Client *client) = 0;
+    virtual size_t push(PacketBuffer &buffer) = 0;
 
-    /**
-     * @brief
-     *
-     * @param buffer
-     * @return size_t
-     */
+    // /**
+    //  * @brief
+    //  *
+    //  * @param buffer
+    //  * @return size_t
+    //  */
     // virtual size_t push(PacketBuffer &buffer) = 0;
 };
 

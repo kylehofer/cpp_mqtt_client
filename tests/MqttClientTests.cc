@@ -46,6 +46,7 @@ using namespace PicoMqtt;
 
 TEST(MqttClientTests, SuccessfulConnect)
 {
+
     MockClient client;
     Client *clientPtr = (Client *)&client;
     size_t bytesWritten;
@@ -283,8 +284,8 @@ TEST(MqttClientTests, PublishQos1)
     const unsigned char puback[] = {
         0x40,                    // ID
         0x04,                    // Variable Length
-        (uint8_t)(token >> 8),   // Packet Identifier Upper
         (uint8_t)(token & 0xFF), // Packet Identifier Lower
+        (uint8_t)(token >> 8),   // Packet Identifier Upper
         0x00,                    // Reason Code
         0x00                     // No properties
     };
@@ -315,8 +316,8 @@ TEST(MqttClientTests, PublishQos2)
     const unsigned char pubrec[] = {
         0x50,                    // ID
         0x04,                    // Variable Length
-        (uint8_t)(token >> 8),   // Packet Identifier Upper
         (uint8_t)(token & 0xFF), // Packet Identifier Lower
+        (uint8_t)(token >> 8),   // Packet Identifier Upper
         0x00,                    // Reason Code
         0x00                     // No properties
     };
@@ -330,8 +331,8 @@ TEST(MqttClientTests, PublishQos2)
     const unsigned char pubcomp[] = {
         0x70,                    // ID
         0x04,                    // Variable Length
-        (uint8_t)(token >> 8),   // Packet Identifier Upper
         (uint8_t)(token & 0xFF), // Packet Identifier Lower
+        (uint8_t)(token >> 8),   // Packet Identifier Upper
         0x00,                    // Reason Code
         0x00                     // No properties
     };

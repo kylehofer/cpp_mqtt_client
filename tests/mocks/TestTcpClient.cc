@@ -79,27 +79,7 @@ size_t TestTcpClient::write(const void *buffer, size_t size)
         return 0;
     }
 
-    int returnCode = 0;
-
-    if (writeQueue == NULL)
-    {
-        writeQueue = initializeDataBuffer((const uint8_t *)buffer, size);
-    }
-    else
-    {
-        DataBuffer *tail = writeQueue, *next = tail->next;
-        while (next != NULL)
-        {
-            tail = next;
-            next = tail->next;
-        }
-
-        tail->next = initializeDataBuffer((const uint8_t *)buffer, size);
-    }
-
-    writeSize += size;
-
-    return size;
+    return ::write(openSocket, buffer, size);
 }
 
 void TestTcpClient::flush()
@@ -325,11 +305,6 @@ TestTcpClient::~TestTcpClient()
 void TestTcpClient::closeSocket(int socket)
 {
     char buffer[FORWARDER_BUFFER_SIZE];
-
-    // // Assuring socket is empty before closing
-    // while (::read(socket, buffer, FORWARDER_BUFFER_SIZE) > 0)
-    // {
-    // }
 
     ::close(socket);
 }

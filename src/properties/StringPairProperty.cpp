@@ -84,9 +84,9 @@ bool StringPairProperty::readFromClient(Client *client, uint32_t &read)
     return true;
 }
 
-size_t StringPairProperty::pushPropertyToClient(Client *client)
+size_t StringPairProperty::pushProperty(PacketBuffer &buffer)
 {
-    return key.pushToClient(client) + value.pushToClient(client);
+    return key.push(buffer) + value.push(buffer);
 }
 
 void StringPairProperty::setKey(EncodedString key)

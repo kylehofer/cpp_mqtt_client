@@ -75,7 +75,8 @@ namespace PicoMqtt
 
     protected:
     public:
-        Connect();
+        // Connect();
+        Connect(uint8_t flags = 0);
         Connect(EncodedString id);
         size_t size();
 
@@ -85,7 +86,7 @@ namespace PicoMqtt
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
-        virtual size_t pushToClient(Client *client) override;
+        virtual size_t push(PacketBuffer &buffer) override;
         bool readFromClient(Client *, uint32_t &) { return false; };
 
         // Properties
@@ -108,6 +109,13 @@ namespace PicoMqtt
 
         void setClientId(EncodedString &id);
         void setClientId(const char *data, uint16_t length);
+        /**
+         * @brief Validates the packet to the MQTT 5 standards
+         *
+         * @return true
+         * @return false
+         */
+        virtual bool validate() override;
     };
 
 }

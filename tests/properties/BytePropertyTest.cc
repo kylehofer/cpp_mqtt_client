@@ -40,15 +40,17 @@ TYPED_TEST_P(BytePropertyTest, Encode)
         Client *clientPtr = (Client *)&client;
         size_t bytesWritten;
 
+        PacketBuffer buffer(byteProperty->size());
+
         byteProperty->setValue(data.raw);
-        bytesWritten = byteProperty->pushToClient(clientPtr);
+        bytesWritten = byteProperty->push(buffer);
 
         char *writeBuffer = client.getWriteBuffer();
 
         ASSERT_EQ(bytesWritten, 1 + identifier.size());
 
-        char *identifierBuffer = writeBuffer;
-        char *byteBuffer = writeBuffer + identifier.size();
+        // uint8_t *identifierBuffer = buffer.getBuffer();
+        uint8_t *byteBuffer = buffer.getBuffer() + identifier.size();
 
         // for (size_t i = 0; i < identifier.size(); i++)
         // {

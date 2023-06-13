@@ -38,7 +38,7 @@ Payload::Payload()
 {
 }
 
-Payload::Payload(Payload &payload)
+Payload::Payload(const Payload &payload)
 {
     if (payload.data)
     {
@@ -106,9 +106,9 @@ size_t Payload::size()
     return length;
 }
 
-size_t Payload::pushToClient(Client *client)
+size_t Payload::push(PacketBuffer &buffer)
 {
-    return client->write(data, length);
+    return buffer.push(data, length);
 }
 
 bool Payload::readFromClient(Client *client, uint32_t &bytes)
@@ -121,5 +121,6 @@ bool Payload::readFromClient(Client *client, uint32_t &bytes)
         bytesRead += toRead;
         bytes += toRead;
     }
+
     return bytesRead < length;
 }

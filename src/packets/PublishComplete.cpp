@@ -36,3 +36,12 @@ using namespace PicoMqtt;
 PublishComplete::PublishComplete() : Acknowledge(PUBLISH_COMPLETE_ID)
 {
 }
+
+PublishComplete::PublishComplete(uint8_t flags) : Acknowledge(PUBLISH_COMPLETE_ID | (flags & HEADER_BYTES_MASK))
+{
+}
+
+bool PublishComplete::validate()
+{
+    return true;
+}

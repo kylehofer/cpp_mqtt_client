@@ -47,13 +47,17 @@ Disconnect::Disconnect() : PropertiesPacket(DISCONNECT_ID)
 {
 }
 
-size_t Disconnect::pushToClient(Client *client)
+Disconnect::Disconnect(uint8_t flags) : PropertiesPacket(DISCONNECT_ID | (flags & HEADER_BYTES_MASK))
+{
+}
+
+size_t Disconnect::push(PacketBuffer &buffer)
 {
     // Fixed Header
-    size_t written = Packet::pushToClient(client);
+    size_t written = Packet::push(buffer);
 
-    written += client->write(reasonCode);
-    written += properties.pushToClient(client);
+    written += buffer.push(reasonCode);
+    written += properties.push(buffer);
 
     return written;
 }
@@ -69,7 +73,7 @@ bool Disconnect::readFromClient(Client *client, uint32_t &bytes)
         reasonCode = 0;
     }
 
-    while (dataRemaining() && state != COMPLETE)
+    while (client->available() > 0 && dataRemaining() && state != COMPLETE)
     {
         uint32_t read = 0;
         switch (state)
@@ -111,4 +115,9 @@ void Disconnect::setReasonCode(uint8_t value)
 uint8_t Disconnect::getReasonCode()
 {
     return reasonCode;
+}
+
+bool Disconnect::validate()
+{
+    return true;
 }

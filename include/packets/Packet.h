@@ -54,6 +54,8 @@
 #define DISCONNECT_ID (14 << 4)
 #define AUTHENTICATION_ID (15 << 4)
 
+#define HEADER_BYTES_MASK 0xF
+
 namespace PicoMqtt
 {
     enum ReasonCode
@@ -138,21 +140,28 @@ namespace PicoMqtt
         void readBytes(uint32_t count);
         bool dataRemaining();
         bool isValid();
-        void setFlags(uint8_t);
 
     public:
+        void setFlags(uint8_t);
         Packet(uint8_t fixedHeaderByte);
         Packet(FixedHeader fixedHeader);
         virtual ~Packet();
         virtual size_t size() = 0;
         virtual bool readFromClient(Client *client, uint32_t &read) = 0;
-        virtual size_t pushToClient(Client *client) = 0;
+        virtual size_t push(PacketBuffer &buffer) = 0;
+        size_t totalSize();
         void write(Client *client);
         void setRemainingLength(VariableByteInteger remainingLength);
         void setRemainingLength(uint32_t remainingLength);
         uint8_t getPacketType();
+        /**
+         * @brief Validates the packet to the MQTT 5 standards
+         *
+         * @return true
+         * @return false
+         */
+        virtual bool validate() = 0;
     };
-
 }
 
 #endif /* PACKET */

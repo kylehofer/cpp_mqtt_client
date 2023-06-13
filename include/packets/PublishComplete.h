@@ -45,6 +45,14 @@ namespace PicoMqtt
     {
     public:
         PublishComplete();
+        PublishComplete(uint8_t flags);
+        /**
+         * @brief Validates the packet to the MQTT 5 standards
+         *
+         * @return true
+         * @return false
+         */
+        virtual bool validate() override;
     };
 }
 

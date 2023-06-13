@@ -54,7 +54,7 @@ uint8_t Packet::getFixedHeaderFlags()
 
 uint32_t Packet::getRemainingLength()
 {
-    return remainingLength;
+    return remainingLength < bytesRead ? 0 : remainingLength - bytesRead;
 }
 void Packet::readBytes(uint32_t count)
 {
@@ -63,7 +63,7 @@ void Packet::readBytes(uint32_t count)
 
 bool Packet::dataRemaining()
 {
-    return bytesRead < getRemainingLength();
+    return getRemainingLength() > 0;
 }
 
 bool Packet::isValid()
@@ -71,11 +71,17 @@ bool Packet::isValid()
     return bytesRead == getRemainingLength();
 }
 
-size_t Packet::pushToClient(Client *client)
+size_t Packet::totalSize()
 {
-    client->write(fixedHeader.data);
     remainingLength = size();
-    return remainingLength.pushToClient(client) + remainingLength.size();
+    return remainingLength.size() + 1 + remainingLength;
+}
+
+size_t Packet::push(PacketBuffer &buffer)
+{
+    buffer.push(fixedHeader.data);
+    remainingLength = size();
+    return remainingLength.push(buffer) + 1;
 }
 
 void Packet::setFlags(uint8_t flags)

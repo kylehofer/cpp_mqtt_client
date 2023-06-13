@@ -118,14 +118,14 @@ namespace PicoMqtt
          * @param client
          * @return size_t
          */
-        size_t pushToClient(Client *client)
+        size_t push(PacketBuffer &buffer)
         {
 #if BYTE_ORDER == BIG_ENDIAN
-            client->write(raw, size());
+            buffer.push(raw, size());
 #else
             for (int i = size() - 1; i >= 0; i--)
             {
-                client->write(raw[i]);
+                buffer.push(raw[i]);
             }
 #endif
 

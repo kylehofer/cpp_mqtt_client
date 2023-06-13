@@ -63,10 +63,10 @@ bool DWordProperty::readFromClient(Client *client, uint32_t &read)
     // return false;
 }
 
-size_t DWordProperty::pushPropertyToClient(Client *client)
+size_t DWordProperty::pushProperty(PacketBuffer &buffer)
 {
-    return value.pushToClient(client);
-    // return client->write(&value, propertySize());
+    return value.push(buffer);
+    // return buffer.push(&value, propertySize());
 }
 
 void DWordProperty::setValue(uint32_t value)

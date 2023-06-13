@@ -53,10 +53,13 @@ namespace PicoMqtt
         Payload();
         Payload(uint32_t length);
         Payload(void *data, uint32_t length);
-        Payload(Payload &payload);
+        Payload(const Payload &payload);
         ~Payload();
 
         Payload &operator=(const Payload &right);
+
+        uint8_t operator[](int i) const { return data[i]; }
+        uint8_t &operator[](int i) { return data[i]; }
 
         uint8_t *getData();
         void setData(void *data, uint32_t length);
@@ -67,7 +70,7 @@ namespace PicoMqtt
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
-        virtual size_t pushToClient(Client *client) override;
+        virtual size_t push(PacketBuffer &buffer) override;
         /**
          * @brief Reads data from a client which will then be used to fill in the Payload
          *

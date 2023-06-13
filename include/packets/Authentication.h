@@ -51,13 +51,14 @@ namespace PicoMqtt
     protected:
     public:
         Authentication();
+        Authentication(uint8_t flags);
         /**
          * @brief Pushes the contents of the Authentication Packet to a communications client
          *
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
-        virtual size_t pushToClient(Client *client) override;
+        virtual size_t push(PacketBuffer &buffer) override;
         /**
          * @brief Reads data from a client which will then be used to fill in the Authentication Packet
          *
@@ -73,6 +74,13 @@ namespace PicoMqtt
          * @return size_t
          */
         size_t size();
+        /**
+         * @brief Validates the packet to the MQTT 5 standards
+         *
+         * @return true
+         * @return false
+         */
+        virtual bool validate() override;
     };
 }
 

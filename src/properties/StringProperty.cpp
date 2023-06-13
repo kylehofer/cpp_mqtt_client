@@ -62,10 +62,10 @@ bool StringProperty::readFromClient(Client *client, uint32_t &read)
     return value.readFromClient(client, read);
 }
 
-size_t StringProperty::pushPropertyToClient(Client *client)
+size_t StringProperty::pushProperty(PacketBuffer &buffer)
 {
 
-    return value.pushToClient(client);
+    return value.push(buffer);
 }
 
 void StringProperty::setValue(EncodedString value)
