@@ -14,10 +14,11 @@ IF(${BUILD_TARGET} STREQUAL "PICO")
 ENDIF()
 
 # Finding all of our source
-file(GLOB_RECURSE SOURCES ABSOLUTE ${CMAKE_SOURCE_DIR} "./*.cpp")
-file(GLOB_RECURSE HEADERS ABSOLUTE ${CMAKE_SOURCE_DIR} "${CMAKE_SOURCE_DIR}/include/*.h")
+file(GLOB_RECURSE SOURCES ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR} "./*.cpp")
+file(GLOB_RECURSE HEADERS ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 
 add_library(cpp_mqtt_client STATIC ${SOURCES} ${HEADERS})
+target_include_directories(cpp_mqtt_client PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 IF(${BUILD_TARGET} STREQUAL "PICO")
     target_link_libraries(cpp_mqtt_client
@@ -35,5 +36,3 @@ IF(${BUILD_TARGET} STREQUAL "PICO")
         )
     ENDIF()
 ENDIF()
-
-target_include_directories(cpp_mqtt_client PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../include")
