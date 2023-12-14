@@ -133,15 +133,16 @@ TEST(PropertiesTest, Encode)
 
         uint32_t bytesRead = 0;
 
-        size_t written = properties.pushToClient(clientPtr);
+        PacketBuffer buffer(properties.size());
+        size_t written = properties.push(buffer);
 
         ASSERT_EQ(written, TEST_DATA_SIZE);
 
-        uint8_t *buffer = (uint8_t *)client.getWriteBuffer();
+        uint8_t *data = (uint8_t *)buffer.getBuffer();
 
         for (size_t i = 0; i < TEST_DATA_SIZE; i++)
         {
-            ASSERT_EQ(buffer[i], testData[i]) << "at position " << i;
+            ASSERT_EQ(data[i], testData[i]) << "at position " << i;
         }
     }
 }

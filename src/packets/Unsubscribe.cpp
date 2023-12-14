@@ -33,6 +33,17 @@
 
 using namespace PicoMqtt;
 
-Unsubscribe::Unsubscribe() : Subscription(UNSUBSCRIBE_ID)
+Unsubscribe::Unsubscribe() : Unsubscribe(UNSUBSCRIBE_ID)
 {
+}
+
+Unsubscribe::Unsubscribe(uint8_t flags) : Subscription(UNSUBSCRIBE_ID | (flags & HEADER_BYTES_MASK))
+{
+    // // Unsubscribe needs to set it's flags to 2
+    setFlags(2);
+}
+
+bool Unsubscribe::validate()
+{
+    return true;
 }

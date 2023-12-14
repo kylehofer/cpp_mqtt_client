@@ -16,7 +16,7 @@ namespace PicoMqtt
     public:
         WillProperties();
 
-        using Properties::pushToClient;
+        using Properties::push;
 
         void setWillDelayInterval(uint32_t value);
         void setMessageExpiryInterval(uint32_t value);

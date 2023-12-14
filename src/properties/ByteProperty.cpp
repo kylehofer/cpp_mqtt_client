@@ -61,9 +61,9 @@ bool ByteProperty::readFromClient(Client *client, uint32_t &read)
     return false;
 }
 
-size_t ByteProperty::pushPropertyToClient(Client *client)
+size_t ByteProperty::pushProperty(PacketBuffer &buffer)
 {
-    return client->write(value);
+    return buffer.push(value);
 }
 
 void ByteProperty::setValue(uint8_t value)

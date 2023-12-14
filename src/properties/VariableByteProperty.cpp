@@ -57,9 +57,9 @@ bool VariableByteProperty::readFromClient(Client *client, uint32_t &read)
     return value.readFromClient(client, read);
 }
 
-size_t VariableByteProperty::pushPropertyToClient(Client *client)
+size_t VariableByteProperty::pushProperty(PacketBuffer &buffer)
 {
-    return value.pushToClient(client);
+    return value.push(buffer);
 }
 
 void VariableByteProperty::setValue(VariableByteInteger value)

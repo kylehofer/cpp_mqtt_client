@@ -72,17 +72,17 @@ size_t Properties::size()
     return size;
 }
 
-size_t Properties::pushToClient(Client *client)
+size_t Properties::push(PacketBuffer &buffer)
 {
     VariableByteInteger propertiesLength;
 
     propertiesLength.value = size();
 
-    size_t written = propertiesLength.pushToClient(client);
+    size_t written = propertiesLength.push(buffer);
 
     for (auto &property : properties)
     {
-        written += property->pushToClient(client);
+        written += property->push(buffer);
     };
 
     return written;
@@ -105,14 +105,11 @@ bool Properties::readFromClient(Client *client, uint32_t &read)
         switch (state)
         {
         case PropertiesReadState::LENGTH:
-            while (client->available() > 0)
+            if (!propertiesLength.readFromClient(client, read))
             {
-                if (!propertiesLength.readFromClient(client, bytesRead))
-                {
-                    bytesRead = 0;
-                    state = PropertiesReadState::IDENTIFIER;
-                    break;
-                }
+                bytesRead = 0;
+                state = PropertiesReadState::IDENTIFIER;
+                // break;b
             }
             break;
         case PropertiesReadState::IDENTIFIER:
@@ -120,6 +117,7 @@ bool Properties::readFromClient(Client *client, uint32_t &read)
             {
                 if (!propertyIdentifier.readFromClient(client, bytesRead))
                 {
+
                     state = PropertiesReadState::PROPERTY_VALUE;
                     property = constructPropertyFromId(static_cast<PropertyCodes>(propertyIdentifier.value));
                     break;
@@ -142,11 +140,9 @@ bool Properties::readFromClient(Client *client, uint32_t &read)
         }
     }
 
-    read += bytesRead;
-
     if (bytesRead >= propertiesLength.value)
     {
-
+        read += bytesRead;
         state = PropertiesReadState::LENGTH;
         bytesRead = 0;
         propertiesLength.value = 0;

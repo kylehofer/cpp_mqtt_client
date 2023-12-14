@@ -54,6 +54,10 @@ namespace PicoMqtt
         BufferData &operator=(const BufferData &right);
         bool operator==(const BufferData &right);
         bool operator!=(const BufferData &right);
+
+        char operator[](int i) const { return data[i]; }
+        char &operator[](int i) { return data[i]; }
+
         ~BufferData();
 
         /**
@@ -62,7 +66,7 @@ namespace PicoMqtt
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
-        virtual size_t pushToClient(Client *client) override;
+        virtual size_t push(PacketBuffer &buffer) override;
         size_t size();
 
         /**

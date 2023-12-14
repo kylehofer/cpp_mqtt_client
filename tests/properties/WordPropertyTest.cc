@@ -51,9 +51,10 @@ TYPED_TEST_P(WordPropertyTest, Encode)
         size_t bytesWritten;
 
         wordProperty->setValue(data.raw);
-        bytesWritten = wordProperty->pushToClient(clientPtr);
+        PacketBuffer packetBuffer(wordProperty->size());
+        bytesWritten = wordProperty->push(packetBuffer);
 
-        char *writeBuffer = client.getWriteBuffer();
+        char *writeBuffer = (char *)packetBuffer.getBuffer();
 
         ASSERT_EQ(bytesWritten, data.encodedSize + identifier.size());
 

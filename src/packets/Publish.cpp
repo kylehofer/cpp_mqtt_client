@@ -53,6 +53,10 @@ Publish::Publish() : PropertiesPacket(PUBLISH_ID)
 {
 }
 
+Publish::Publish(uint8_t flags) : PropertiesPacket(PUBLISH_ID | (flags & HEADER_BYTES_MASK))
+{
+}
+
 QoS Publish::getQos()
 {
     uint8_t qos = (getFixedHeaderFlags() & QOS_FLAGS);
@@ -71,7 +75,6 @@ QoS Publish::getQos()
 
 bool Publish::readFromClient(Client *client, uint32_t &bytes)
 {
-    uint32_t start = getRemainingLength();
 
     if (state == IDLE || state == COMPLETE)
     {
@@ -79,7 +82,7 @@ bool Publish::readFromClient(Client *client, uint32_t &bytes)
         properties.clear();
     }
 
-    while (dataRemaining() && state != COMPLETE)
+    while (client->available() > 0 && dataRemaining() && state != COMPLETE)
     {
         uint32_t read = 0;
         switch (state)
@@ -98,9 +101,11 @@ bool Publish::readFromClient(Client *client, uint32_t &bytes)
             }
             break;
         case VARIABLE_HEADER_PROPERTIES:
+
             if (!properties.readFromClient(client, read))
             {
                 state = VARIABLE_HEADER_PAYLOAD;
+                payload = Payload(getRemainingLength() - read);
             }
             break;
         case VARIABLE_HEADER_PAYLOAD:
@@ -114,11 +119,10 @@ bool Publish::readFromClient(Client *client, uint32_t &bytes)
         }
 
         readBytes(read);
+        bytes += read;
     }
 
-    bytes += getRemainingLength() - start;
-
-    return state == COMPLETE;
+    return dataRemaining();
 }
 
 size_t Publish::size()
@@ -140,22 +144,22 @@ size_t Publish::size()
     return bytes;
 }
 
-size_t Publish::pushToClient(Client *client)
+size_t Publish::push(PacketBuffer &buffer)
 {
     // Fixed Header
-    size_t written = Packet::pushToClient(client);
+    size_t written = Packet::push(buffer);
 
-    written += topic.pushToClient(client);
+    written += topic.push(buffer);
 
     if (getQos() != QoS::ZERO)
     {
-        written += client->write(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
+        written += buffer.push(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
     }
 
-    written += properties.pushToClient(client);
+    written += properties.push(buffer);
 
     // Payload
-    written += payload.pushToClient(client);
+    written += payload.push(buffer);
 
     return written;
 }
@@ -218,4 +222,9 @@ void Publish::setQos(QoS qos)
     }
 
     setFlags(currentFlags);
+}
+
+bool Publish::validate()
+{
+    return true;
 }

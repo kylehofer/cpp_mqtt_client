@@ -52,7 +52,6 @@ TEST(EncodedStringTest, EncodeDecode)
         client.resizeWriteBuffer(testData.expectedSize + LENGTH_SIZE);
 
         char *readBuffer = client.getReadBuffer();
-        char *writeBuffer = client.getWriteBuffer();
 
         memcpy(readBuffer, testData.sizeRaw, LENGTH_SIZE);
         memcpy(readBuffer + LENGTH_SIZE, testData.input, stringSize);
@@ -66,7 +65,10 @@ TEST(EncodedStringTest, EncodeDecode)
             ASSERT_EQ(decodedString.data[i], testData.expected[i]) << "Buffers are incorrect at index " << i;
         }
 
-        uint32_t length = decodedString.pushToClient(clientPtr);
+        PacketBuffer packetBuffer(decodedString.size());
+        uint32_t length = decodedString.push(packetBuffer);
+
+        char *writeBuffer = (char *)packetBuffer.getBuffer();
 
         ASSERT_EQ(length, testData.expectedSize + LENGTH_SIZE);
 

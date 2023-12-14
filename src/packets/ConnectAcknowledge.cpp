@@ -43,12 +43,16 @@ enum ReadingState
 
 #define VARIABLE_HEADER_FIXED_SIZE 2
 
-ConnectAcknowledge::ConnectAcknowledge() : PropertiesPacket(CONNECT_ACKNOWLEDGE_ID)
+ConnectAcknowledge::ConnectAcknowledge() : PropertiesPacket(0)
+{
+}
+
+ConnectAcknowledge::ConnectAcknowledge(uint8_t flags) : PropertiesPacket(CONNECT_ACKNOWLEDGE_ID | (flags & HEADER_BYTES_MASK))
 {
     header.data = 0;
 }
 
-bool ConnectAcknowledge::readFromClient(Client *client, uint32_t &bytes)
+bool ConnectAcknowledge::readFromClient(Client *client, uint32_t &read)
 {
     uint32_t start = getRemainingLength();
 
@@ -58,7 +62,7 @@ bool ConnectAcknowledge::readFromClient(Client *client, uint32_t &bytes)
         properties.clear();
     }
 
-    while (dataRemaining() && state != COMPLETE)
+    while (client->available() > 0 && dataRemaining() && state != COMPLETE)
     {
         uint32_t bytes = 0;
         switch (state)
@@ -82,7 +86,7 @@ bool ConnectAcknowledge::readFromClient(Client *client, uint32_t &bytes)
         readBytes(bytes);
     }
 
-    bytes += getRemainingLength() - start;
+    read += getRemainingLength() - start;
 
     return state != COMPLETE;
 }
@@ -276,4 +280,12 @@ BinaryData ConnectAcknowledge::getAuthenticationData()
         return ((AuthenticationMethod *)property)->getValue();
     }
     return BinaryData();
+}
+
+bool ConnectAcknowledge::validate()
+{
+
+    return getFixedHeaderFlags() == 0 && // All Fixed flags should be zero
+           ((header.data >> 9) == 0);    // Bits 1-7 of the variable header are reserved and must be 0
+    // TODO: Reason Code Validation
 }

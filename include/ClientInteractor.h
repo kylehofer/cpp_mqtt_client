@@ -34,6 +34,7 @@
 
 #include <string.h>
 #include "Client.h"
+#include "PacketBuffer.h"
 
 /**
  * @brief Interface for interacting with a communication client
@@ -51,13 +52,22 @@ public:
      * @return false If the class has finished reading data from the client
      */
     virtual bool readFromClient(Client *client, uint32_t &read) = 0;
+
     /**
      * @brief Pushes the contents of the class to a communications client
      *
      * @param client The client to push data to
      * @return size_t The amount of bytes written
      */
-    virtual size_t pushToClient(Client *client) = 0;
+    virtual size_t push(PacketBuffer &buffer) = 0;
+
+    // /**
+    //  * @brief
+    //  *
+    //  * @param buffer
+    //  * @return size_t
+    //  */
+    // virtual size_t push(PacketBuffer &buffer) = 0;
 };
 
 #endif /* CLIENTINTERACTOR */

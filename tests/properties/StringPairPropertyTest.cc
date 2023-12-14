@@ -94,14 +94,15 @@ TYPED_TEST_P(StringPairPropertyTest, Encode)
 
         stringPairProperty->setKey(encodedKey);
         stringPairProperty->setValue(encodedValue);
-        bytesWritten = stringPairProperty->pushToClient(clientPtr);
+        PacketBuffer packetBuffer(stringPairProperty->size());
+        bytesWritten = stringPairProperty->push(packetBuffer);
 
-        char *writeBuffer = client.getWriteBuffer();
+        // char *writeBuffer = client.getWriteBuffer();
 
         ASSERT_EQ(bytesWritten, data.encodedSize + identifier.size());
 
-        char *identifierBuffer = writeBuffer;
-        char *stringBuffer = writeBuffer + identifier.size();
+        // char *identifierBuffer = writeBuffer;
+        uint8_t *stringBuffer = packetBuffer.getBuffer() + identifier.size();
 
         // for (size_t i = 0; i < identifier.size(); i++)
         // {

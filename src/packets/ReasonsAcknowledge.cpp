@@ -34,8 +34,18 @@
 using namespace PicoMqtt;
 
 #define REASON_CODE_SIZE 1
+#define PACKET_IDENTIFIER_SIZE 2
 
-size_t ReasonsAcknowledge::pushToClient([[maybe_unused]] Client *client)
+enum ReadingState
+{
+    IDLE = 0,
+    IDENTIFIER,
+    PROPERTIES,
+    REASON_CODES,
+    COMPLETE
+};
+
+size_t ReasonsAcknowledge::push([[maybe_unused]] PacketBuffer &buffer)
 {
     // Not Required
     return 0;
@@ -43,29 +53,65 @@ size_t ReasonsAcknowledge::pushToClient([[maybe_unused]] Client *client)
 
 bool ReasonsAcknowledge::readFromClient(Client *client, uint32_t &bytes)
 {
-    if (!Acknowledge::readFromClient(client, bytes))
+    uint32_t start = getRemainingLength();
+
+    if (state == IDLE || state == COMPLETE)
     {
-        uint32_t start = getRemainingLength();
-
-        while (dataRemaining())
-        {
-            uint32_t read = 0;
-            uint8_t reasonCode = 0;
-
-            client->read(&reasonCode, REASON_CODE_SIZE);
-
-            reasonCodes.push_back(reasonCode);
-
-            readBytes(read);
-        }
-
-        bytes += getRemainingLength() - start;
+        state = IDENTIFIER;
+        properties.clear();
     }
 
-    return dataRemaining();
+    while (client->available() > 0 && dataRemaining() && state != COMPLETE)
+    {
+        uint32_t read = 0;
+        switch (state)
+        {
+        case IDENTIFIER:
+            if (client->available() >= PACKET_IDENTIFIER_SIZE)
+            {
+                read += client->read(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
+                state = PROPERTIES;
+            }
+            break;
+        case PROPERTIES:
+            if (!properties.readFromClient(client, read))
+            {
+                state = REASON_CODES;
+            }
+        case REASON_CODES:
+        {
+            uint8_t reasonCode = 0;
+            read += client->read(&reasonCode, REASON_CODE_SIZE);
+            reasonCodes.push_back(reasonCode);
+        }
+        default:
+            break;
+        }
+
+        readBytes(read);
+    }
+
+    bytes += getRemainingLength() - start;
+
+    if (!dataRemaining())
+    {
+        state = COMPLETE;
+    }
+
+    return state != COMPLETE;
 }
 
 size_t ReasonsAcknowledge::size()
 {
-    return Acknowledge::size() + reasonCodes.size();
+    return PACKET_IDENTIFIER_SIZE + properties.size() + reasonCodes.size();
+}
+
+vector<uint8_t> ReasonsAcknowledge::getReasonCodes()
+{
+    return reasonCodes;
+}
+
+uint16_t ReasonsAcknowledge::getPacketIdentifier()
+{
+    return packetIdentifier;
 }

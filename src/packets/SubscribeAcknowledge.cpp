@@ -36,3 +36,12 @@ using namespace PicoMqtt;
 SubscribeAcknowledge::SubscribeAcknowledge() : ReasonsAcknowledge(SUBSCRIBE_ACKNOWLEDGE_ID)
 {
 }
+
+SubscribeAcknowledge::SubscribeAcknowledge(uint8_t flags) : ReasonsAcknowledge(SUBSCRIBE_ACKNOWLEDGE_ID | (flags & HEADER_BYTES_MASK))
+{
+}
+
+bool SubscribeAcknowledge::validate()
+{
+    return true;
+}

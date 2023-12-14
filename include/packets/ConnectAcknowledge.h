@@ -64,6 +64,7 @@ namespace PicoMqtt
     protected:
     public:
         ConnectAcknowledge();
+        ConnectAcknowledge(uint8_t flags);
         size_t size() { return 0; };
         /**
          * @brief Pushes the contents of the Connect Acknowledge to a communications client
@@ -71,7 +72,7 @@ namespace PicoMqtt
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
-        virtual size_t pushToClient(Client *client) override { return 0; };
+        virtual size_t push(PacketBuffer &buffer) override { return 0; };
         /**
          * @brief Reads data from a client which will then be used to fill in the Connect Acknowledge Packet
          *
@@ -98,6 +99,13 @@ namespace PicoMqtt
         EncodedString getAuthenticationMethod();
         BinaryData getAuthenticationData();
         uint8_t getReasonCode();
+        /**
+         * @brief Validates the packet to the MQTT 5 standards
+         *
+         * @return true
+         * @return false
+         */
+        virtual bool validate() override;
     };
 
 }

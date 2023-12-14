@@ -33,15 +33,9 @@
 
 using namespace PicoMqtt;
 
-#define OPTIONS_SIZE 1
-
-size_t SubscriptionPayload::pushToClient(Client *client)
+size_t SubscriptionPayload::push(PacketBuffer &buffer)
 {
-    uint32_t written = 0;
-
-    written += topic.pushToClient(client);
-
-    return written + client->write(options.data);
+    return topic.push(buffer);
 }
 
 bool SubscriptionPayload::readFromClient([[maybe_unused]] Client *client, [[maybe_unused]] uint32_t &read)
@@ -52,5 +46,15 @@ bool SubscriptionPayload::readFromClient([[maybe_unused]] Client *client, [[mayb
 
 size_t SubscriptionPayload::size()
 {
-    return OPTIONS_SIZE + topic.size();
+    return topic.size();
+}
+
+void SubscriptionPayload::setTopic(EncodedString &topic)
+{
+    this->topic = EncodedString(topic);
+}
+
+void SubscriptionPayload::setTopic(const char *data, uint16_t length)
+{
+    this->topic = EncodedString(data, length);
 }

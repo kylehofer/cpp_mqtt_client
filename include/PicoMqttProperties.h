@@ -35,6 +35,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <vector>
+#include <ranges>
 #include <functional>
 #include <algorithm>
 #include "types/VariableByteInteger.h"
@@ -116,7 +117,7 @@ namespace PicoMqtt
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
-        virtual size_t pushToClient(Client *client) override;
+        virtual size_t push(PacketBuffer &buffer) override;
     };
 
     class PayloadFormatIndicatorProperty : public ByteProperty

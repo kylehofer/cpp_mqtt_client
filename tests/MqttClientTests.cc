@@ -46,6 +46,7 @@ using namespace PicoMqtt;
 
 TEST(MqttClientTests, SuccessfulConnect)
 {
+
     MockClient client;
     Client *clientPtr = (Client *)&client;
     size_t bytesWritten;
@@ -68,7 +69,7 @@ TEST(MqttClientTests, SuccessfulConnect)
 
     uint8_t expectedData[] = {
         0x10, // Connect ID
-        0x0B, // Remaining Length
+        0x0D, // Remaining Length
         0x00,
         0x04,
         'M',
@@ -130,7 +131,7 @@ TEST(MqttClientTests, FailedConnect)
 
     uint8_t expectedData[] = {
         0x10, // Connect ID
-        0x0B, // Remaining Length
+        0x0D, // Remaining Length
         0x00,
         0x04,
         'M',
@@ -147,6 +148,8 @@ TEST(MqttClientTests, FailedConnect)
     {
         ASSERT_EQ(writeBuffer[i], expectedData[i]) << "at position " << i;
     }
+
+    ASSERT_EQ(client.written(), 15);
 
     mqttClient.sync();
 
@@ -186,7 +189,7 @@ void setupConnected(MockClient &client, MqttClient &mqttClient)
 
     uint8_t expectedData[] = {
         0x10, // Connect ID
-        0x0B, // Remaining Length
+        0x0D, // Remaining Length
         0x00,
         0x04,
         'M',
@@ -281,8 +284,8 @@ TEST(MqttClientTests, PublishQos1)
     const unsigned char puback[] = {
         0x40,                    // ID
         0x04,                    // Variable Length
-        (uint8_t)(token >> 8),   // Packet Identifier Upper
         (uint8_t)(token & 0xFF), // Packet Identifier Lower
+        (uint8_t)(token >> 8),   // Packet Identifier Upper
         0x00,                    // Reason Code
         0x00                     // No properties
     };
@@ -313,8 +316,8 @@ TEST(MqttClientTests, PublishQos2)
     const unsigned char pubrec[] = {
         0x50,                    // ID
         0x04,                    // Variable Length
-        (uint8_t)(token >> 8),   // Packet Identifier Upper
         (uint8_t)(token & 0xFF), // Packet Identifier Lower
+        (uint8_t)(token >> 8),   // Packet Identifier Upper
         0x00,                    // Reason Code
         0x00                     // No properties
     };
@@ -328,8 +331,8 @@ TEST(MqttClientTests, PublishQos2)
     const unsigned char pubcomp[] = {
         0x70,                    // ID
         0x04,                    // Variable Length
-        (uint8_t)(token >> 8),   // Packet Identifier Upper
         (uint8_t)(token & 0xFF), // Packet Identifier Lower
+        (uint8_t)(token >> 8),   // Packet Identifier Upper
         0x00,                    // Reason Code
         0x00                     // No properties
     };

@@ -48,7 +48,6 @@ TEST_P(VariableByteIntegerTest, EncodeDecode)
     client.resizeWriteBuffer(4);
 
     char *readBuffer = client.getReadBuffer();
-    char *writeBuffer = client.getWriteBuffer();
 
     VariableTestSet testData = GetParam();
 
@@ -59,7 +58,10 @@ TEST_P(VariableByteIntegerTest, EncodeDecode)
     EXPECT_EQ(decodeInteger.value, testData.expected);
     EXPECT_EQ(decodeInteger.size(), testData.length);
 
-    uint32_t length = decodeInteger.pushToClient(clientPtr);
+    PacketBuffer packetBuffer(decodeInteger.size());
+    uint32_t length = decodeInteger.push(packetBuffer);
+
+    char *writeBuffer = (char *)packetBuffer.getBuffer();
 
     EXPECT_EQ(length, testData.length);
 

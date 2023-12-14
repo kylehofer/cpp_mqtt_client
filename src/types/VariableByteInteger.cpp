@@ -66,7 +66,7 @@ size_t VariableByteInteger::size()
     return 4;
 };
 
-size_t VariableByteInteger::pushToClient(Client *client)
+size_t VariableByteInteger::push(PacketBuffer &buffer)
 {
     size_t length = size();
     uint32_t value = this->value;
@@ -82,7 +82,7 @@ size_t VariableByteInteger::pushToClient(Client *client)
         value >>= 7;
     }
 
-    client->write(output, length);
+    buffer.push(output, length);
     return length;
 };
 

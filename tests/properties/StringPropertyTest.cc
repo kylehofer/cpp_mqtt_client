@@ -49,9 +49,10 @@ TYPED_TEST_P(StringPropertyTest, Encode)
         size_t bytesWritten;
 
         stringProperty->setValue(encodedString);
-        bytesWritten = stringProperty->pushToClient(clientPtr);
+        PacketBuffer packetBuffer(stringProperty->size());
+        bytesWritten = stringProperty->push(packetBuffer);
 
-        char *writeBuffer = client.getWriteBuffer();
+        char *writeBuffer = (char *)packetBuffer.getBuffer();
 
         ASSERT_EQ(bytesWritten, data.encodedSize + identifier.size());
 

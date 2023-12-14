@@ -58,22 +58,22 @@ size_t Acknowledge::size()
     return PACKET_IDENTIFIER_SIZE;
 }
 
-size_t Acknowledge::pushToClient(Client *client)
+size_t Acknowledge::push(PacketBuffer &buffer)
 {
     size_t bytes = size();
     // Fixed Header
-    size_t written = Packet::pushToClient(client);
+    size_t written = Packet::push(buffer);
 
-    written += client->write(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
+    written += buffer.push(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
 
-    if (bytes > 2)
+    if (bytes > (PACKET_IDENTIFIER_SIZE + REASON_CODE_SIZE))
     {
-        written += client->write(reasonCode);
-        written += properties.pushToClient(client);
+        written += buffer.push(reasonCode);
+        written += properties.push(buffer);
     }
-    else if (bytes > 1)
+    else if (bytes > PACKET_IDENTIFIER_SIZE)
     {
-        written += client->write(reasonCode);
+        written += buffer.push(reasonCode);
     }
     return written;
 }
@@ -89,7 +89,7 @@ bool Acknowledge::readFromClient(Client *client, uint32_t &bytes)
         reasonCode = 0;
     }
 
-    while (dataRemaining() && state != COMPLETE)
+    while (client->available() > 0 && dataRemaining() && state != COMPLETE)
     {
         uint32_t read = 0;
         switch (state)
@@ -109,7 +109,6 @@ bool Acknowledge::readFromClient(Client *client, uint32_t &bytes)
             }
             break;
         case PROPERTIES:
-
             if (!properties.readFromClient(client, read))
             {
                 state = COMPLETE;

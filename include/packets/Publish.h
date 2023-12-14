@@ -56,6 +56,7 @@ namespace PicoMqtt
     protected:
     public:
         Publish();
+        Publish(uint8_t flags);
         size_t size();
         /**
          * @brief Pushes the contents of the Publish Packet to a communications client
@@ -63,7 +64,7 @@ namespace PicoMqtt
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
-        virtual size_t pushToClient(Client *client) override;
+        virtual size_t push(PacketBuffer &buffer) override;
         /**
          * @brief Reads data from a client which will then be used to fill in the Publish Packet
          *
@@ -83,6 +84,13 @@ namespace PicoMqtt
         void setPacketIdentifier(uint16_t packetIdentifier);
         void setQos(QoS value);
         QoS getQos();
+        /**
+         * @brief Validates the packet to the MQTT 5 standards
+         *
+         * @return true
+         * @return false
+         */
+        virtual bool validate() override;
     };
 
 }

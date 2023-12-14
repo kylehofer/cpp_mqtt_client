@@ -40,9 +40,9 @@ bool BlankPacket::readFromClient(Client *client, uint32_t &read)
     return false;
 }
 
-size_t BlankPacket::pushToClient(Client *client)
+size_t BlankPacket::push(PacketBuffer &buffer)
 {
-    return Packet::pushToClient(client);
+    return Packet::push(buffer);
 }
 
 size_t BlankPacket::size()

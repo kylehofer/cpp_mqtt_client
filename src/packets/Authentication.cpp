@@ -46,14 +46,17 @@ enum ReadingState
 Authentication::Authentication() : PropertiesPacket(AUTHENTICATION_ID)
 {
 }
+Authentication::Authentication(uint8_t flags) : PropertiesPacket(AUTHENTICATION_ID | (flags & HEADER_BYTES_MASK))
+{
+}
 
-size_t Authentication::pushToClient(Client *client)
+size_t Authentication::push(PacketBuffer &buffer)
 {
     // Fixed Header
-    size_t written = Packet::pushToClient(client);
+    size_t written = Packet::push(buffer);
 
-    written += client->write(reasonCode);
-    written += properties.pushToClient(client);
+    written += buffer.push(reasonCode);
+    written += properties.push(buffer);
 
     return written;
 }
@@ -69,7 +72,7 @@ bool Authentication::readFromClient(Client *client, uint32_t &bytes)
         reasonCode = 0;
     }
 
-    while (dataRemaining() && state != COMPLETE)
+    while (client->available() > 0 && dataRemaining() && state != COMPLETE)
     {
         uint32_t read = 0;
         switch (state)
@@ -101,4 +104,9 @@ bool Authentication::readFromClient(Client *client, uint32_t &bytes)
 size_t Authentication::size()
 {
     return REASON_CODE_SIZE + properties.size();
+}
+
+bool Authentication::validate()
+{
+    return true;
 }

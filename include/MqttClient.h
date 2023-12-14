@@ -33,7 +33,8 @@
 #define MQTTCLIENT
 
 #include "properties/WillProperties.h"
-#include "types/SubscriptionPayload.h"
+#include "types/SubscribePayload.h"
+#include "types/UnsubscribePayload.h"
 #include "types/Payload.h"
 #include "types/EncodedString.h"
 #include "packets/Connect.h"
@@ -51,19 +52,39 @@
 #include <chrono>
 #endif
 
+// #define PICO
+
+#ifdef PICO
+#include "pico/stdlib.h"
+#endif
+
 using namespace std;
 
 namespace PicoMqtt
 {
+    typedef uint16_t Token;
     typedef function<void(Packet *)> packetResponse;
+
+    class MqttClientHandler
+    {
+    public:
+        virtual void onConnectionSuccess() = 0;
+        virtual void onConnectionFailure(int reasonCode) = 0;
+        virtual void onDisconnection(int reasonCode) = 0;
+        virtual void onMessage(EncodedString &topic, Payload &payload) = 0;
+        virtual void onDeliveryComplete(Token token) = 0;
+        virtual void onDeliveryFailure(Token token, int reasonCode) = 0;
+        virtual void onSubscribeResult(Token token, vector<uint8_t> reasonCodes) = 0;
+        virtual void onUnsubscribeResult(Token token, vector<uint8_t> reasonCodes) = 0;
+    };
 
     class MqttClient
     {
     private:
-        Client *client;
         WillProperties *willProperties;
         Connect connectPacket;
         bool awaitingPingResponse = false;
+        map<Token, Publish *> publishQueue;
         // Original idea was to use a hashmap of responses to packets.
         // However hard coded responses would be more practical
         map<uint8_t, packetResponse> responses;
@@ -74,6 +95,8 @@ namespace PicoMqtt
         /* Connect and Acknowledge properties */
         EncodedString username;
         EncodedString password;
+
+        MqttClientHandler *handler = NULL;
 
         uint32_t willDelayInterval;
         uint32_t messageExpiryInterval;
@@ -97,6 +120,16 @@ namespace PicoMqtt
 #endif
         vector<uint16_t> clientTokens;
         vector<uint16_t> serverTokens;
+
+        template <typename... T>
+        void addSubscribePayload(Subscribe &packet, SubscribePayload &payload, T &...args);
+        void addSubscribePayload(Subscribe &packet, SubscribePayload &payload);
+
+        template <typename... T>
+        void addUnsubscribePayload(Unsubscribe &packet, UnsubscribePayload &payload, T &...args);
+        void addUnsubscribePayload(Unsubscribe &packet, UnsubscribePayload &payload);
+
+        void addSubscriptionPayload(Subscription *packet, SubscriptionPayload *payload);
 
         /**
          * @brief Attempts to read the next MQTT Packet
@@ -155,6 +188,7 @@ namespace PicoMqtt
         void updateKeepAlivePeriod(uint32_t timeElapsed);
 
     protected:
+        Client *client;
         /**
          * @brief Return the elapsed time since the last call
          *
@@ -162,21 +196,24 @@ namespace PicoMqtt
          */
         virtual uint32_t getElapsed();
 
-    public:
-        MqttClient();
         template <typename CommunicationClient>
+        MqttClient();
+
+    public:
         MqttClient();
         MqttClient(Client *client);
         int setWill(WillProperties *);
         int connect(const char *address, int port, uint32_t connectTimeout);
         int disconnect(uint8_t reasonCode);
-        int subscribe(SubscriptionPayload &payload...);
-        int unsubscribe(SubscriptionPayload &payload...);
+        int subscribe(SubscribePayload &payload...);
+        int unsubscribe(UnsubscribePayload &payload...);
         void sync();
         void setCleanStart(bool value);
         void setMaxInflightMessages();
         void setCredentials(EncodedString name, EncodedString password);
         bool connected();
+
+        void setHandler(MqttClientHandler *hander);
 
         /* Utilities */
         /**
@@ -187,6 +224,9 @@ namespace PicoMqtt
          * @return false
          */
         bool isDelivered(uint16_t token);
+
+        void setClientId(EncodedString &id);
+        void setClientId(const char *data, uint16_t length);
 
         /* Client properties Getters/Setters */
         uint16_t getKeepAliveInterval();

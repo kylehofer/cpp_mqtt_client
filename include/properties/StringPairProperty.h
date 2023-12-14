@@ -52,7 +52,7 @@ namespace PicoMqtt
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
-        virtual size_t pushPropertyToClient(Client *client) override;
+        virtual size_t pushProperty(PacketBuffer &buffer) override;
 
     public:
         StringPairProperty();

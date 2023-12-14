@@ -35,14 +35,23 @@
 
 using namespace PicoMqtt;
 
-Connect::Connect() : PropertiesPacket(CONNECT_ID)
+// Connect::Connect() : Connect(0)
+// {
+// }
+
+Connect::Connect(uint8_t flags) : PropertiesPacket(CONNECT_ID | (flags & HEADER_BYTES_MASK))
 {
     memset(connectFlags.data, 0, CONNECT_FLAGS_SIZE);
 }
 
+Connect::Connect(EncodedString id) : Connect()
+{
+    setClientId(id);
+}
+
 size_t Connect::size()
 {
-    size_t size = PROTOCOL_NAME_LENGTH + CONNECT_FLAGS_SIZE + properties.totalSize();
+    size_t size = PROTOCOL_NAME_LENGTH + CONNECT_FLAGS_SIZE + properties.totalSize() + clientIdentifier.size();
 
     if (connectFlags.will)
         size += willProperties->size();
@@ -56,35 +65,39 @@ size_t Connect::size()
     return size;
 }
 
-size_t Connect::pushToClient(Client *client)
+size_t Connect::push(PacketBuffer &buffer)
 {
     // Fixed Header
-    size_t written = Packet::pushToClient(client);
+    size_t written = Packet::push(buffer);
 
     // Variable Header
-    written += client->write(PROTOCOL_NAME, PROTOCOL_NAME_LENGTH);
-    written += client->write(connectFlags.data, CONNECT_FLAGS_SIZE);
-
-    written += properties.pushToClient(client);
+    written += buffer.push(PROTOCOL_NAME, PROTOCOL_NAME_LENGTH);
+    written += buffer.push(connectFlags.data, CONNECT_FLAGS_SIZE);
+    written += properties.push(buffer);
 
     // Client Id
-    written += clientIdentifier.pushToClient(client);
+    written += clientIdentifier.push(buffer);
 
     if (connectFlags.will)
-        written += willProperties->pushToClient(client);
+        written += willProperties->push(buffer);
 
     if (connectFlags.username)
-        written += userName->pushToClient(client);
+        written += userName->push(buffer);
 
     if (connectFlags.password)
-        written += password->pushToClient(client);
+        written += password->push(buffer);
 
     return written;
 }
 
-void Connect::setClientId(EncodedString value)
+void Connect::setClientId(EncodedString &id)
 {
-    clientIdentifier = value;
+    clientIdentifier = EncodedString(id);
+}
+
+void Connect::setClientId(const char *data, uint16_t length)
+{
+    clientIdentifier = EncodedString(data, length);
 }
 
 void Connect::setWill(WillProperties *will)
@@ -107,4 +120,9 @@ void Connect::setKeepAliveInterval(uint16_t value)
 uint16_t Connect::getKeepAliveInterval()
 {
     return connectFlags.keepAliveInterval;
+}
+
+bool Connect::validate()
+{
+    return true;
 }
