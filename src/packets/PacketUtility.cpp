@@ -8,6 +8,12 @@ enum class ReadState
     PACKET_CONTENTS
 };
 
+#ifdef DEBUGGING
+#define DEBUG(format, ...) printf(format, ##__VA_ARGS__);
+#else
+#define DEBUG(out, ...)
+#endif
+
 namespace PicoMqtt
 {
     static Packet *constructPacketFromId(uint8_t identifier)
@@ -67,7 +73,6 @@ namespace PicoMqtt
                 state = ReadState::PACKET_LENGTH;
                 packet = constructPacketFromId(controlPacket);
                 packet->setFlags(controlPacket);
-
                 // TODO: Malformed packet check
                 break;
             case ReadState::PACKET_LENGTH:

@@ -47,6 +47,7 @@ public:
     virtual int read(void *buffer, size_t size) = 0;
     virtual void stop() = 0;
     virtual uint8_t connected() = 0;
+    virtual void sync() = 0;
 };
 
 #endif /* CLIENT */

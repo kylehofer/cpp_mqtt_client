@@ -24,15 +24,4 @@ IF(${BUILD_TARGET} STREQUAL "PICO")
     target_link_libraries(cpp_mqtt_client
         pico_stdlib
     )
-
-    IF(MQTT_PICO_POLL)
-        target_link_libraries(cpp_mqtt_client
-            pico_cyw43_arch_lwip_poll
-        )
-
-    ELSE()
-        target_link_libraries(cpp_mqtt_client
-            pico_cyw43_arch_none
-        )
-    ENDIF()
 ENDIF()

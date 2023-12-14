@@ -81,7 +81,6 @@ namespace PicoMqtt
     class MqttClient
     {
     private:
-        Client *client;
         WillProperties *willProperties;
         Connect connectPacket;
         bool awaitingPingResponse = false;
@@ -189,6 +188,7 @@ namespace PicoMqtt
         void updateKeepAlivePeriod(uint32_t timeElapsed);
 
     protected:
+        Client *client;
         /**
          * @brief Return the elapsed time since the last call
          *
@@ -196,9 +196,10 @@ namespace PicoMqtt
          */
         virtual uint32_t getElapsed();
 
-    public:
-        MqttClient();
         template <typename CommunicationClient>
+        MqttClient();
+
+    public:
         MqttClient();
         MqttClient(Client *client);
         int setWill(WillProperties *);

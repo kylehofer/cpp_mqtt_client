@@ -33,9 +33,8 @@
 #include "packets/PacketUtility.h"
 #include <algorithm>
 
-// #define DEBUG_TESTS 1
-#ifdef DEBUG_TESTS
-#define DEBUG(format, ...) fprintf(stderr, format, ##__VA_ARGS__);
+#ifdef DEBUGGING
+#define DEBUG(format, ...) printf(format, ##__VA_ARGS__);
 #else
 #define DEBUG(out, ...)
 #endif
@@ -57,8 +56,6 @@ namespace PicoMqtt
             return NULL;
         }
 
-        DEBUG("Packet rec\n");
-
         serverKeepAliveTimeRemaining = (getKeepAliveInterval() * KEEP_ALIVE_SCALER);
 
         uint8_t packetType = packet->getPacketType();
@@ -67,11 +64,11 @@ namespace PicoMqtt
         {
         case CONNECT_ID:
             // TODO: Should never receieve
-            DEBUG("Connect\n");
+            DEBUG("CONNECT_ID\n");
             break;
         case CONNECT_ACKNOWLEDGE_ID:
         {
-            DEBUG("CONNECT_ACKNOWLEDGE_ID!\n");
+            DEBUG("CONNECT_ACKNOWLEDGE_ID\n");
             ConnectAcknowledge *connectAcknowledge = (ConnectAcknowledge *)packet;
             connectionAcknowledged(connectAcknowledge);
         }
@@ -189,10 +186,11 @@ namespace PicoMqtt
             return -1;
         }
 
-        if (!client->connected())
+        while (!client->connected())
         {
             // TODO: Error handle
-            return -1;
+            // TODO: Timeout
+            client->sync();
         }
 
         if (waitingAcknowledge)
@@ -317,7 +315,7 @@ namespace PicoMqtt
         {
             if (serverKeepAliveTimeRemaining <= timeElapsed)
             {
-                disconnect(KEEP_ALIVE_TIMEOUT); // KEEP ALIVE TIMEOUT
+                disconnect(KEEP_ALIVE_TIMEOUT);
             }
             else
             {
@@ -356,7 +354,6 @@ namespace PicoMqtt
             {
                 return true;
             }
-
             // TODO: Recheck connection timeout
         }
         return false;
@@ -432,6 +429,8 @@ namespace PicoMqtt
         {
             connectPacket.setKeepAliveInterval(packet->getServerKeepAlive());
         }
+
+        lastExecutionTime = 0;
     }
 
     void MqttClient::mqttDisconnected(Disconnect *packet)
@@ -606,6 +605,7 @@ namespace PicoMqtt
         {
             duration = (now - lastExecutionTime) / 1000;
         }
+        lastExecutionTime = now;
 #elif defined(ARDUINO) || defined(ESP8266) || defined(ESP32)
         uint32_t now = millis();
         uint32_t duration;
@@ -617,6 +617,7 @@ namespace PicoMqtt
         {
             duration = (now - lastExecutionTime);
         }
+        lastExecutionTime = now;
 #elif defined(__linux__)
         const auto now = std::chrono::system_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastExecutionTime).count();
