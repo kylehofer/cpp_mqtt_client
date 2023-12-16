@@ -102,7 +102,6 @@ void Connect::setClientId(const char *data, uint16_t length)
 
 void Connect::setWill(WillProperties *will)
 {
-
     connectFlags.will = (will != NULL);
     willProperties = will;
 }
