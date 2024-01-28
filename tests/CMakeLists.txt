@@ -21,19 +21,19 @@ find_package(GTest)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 # FetchContent_MakeAvailable(googletest)
-file(GLOB_RECURSE SOURCES ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR} "../src/*.cpp")
-
+# file(GLOB_RECURSE SOURCES ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR} "../src/*.cpp")
 file(GLOB_RECURSE TEST_SOURCES ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR} "./*.cc")
 add_executable(
     MqttTests
     ${TEST_SOURCES}
-    ${SOURCES}
 )
 
-target_include_directories(MqttTests PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(MqttTests PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}../src")
+target_include_directories(MqttTests PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}./")
 
 target_link_libraries(
     MqttTests
+    cpp_mqtt_client
     GTest::gtest_main
     PkgConfig::Mosquitto
 )

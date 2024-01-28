@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef ACKNOWLEDGE
-#define ACKNOWLEDGE
+#ifndef SRC_PACKETS_ACKNOWLEDGE
+#define SRC_PACKETS_ACKNOWLEDGE
 
 #include <stdint.h>
 #include "PropertiesPacket.h"
@@ -83,4 +83,4 @@ namespace PicoMqtt
 
 }
 
-#endif /* ACKNOWLEDGE */
+#endif /* SRC_PACKETS_ACKNOWLEDGE */

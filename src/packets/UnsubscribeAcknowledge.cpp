@@ -33,11 +33,11 @@
 
 using namespace PicoMqtt;
 
-UnsubscribeAcknowledge::UnsubscribeAcknowledge() : ReasonsAcknowledge(UNSUBSCRIBE_ACKNOWLEDGE_ID)
+UnsubscribeAcknowledge::UnsubscribeAcknowledge() : ReasonsAcknowledge(PacketId::UNSUBSCRIBE_ACKNOWLEDGE)
 {
 }
 
-UnsubscribeAcknowledge::UnsubscribeAcknowledge(uint8_t flags) : ReasonsAcknowledge(UNSUBSCRIBE_ACKNOWLEDGE_ID | (flags & HEADER_BYTES_MASK))
+UnsubscribeAcknowledge::UnsubscribeAcknowledge(uint8_t flags) : ReasonsAcknowledge(PacketId::UNSUBSCRIBE_ACKNOWLEDGE | (flags & HEADER_BYTES_MASK))
 {
 }
 

@@ -235,7 +235,6 @@ void Properties::clear()
 
 Properties::~Properties()
 {
-
     clear();
 }
 

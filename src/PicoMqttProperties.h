@@ -71,7 +71,7 @@ namespace PicoMqtt
     public:
         Properties();
         Properties(uint32_t count);
-        ~Properties();
+        virtual ~Properties();
         size_t size();
         size_t totalSize();
         uint32_t length();

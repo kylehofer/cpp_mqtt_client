@@ -33,11 +33,11 @@
 
 using namespace PicoMqtt;
 
-PublishReceived::PublishReceived() : Acknowledge(PUBLISH_RECEIVED_ID)
+PublishReceived::PublishReceived() : Acknowledge(PacketId::PUBLISH_RECEIVED)
 {
 }
 
-PublishReceived::PublishReceived(uint8_t flags) : Acknowledge(PUBLISH_RECEIVED_ID | (flags & HEADER_BYTES_MASK))
+PublishReceived::PublishReceived(uint8_t flags) : Acknowledge(PacketId::PUBLISH_RECEIVED | (flags & HEADER_BYTES_MASK))
 {
 }
 

@@ -78,6 +78,7 @@ bool ReasonsAcknowledge::readFromClient(Client *client, uint32_t &bytes)
             {
                 state = REASON_CODES;
             }
+            break;
         case REASON_CODES:
         {
             uint8_t reasonCode = 0;

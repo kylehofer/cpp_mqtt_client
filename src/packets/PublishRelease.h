@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef PUBLISHRELEASE
-#define PUBLISHRELEASE
+#ifndef SRC_PACKETS_PUBLISHRELEASE
+#define SRC_PACKETS_PUBLISHRELEASE
 
 #include "PublishAcknowledge.h"
 
@@ -56,4 +56,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* PUBLISHRELEASE */
+#endif /* SRC_PACKETS_PUBLISHRELEASE */

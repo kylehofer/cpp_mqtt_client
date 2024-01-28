@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef BLANKPACKET
-#define BLANKPACKET
+#ifndef SRC_PACKETS_BLANKPACKET
+#define SRC_PACKETS_BLANKPACKET
 
 #include "Packet.h"
 
@@ -69,4 +69,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* BLANKPACKET */
+#endif /* SRC_PACKETS_BLANKPACKET */

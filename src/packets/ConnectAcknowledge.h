@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef CONNECTACKNOWLEDGE
-#define CONNECTACKNOWLEDGE
+#ifndef SRC_PACKETS_CONNECTACKNOWLEDGE
+#define SRC_PACKETS_CONNECTACKNOWLEDGE
 
 #include <stdint.h>
 #include "PropertiesPacket.h"
@@ -72,7 +72,7 @@ namespace PicoMqtt
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
-        virtual size_t push(PacketBuffer &buffer) override { return 0; };
+        virtual size_t push(__attribute__((unused)) PacketBuffer &buffer) override { return 0; };
         /**
          * @brief Reads data from a client which will then be used to fill in the Connect Acknowledge Packet
          *
@@ -110,4 +110,4 @@ namespace PicoMqtt
 
 }
 
-#endif /* CONNECTACKNOWLEDGE */
+#endif /* SRC_PACKETS_CONNECTACKNOWLEDGE */

@@ -34,8 +34,8 @@
  *
  */
 
-#ifndef PACKETUTILITY
-#define PACKETUTILITY
+#ifndef SRC_PACKETS_PACKETUTILITY
+#define SRC_PACKETS_PACKETUTILITY
 
 #include "Packet.h"
 #include "Authentication.h"
@@ -76,4 +76,4 @@ namespace PicoMqtt
     // static Packet *constructPacketFromId(uint8_t identifier);
 }
 
-#endif /* PACKETUTILITY */
+#endif /* SRC_PACKETS_PACKETUTILITY */

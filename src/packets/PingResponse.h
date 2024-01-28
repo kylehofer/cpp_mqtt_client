@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef PINGRESPONSE
-#define PINGRESPONSE
+#ifndef SRC_PACKETS_PINGRESPONSE
+#define SRC_PACKETS_PINGRESPONSE
 
 #include "BlankPacket.h"
 
@@ -59,4 +59,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* PINGRESPONSE */
+#endif /* SRC_PACKETS_PINGRESPONSE */

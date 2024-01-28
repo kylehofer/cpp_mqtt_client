@@ -11,9 +11,9 @@ namespace PicoMqtt
         connectionResult = reasonCode;
     }
 
-    void MqttTestHandler::onDisconnection(int reasonCode)
+    void MqttTestHandler::onDisconnection(ReasonCode reasonCode)
     {
-        disconnectionResult = reasonCode;
+        disconnectionResult = reasonCode._to_integral();
     }
 
     void MqttTestHandler::onMessage(EncodedString &topic, Payload &payload)

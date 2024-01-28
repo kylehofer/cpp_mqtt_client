@@ -1,5 +1,5 @@
-#ifndef PROPERTIESPACKET
-#define PROPERTIESPACKET
+#ifndef SRC_PACKETS_PROPERTIESPACKET
+#define SRC_PACKETS_PROPERTIESPACKET
 
 #include "Packet.h"
 #include "PicoMqttProperties.h"
@@ -27,4 +27,4 @@ namespace PicoMqtt
 
 }
 
-#endif /* PROPERTIESPACKET */
+#endif /* SRC_PACKETS_PROPERTIESPACKET */

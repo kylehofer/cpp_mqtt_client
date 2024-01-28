@@ -47,13 +47,16 @@ enum ReadingState
 #define QOS_1 0x2
 #define QOS_2 0x4
 
+#define RETAIN_FLAGS 0x1
+#define RETAIN 0x1
+
 #define PACKET_IDENTIFIER_SIZE 2
 
-Publish::Publish() : PropertiesPacket(PUBLISH_ID)
+Publish::Publish() : PropertiesPacket(PacketId::PUBLISH)
 {
 }
 
-Publish::Publish(uint8_t flags) : PropertiesPacket(PUBLISH_ID | (flags & HEADER_BYTES_MASK))
+Publish::Publish(uint8_t flags) : PropertiesPacket(PacketId::PUBLISH | (flags & HEADER_BYTES_MASK))
 {
 }
 
@@ -73,6 +76,23 @@ QoS Publish::getQos()
     return QoS::ZERO;
 }
 
+void Publish::setRetain(bool value)
+{
+    uint8_t currentFlags = (getFixedHeaderFlags() & ~RETAIN_FLAGS);
+
+    if (value)
+    {
+        currentFlags |= RETAIN;
+    }
+
+    setFlags(currentFlags);
+}
+
+bool Publish::getRetain()
+{
+    return (getFixedHeaderFlags() & RETAIN_FLAGS);
+}
+
 bool Publish::readFromClient(Client *client, uint32_t &bytes)
 {
 
@@ -90,7 +110,7 @@ bool Publish::readFromClient(Client *client, uint32_t &bytes)
         case VARIABLE_HEADER_TOPIC:
             if (!topic.readFromClient(client, read))
             {
-                state = (getQos() != QoS::ZERO) ? VARIABLE_HEADER_IDENTIFIER : VARIABLE_HEADER_PROPERTIES;
+                state = (getQos() != +QoS::ZERO) ? VARIABLE_HEADER_IDENTIFIER : VARIABLE_HEADER_PROPERTIES;
             }
             break;
         case VARIABLE_HEADER_IDENTIFIER:
@@ -131,7 +151,7 @@ size_t Publish::size()
 
     bytes += topic.size();
 
-    if (getQos() != QoS::ZERO)
+    if (getQos() != +QoS::ZERO)
     {
         bytes += PACKET_IDENTIFIER_SIZE;
     }
@@ -151,7 +171,7 @@ size_t Publish::push(PacketBuffer &buffer)
 
     written += topic.push(buffer);
 
-    if (getQos() != QoS::ZERO)
+    if (getQos() != +QoS::ZERO)
     {
         written += buffer.push(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
     }

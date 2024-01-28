@@ -66,10 +66,19 @@ Payload::Payload(void *data, uint32_t length) : Payload(length)
 
 Payload::~Payload()
 {
-    if (data)
+    if (data && ownership)
     {
         free(data);
     }
+}
+
+Payload Payload::wrap(void *data, uint32_t length)
+{
+    Payload payload;
+    payload.data = (uint8_t *)data;
+    payload.length = length;
+    payload.ownership = false;
+    return payload;
 }
 
 Payload &Payload::operator=(const Payload &right)

@@ -63,6 +63,10 @@ TEST(MqttClientTests, SuccessfulConnect)
     mqttClient.connect("localhost", 1883, 0);
 
     ASSERT_FALSE(mqttClient.connected());
+    ASSERT_EQ(client.getWriteBuffer(), nullptr);
+
+    mqttClient.sync();
+
     ASSERT_NE(client.getWriteBuffer(), nullptr);
 
     char *writeBuffer = client.getWriteBuffer();
@@ -125,6 +129,10 @@ TEST(MqttClientTests, FailedConnect)
     mqttClient.connect("localhost", 1883, 0);
 
     ASSERT_FALSE(mqttClient.connected());
+    ASSERT_EQ(client.getWriteBuffer(), nullptr);
+
+    mqttClient.sync();
+
     ASSERT_NE(client.getWriteBuffer(), nullptr);
 
     char *writeBuffer = client.getWriteBuffer();
@@ -183,6 +191,10 @@ void setupConnected(MockClient &client, MqttClient &mqttClient)
     mqttClient.connect("localhost", 1883, 0);
 
     ASSERT_FALSE(mqttClient.connected());
+    ASSERT_EQ(client.getWriteBuffer(), nullptr);
+
+    mqttClient.sync();
+
     ASSERT_NE(client.getWriteBuffer(), nullptr);
 
     char *writeBuffer = client.getWriteBuffer();
@@ -242,6 +254,8 @@ TEST(MqttClientTests, PublishQos0)
     Payload payload;
 
     uint16_t token = mqttClient.publish(topic, payload, QoS::ZERO);
+
+    mqttClient.sync();
 
     ASSERT_TRUE(mqttClient.isDelivered(token));
 
@@ -351,13 +365,13 @@ TEST(MqttClientTests, TestKeepAlivePeriod)
 
     MockMqttClient mqttClient(clientPtr);
 
-    mqttClient.setKeepAliveInterval(500);
+    mqttClient.setKeepAliveInterval(1);
 
     setupConnected(client, mqttClient);
 
     client.clearWriteBuffer();
 
-    mqttClient.setElapsedTime(500);
+    mqttClient.setElapsedTime(1000);
 
     mqttClient.sync();
 
@@ -377,8 +391,7 @@ TEST(MqttClientTests, TestKeepAlivePeriod)
 
     client.clearWriteBuffer();
 
-    mqttClient.setElapsedTime(250);
-
+    mqttClient.setElapsedTime(500);
     mqttClient.sync();
 
     ASSERT_NE(client.getWriteBuffer(), nullptr);
@@ -386,7 +399,7 @@ TEST(MqttClientTests, TestKeepAlivePeriod)
     writeBuffer = client.getWriteBuffer();
 
     uint8_t disconnectPacket[] = {
-        0xE0, // Ping ID
+        0xE0, // Disconnect ID
         0x01, // Remaining Length
         0x8D, // Reason Code: 141 Timeout
     };

@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef PUBLISHACKNOWLEDGE
-#define PUBLISHACKNOWLEDGE
+#ifndef SRC_PACKETS_PUBLISHACKNOWLEDGE
+#define SRC_PACKETS_PUBLISHACKNOWLEDGE
 
 #include "Acknowledge.h"
 
@@ -56,4 +56,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* PUBLISHACKNOWLEDGE */
+#endif /* SRC_PACKETS_PUBLISHACKNOWLEDGE */

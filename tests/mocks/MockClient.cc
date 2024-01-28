@@ -54,7 +54,7 @@ size_t MockClient::write(const void *buffer, size_t size)
 
         writeBuffer = (char *)malloc(writeTotal + required);
 
-        if (temp != NULL)
+        if (temp != nullptr)
         {
             memcpy(writeBuffer, temp, writeCount);
             free(temp);
@@ -93,7 +93,7 @@ uint8_t MockClient::connected()
 
 bool MockClient::resizeReadBuffer(size_t size)
 {
-    if (readBuffer != NULL)
+    if (readBuffer != nullptr)
     {
         free(readBuffer);
     }
@@ -103,7 +103,7 @@ bool MockClient::resizeReadBuffer(size_t size)
 
     if (size > 0)
     {
-        return (readBuffer = (char *)malloc(size)) != NULL;
+        return (readBuffer = (char *)malloc(size)) != nullptr;
     }
 
     return true;
@@ -111,7 +111,7 @@ bool MockClient::resizeReadBuffer(size_t size)
 
 bool MockClient::resizeWriteBuffer(size_t size)
 {
-    if (writeBuffer != NULL)
+    if (writeBuffer != nullptr)
     {
         free(writeBuffer);
     }
@@ -120,7 +120,7 @@ bool MockClient::resizeWriteBuffer(size_t size)
 
     if (size > 0)
     {
-        return (writeBuffer = (char *)malloc(size)) != NULL;
+        return (writeBuffer = (char *)malloc(size)) != nullptr;
     }
 
     return true;
@@ -129,7 +129,7 @@ bool MockClient::resizeWriteBuffer(size_t size)
 void MockClient::clearWriteBuffer()
 {
     resizeWriteBuffer(0);
-    writeBuffer = NULL;
+    writeBuffer = nullptr;
 }
 
 char *MockClient::getReadBuffer()
@@ -144,16 +144,16 @@ char *MockClient::getWriteBuffer()
 
 bool MockClient::pushToReadBuffer(void *buffer, size_t size)
 {
-    char *temp = NULL;
+    char *temp = nullptr;
 
-    if (readBuffer != NULL)
+    if (readBuffer != nullptr)
     {
         temp = readBuffer;
     }
 
     readBuffer = (char *)malloc(readTotal + size);
 
-    if (temp != NULL)
+    if (temp != nullptr)
     {
         memcpy(readBuffer, temp, readTotal);
         free(temp);
@@ -163,7 +163,7 @@ bool MockClient::pushToReadBuffer(void *buffer, size_t size)
 
     readTotal += size;
 
-    return (readBuffer != NULL);
+    return (readBuffer != nullptr);
 }
 
 void MockClient::setIsConnected(bool connected)
@@ -174,4 +174,8 @@ void MockClient::setIsConnected(bool connected)
 size_t MockClient::written()
 {
     return writeCount;
+}
+
+void MockClient::sync()
+{
 }

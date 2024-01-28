@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef PUBLISH
-#define PUBLISH
+#ifndef SRC_PACKETS_PUBLISH
+#define SRC_PACKETS_PUBLISH
 
 #include <stdint.h>
 #include "PropertiesPacket.h"
@@ -84,6 +84,8 @@ namespace PicoMqtt
         void setPacketIdentifier(uint16_t packetIdentifier);
         void setQos(QoS value);
         QoS getQos();
+        void setRetain(bool value);
+        bool getRetain();
         /**
          * @brief Validates the packet to the MQTT 5 standards
          *
@@ -95,4 +97,4 @@ namespace PicoMqtt
 
 }
 
-#endif /* PUBLISH */
+#endif /* SRC_PACKETS_PUBLISH */

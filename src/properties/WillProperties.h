@@ -72,21 +72,24 @@ namespace PicoMqtt
          *
          * @param payload
          */
-        void setWillTopic(EncodedString payload);
+        void setWillTopic(EncodedString topic);
+        void setWillTopic(const char *, uint16_t);
         /**
          * @brief Set the Payload of the Will
          * Will set the flag in the will to be in a UTF-8 Format
          *
          * @param payload
          */
-        void setPayload(EncodedString payload);
+        void setUtf8Payload(EncodedString &payload);
+        void setUtf8Payload(const char *, uint16_t);
         /**
          * @brief Set the Payload of the Will
          * Will set the flag in the will to be in a Binary Format
          *
          * @param payload
          */
-        void setPayload(BinaryData payload);
+        void setBinaryPayload(BinaryData &payload);
+        void setBinaryPayload(const char *, uint16_t);
 
         /**
          * @brief Pushes the contents of the Will to a communications client
@@ -95,6 +98,7 @@ namespace PicoMqtt
          * @return size_t The amount of bytes written
          */
         virtual size_t push(PacketBuffer &buffer) override;
+        size_t size();
     };
 
 }

@@ -39,7 +39,7 @@ using namespace PicoMqtt;
 // {
 // }
 
-Connect::Connect(uint8_t flags) : PropertiesPacket(CONNECT_ID | (flags & HEADER_BYTES_MASK))
+Connect::Connect(uint8_t flags) : PropertiesPacket(PacketId::CONNECT | (flags & HEADER_BYTES_MASK))
 {
     memset(connectFlags.data, 0, CONNECT_FLAGS_SIZE);
 }
@@ -102,7 +102,7 @@ void Connect::setClientId(const char *data, uint16_t length)
 
 void Connect::setWill(WillProperties *will)
 {
-    connectFlags.will = (will != NULL);
+    connectFlags.will = (will != nullptr);
     willProperties = will;
 }
 

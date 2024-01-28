@@ -15,9 +15,9 @@ ENDIF()
 
 project(cpp_mqtt C CXX ASM)
 
+add_subdirectory(./src)
+
 IF(MQTT_ENABLE_TESTING AND NOT(${BUILD_TARGET} STREQUAL "PICO"))
     enable_testing()
     add_subdirectory(./tests)
-ELSE()
-    add_subdirectory(./src)
 ENDIF()

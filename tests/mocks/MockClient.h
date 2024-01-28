@@ -1,5 +1,5 @@
-#ifndef MOCKCLIENT
-#define MOCKCLIENT
+#ifndef TESTS_MOCKS_MOCKCLIENT
+#define TESTS_MOCKS_MOCKCLIENT
 
 #include "Client.h"
 #include <stdlib.h>
@@ -8,8 +8,8 @@
 class MockClient : Client
 {
 private:
-    char *readBuffer = NULL;
-    char *writeBuffer = NULL;
+    char *readBuffer = nullptr;
+    char *writeBuffer = nullptr;
     size_t readTotal = 0;
     size_t writeTotal = 0;
     size_t readCount = 0;
@@ -20,12 +20,12 @@ public:
     MockClient(){};
     ~MockClient()
     {
-        if (readBuffer != NULL)
+        if (readBuffer)
         {
             free(readBuffer);
         }
 
-        if (writeBuffer != NULL)
+        if (writeBuffer)
         {
             free(writeBuffer);
         }
@@ -51,6 +51,8 @@ public:
     void setIsConnected(bool connected);
 
     size_t written();
+
+    void sync();
 };
 
-#endif /* MOCKCLIENT */
+#endif /* TESTS_MOCKS_MOCKCLIENT */

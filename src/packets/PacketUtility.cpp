@@ -20,35 +20,35 @@ namespace PicoMqtt
     {
         switch (identifier & 0xF0) // Strip lower 4 bits
         {
-        case CONNECT_ID:
+        case PacketId::PacketId::CONNECT:
             return (Packet *)new Connect(identifier);
-        case CONNECT_ACKNOWLEDGE_ID:
+        case PacketId::CONNECT_ACKNOWLEDGE:
             return (Packet *)new ConnectAcknowledge(identifier);
-        case PUBLISH_ID:
+        case PacketId::PUBLISH:
             return (Packet *)new Publish(identifier);
-        case PUBLISH_ACKNOWLEDGE_ID:
+        case PacketId::PUBLISH_ACKNOWLEDGE:
             return (Packet *)new PublishAcknowledge(identifier);
-        case PUBLISH_RECEIVED_ID:
+        case PacketId::PUBLISH_RECEIVED:
             return (Packet *)new PublishReceived(identifier);
-        case PUBLISH_RELEASE_ID:
+        case PacketId::PUBLISH_RELEASE:
             return (Packet *)new PublishRelease(identifier);
-        case PUBLISH_COMPLETE_ID:
+        case PacketId::PUBLISH_COMPLETE:
             return (Packet *)new PublishComplete(identifier);
-        case SUBSCRIBE_ID:
+        case PacketId::SUBSCRIBE:
             return (Packet *)new Subscribe(identifier);
-        case SUBSCRIBE_ACKNOWLEDGE_ID:
+        case PacketId::SUBSCRIBE_ACKNOWLEDGE:
             return (Packet *)new SubscribeAcknowledge(identifier);
-        case UNSUBSCRIBE_ID:
+        case PacketId::UNSUBSCRIBE:
             return (Packet *)new Unsubscribe(identifier);
-        case UNSUBSCRIBE_ACKNOWLEDGE_ID:
+        case PacketId::UNSUBSCRIBE_ACKNOWLEDGE:
             return (Packet *)new UnsubscribeAcknowledge(identifier);
-        case PING_REQUEST_ID:
+        case PacketId::PING_REQUEST:
             return (Packet *)new PingRequest(identifier);
-        case PING_RESPONSE_ID:
+        case PacketId::PING_RESPONSE:
             return (Packet *)new PingResponse(identifier);
-        case DISCONNECT_ID:
+        case PacketId::DISCONNECT:
             return (Packet *)new Disconnect(identifier);
-        case AUTHENTICATION_ID:
+        case PacketId::AUTHENTICATION:
             return (Packet *)new Authentication(identifier);
         default:
             break;

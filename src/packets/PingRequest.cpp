@@ -33,11 +33,11 @@
 
 using namespace PicoMqtt;
 
-PingRequest::PingRequest() : BlankPacket(PING_REQUEST_ID)
+PingRequest::PingRequest() : BlankPacket(PacketId::PING_REQUEST)
 {
 }
 
-PingRequest::PingRequest(uint8_t flags) : BlankPacket(PING_REQUEST_ID | (flags & HEADER_BYTES_MASK))
+PingRequest::PingRequest(uint8_t flags) : BlankPacket(PacketId::PING_REQUEST | (flags & HEADER_BYTES_MASK))
 {
 }
 

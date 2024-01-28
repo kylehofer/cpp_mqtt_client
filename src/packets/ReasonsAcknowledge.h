@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef REASONSACKNOWLEDGE
-#define REASONSACKNOWLEDGE
+#ifndef SRC_PACKETS_REASONSACKNOWLEDGE
+#define SRC_PACKETS_REASONSACKNOWLEDGE
 
 #include "PropertiesPacket.h"
 #include <vector>
@@ -46,7 +46,7 @@ namespace PicoMqtt
     {
     private:
         uint8_t state = 0;
-        uint16_t packetIdentifier;
+        uint16_t packetIdentifier = 0;
         vector<uint8_t> reasonCodes;
 
     protected:
@@ -76,4 +76,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* REASONSACKNOWLEDGE */
+#endif /* SRC_PACKETS_REASONSACKNOWLEDGE */

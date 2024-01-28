@@ -33,11 +33,11 @@
 
 using namespace PicoMqtt;
 
-SubscribeAcknowledge::SubscribeAcknowledge() : ReasonsAcknowledge(SUBSCRIBE_ACKNOWLEDGE_ID)
+SubscribeAcknowledge::SubscribeAcknowledge() : ReasonsAcknowledge(PacketId::SUBSCRIBE_ACKNOWLEDGE)
 {
 }
 
-SubscribeAcknowledge::SubscribeAcknowledge(uint8_t flags) : ReasonsAcknowledge(SUBSCRIBE_ACKNOWLEDGE_ID | (flags & HEADER_BYTES_MASK))
+SubscribeAcknowledge::SubscribeAcknowledge(uint8_t flags) : ReasonsAcknowledge(PacketId::SUBSCRIBE_ACKNOWLEDGE | (flags & HEADER_BYTES_MASK))
 {
 }
 

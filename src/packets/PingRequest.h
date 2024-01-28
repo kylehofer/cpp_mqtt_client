@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef PINGREQUEST
-#define PINGREQUEST
+#ifndef SRC_PACKETS_PINGREQUEST
+#define SRC_PACKETS_PINGREQUEST
 #include "BlankPacket.h"
 
 namespace PicoMqtt
@@ -58,4 +58,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* PINGREQUEST */
+#endif /* SRC_PACKETS_PINGREQUEST */

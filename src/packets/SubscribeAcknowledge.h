@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef SUBSCRIBEACKNOWLEDGE
-#define SUBSCRIBEACKNOWLEDGE
+#ifndef SRC_PACKETS_SUBSCRIBEACKNOWLEDGE
+#define SRC_PACKETS_SUBSCRIBEACKNOWLEDGE
 
 #include "ReasonsAcknowledge.h"
 
@@ -56,4 +56,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* SUBSCRIBEACKNOWLEDGE */
+#endif /* SRC_PACKETS_SUBSCRIBEACKNOWLEDGE */

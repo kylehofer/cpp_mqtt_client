@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef MQTTCLIENT
-#define MQTTCLIENT
+#ifndef SRC_MQTTCLIENT
+#define SRC_MQTTCLIENT
 
 #include "properties/WillProperties.h"
 #include "types/SubscribePayload.h"
@@ -46,6 +46,7 @@
 #include "Client.h"
 #include "packets/PacketUtility.h"
 #include "types/Common.h"
+#include "utils/enum.h"
 
 #ifdef __linux__
 #include <iostream>
@@ -65,12 +66,21 @@ namespace PicoMqtt
     typedef uint16_t Token;
     typedef function<void(Packet *)> packetResponse;
 
+    BETTER_ENUM(ConnectionState, uint8_t,
+                DISCONNECTED,
+                CONNECTED,
+                CONNECTING)
+
+    /**
+     * @brief A handler for receiving callbacks from the MQTT Client
+     *
+     */
     class MqttClientHandler
     {
     public:
         virtual void onConnectionSuccess() = 0;
         virtual void onConnectionFailure(int reasonCode) = 0;
-        virtual void onDisconnection(int reasonCode) = 0;
+        virtual void onDisconnection(ReasonCode reasonCode) = 0;
         virtual void onMessage(EncodedString &topic, Payload &payload) = 0;
         virtual void onDeliveryComplete(Token token) = 0;
         virtual void onDeliveryFailure(Token token, int reasonCode) = 0;
@@ -88,9 +98,8 @@ namespace PicoMqtt
         // Original idea was to use a hashmap of responses to packets.
         // However hard coded responses would be more practical
         map<uint8_t, packetResponse> responses;
-        bool isAcknowledged = false;
-        bool waitingAcknowledge = false;
-        bool disconnecting = false;
+        ConnectionState connectionState = ConnectionState::DISCONNECTED;
+        ConnectionState clientState = ConnectionState::DISCONNECTED;
 
         /* Connect and Acknowledge properties */
         EncodedString username;
@@ -111,6 +120,15 @@ namespace PicoMqtt
         uint32_t serverKeepAliveTimeRemaining = 0;
 
         uint8_t state = 0;
+
+        int32_t autoReconnect = -1;
+
+        char *address = nullptr;
+        int port = -1;
+        uint32_t connectTimeout = -1;
+        uint32_t reconnectTimer = 0;
+        bool attemptingReconnect = false;
+
 #if defined(PICO)
         uint64_t lastExecutionTime = 0;
 #elif defined(ARDUINO)
@@ -118,6 +136,8 @@ namespace PicoMqtt
 #elif defined(__linux__)
         std::chrono::_V2::system_clock::time_point lastExecutionTime;
 #endif
+        vector<uint16_t> qosZeroFailed;
+        vector<uint16_t> qosZeroSuccess;
         vector<uint16_t> clientTokens;
         vector<uint16_t> serverTokens;
 
@@ -141,13 +161,16 @@ namespace PicoMqtt
         void pingResponse();
         void messageReceived(EncodedString &topic, Payload &payload);
         void connectionAcknowledged(ConnectAcknowledge *packet);
-        void mqttDisconnected(Disconnect *packet);
 
         void onPublish(Publish *packet);
         void onPublishAcknowledge(PublishAcknowledge *packet);
         void onPublishReceived(PublishReceived *packet);
         void onPublishRelease(PublishRelease *packet);
         void onPublishComplete(PublishComplete *packet);
+
+        void mqttConnect();
+
+        ConnectionState getConnectionState();
 
         /**
          * @brief Whether the client has the token in its list of active tokens
@@ -177,7 +200,7 @@ namespace PicoMqtt
          *
          * @param packet
          */
-        void sendPacket(Packet *packet);
+        int sendPacket(Packet *packet);
 
         /**
          * @brief Updates the keep alive period timers
@@ -186,6 +209,9 @@ namespace PicoMqtt
          * @param timeElapsed
          */
         void updateKeepAlivePeriod(uint32_t timeElapsed);
+
+        void setConnectionState(ConnectionState state);
+        void setClientConnectionState(ConnectionState state);
 
     protected:
         Client *client;
@@ -202,9 +228,10 @@ namespace PicoMqtt
     public:
         MqttClient();
         MqttClient(Client *client);
+        ~MqttClient();
         int setWill(WillProperties *);
         int connect(const char *address, int port, uint32_t connectTimeout);
-        int disconnect(uint8_t reasonCode);
+        int disconnect(ReasonCode reasonCode);
         int subscribe(SubscribePayload &payload...);
         int unsubscribe(UnsubscribePayload &payload...);
         void sync();
@@ -231,10 +258,6 @@ namespace PicoMqtt
         /* Client properties Getters/Setters */
         uint16_t getKeepAliveInterval();
         void setKeepAliveInterval(uint16_t value);
-        uint32_t getWillDelayInterval();
-        void setWillDelayInterval(uint32_t value);
-        uint32_t getMessageExpiryInterval();
-        void setMessageExpiryInterval(uint32_t value);
         uint32_t getSessionExpiryInterval();
         void setSessionExpiryInterval(uint32_t value);
         uint16_t getReceiveMaximum();
@@ -248,6 +271,9 @@ namespace PicoMqtt
         EncodedString getPassword();
         void setPassword(EncodedString value);
 
+        void setAutoReconnect(int32_t value);
+        int getAutoReconnect();
+
         /* Publish Actions */
         /**
          * @brief Publish a payload over MQTT
@@ -257,10 +283,10 @@ namespace PicoMqtt
          * @param qos The QOS of the payload to publish
          * @return uint16_t The unique token used to identify a publish packet
          */
-        uint16_t publish(EncodedString &topic, Payload &payload, QoS qos);
+        uint16_t publish(EncodedString &topic, Payload &payload, QoS qos, bool retain = false);
 
         /* Subscribe Actions */
     };
 }
 
-#endif /* MQTTCLIENT */
+#endif /* SRC_MQTTCLIENT */

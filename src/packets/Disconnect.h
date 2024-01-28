@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef DISCONNECT
-#define DISCONNECT
+#ifndef SRC_PACKETS_DISCONNECT
+#define SRC_PACKETS_DISCONNECT
 
 #include <stdint.h>
 #include "PropertiesPacket.h"
@@ -95,4 +95,4 @@ namespace PicoMqtt
 
 }
 
-#endif /* DISCONNECT */
+#endif /* SRC_PACKETS_DISCONNECT */

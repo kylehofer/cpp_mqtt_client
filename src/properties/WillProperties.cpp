@@ -80,7 +80,8 @@ void WillProperties::setCorrelationData(EncodedString value)
     PROPERTY_SETTER(CORRELATION_DATA, CorrelationData)
 }
 
-void WillProperties::addUserProperty(EncodedString key, EncodedString value)
+// TODO: Implement
+void WillProperties::addUserProperty(__attribute__((unused)) EncodedString key, __attribute__((unused)) EncodedString value)
 {
 }
 
@@ -89,19 +90,44 @@ void WillProperties::setWillTopic(EncodedString value)
     topic = value;
 }
 
-void WillProperties::setPayload(EncodedString value)
+void WillProperties::setWillTopic(const char *data, uint16_t length)
 {
-    setPayloadFormatIndicator(UTF_8_DATA);
-    payload = value;
+    topic = EncodedString(data, length);
 }
 
-void WillProperties::setPayload(BinaryData value)
+void WillProperties::setUtf8Payload(EncodedString &payload)
+{
+    setPayloadFormatIndicator(UTF_8_DATA);
+    payload = EncodedString(payload);
+}
+
+void WillProperties::setUtf8Payload(const char *data, uint16_t length)
+{
+    setPayloadFormatIndicator(UTF_8_DATA);
+    payload = EncodedString(data, length);
+}
+
+void WillProperties::setBinaryPayload(BinaryData &payload)
 {
     setPayloadFormatIndicator(BYTE_DATA);
-    payload = value;
+    payload = BinaryData(payload);
+}
+
+void WillProperties::setBinaryPayload(const char *data, uint16_t length)
+{
+    setPayloadFormatIndicator(BYTE_DATA);
+    payload = BinaryData(data, length);
 }
 
 size_t WillProperties::push(PacketBuffer &buffer)
 {
-    return Properties::push(buffer) + topic.push(buffer) + payload.push(buffer);
+    size_t length = Properties::push(buffer);
+    length += topic.push(buffer);
+    length += payload.push(buffer);
+    return length;
+}
+
+size_t WillProperties::size()
+{
+    return Properties::totalSize() + topic.size() + payload.size();
 }

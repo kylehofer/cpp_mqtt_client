@@ -23,7 +23,7 @@ namespace PicoMqtt
 
         virtual void onConnectionSuccess() override;
         virtual void onConnectionFailure(int reasonCode) override;
-        virtual void onDisconnection(int reasonCode) override;
+        virtual void onDisconnection(ReasonCode reasonCode) override;
         virtual void onMessage(EncodedString &topic, Payload &payload) override;
         virtual void onDeliveryComplete(Token token) override;
         virtual void onDeliveryFailure(Token token, int reasonCode) override;

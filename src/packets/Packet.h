@@ -29,84 +29,85 @@
  * HISTORY:
  */
 
-#ifndef PACKET
-#define PACKET
+#ifndef SRC_PACKETS_PACKET
+#define SRC_PACKETS_PACKET
 
 #include <stdint.h>
 #include "types/VariableByteInteger.h"
 #include "types/EncodedString.h"
 #include "Client.h"
 #include "ClientInteractor.h"
-
-#define CONNECT_ID (1 << 4)
-#define CONNECT_ACKNOWLEDGE_ID (2 << 4)
-#define PUBLISH_ID (3 << 4)
-#define PUBLISH_ACKNOWLEDGE_ID (4 << 4)
-#define PUBLISH_RECEIVED_ID (5 << 4)
-#define PUBLISH_RELEASE_ID (6 << 4)
-#define PUBLISH_COMPLETE_ID (7 << 4)
-#define SUBSCRIBE_ID (8 << 4)
-#define SUBSCRIBE_ACKNOWLEDGE_ID (9 << 4)
-#define UNSUBSCRIBE_ID (10 << 4)
-#define UNSUBSCRIBE_ACKNOWLEDGE_ID (11 << 4)
-#define PING_REQUEST_ID (12 << 4)
-#define PING_RESPONSE_ID (13 << 4)
-#define DISCONNECT_ID (14 << 4)
-#define AUTHENTICATION_ID (15 << 4)
+#include "utils/enum.h"
 
 #define HEADER_BYTES_MASK 0xF
 
 namespace PicoMqtt
 {
-    enum ReasonCode
-    {
-        SUCCESS = 0,                                  // CONNACK, PUBACK, PUBREC, PUBREL, PUBCOMP, UNSUBACK, AUTH
-        NORMAL_DISCONNECTION = 0,                     // Disconnect
-        GRANTED_QOS_0 = 0,                            // SUBACK
-        GRANTED_QOS_1 = 1,                            // SUBACK
-        GRANTED_QOS_2 = 2,                            // SUBACK
-        DISCONNECT_WITH_WILL_MESSAGE = 4,             // DISCONNECT
-        NO_MATCHING_SUBSCRIBERS = 16,                 // PUBACK, PUBREC
-        NO_SUBSCRIPTION_FOUND = 17,                   // UNSUBACK
-        CONTINUE_AUTHENTICATION = 24,                 // AUTH
-        RE_AUTHENTICATE = 25,                         // AUTH
-        UNSPECIFIED_ERROR = 128,                      // CONNACK, PUBACK, PUBREC, SUBACK, UNSUBACK, DISCONNECT
-        MALFORMED_PACKET = 129,                       // CONNACK, DISCONNECT
-        PROTOCOL_ERROR = 130,                         // CONNACK, DISCONNECT
-        IMPLEMENTATION_SPECIFIC_ERROR = 131,          // CONNACK, PUBACK, PUBREC, SUBACK, UNSUBACK, DISCONNECT
-        UNSUPPORTED_PROTOCOL_VERSION = 132,           // CONNACK
-        CLIENT_IDENTIFIER_NOT_VALID = 133,            // CONNACK
-        BAD_USER_NAME_OR_PASSWORD = 134,              // CONNACK
-        NOT_AUTHORIZED = 135,                         // CONNACK, PUBACK, PUBREC, SUBACK, UNSUBACK, DISCONNECT
-        SERVER_UNAVAILABLE = 136,                     // CONNACK
-        SERVER_BUSY = 137,                            // CONNACK, DISCONNECT
-        BANNED = 138,                                 // CONNACK
-        SERVER_SHUTTING_DOWN = 139,                   // DISCONNECT
-        BAD_AUTHENTICATION_METHOD = 140,              // CONNACK, DISCONNECT
-        KEEP_ALIVE_TIMEOUT = 141,                     // DISCONNECT
-        SESSION_TAKEN_OVER = 142,                     // DISCONNECT
-        TOPIC_FILTER_INVALID = 143,                   // SUBACK, UNSUBACK, DISCONNECT
-        TOPIC_NAME_INVALID = 144,                     // CONNACK, PUBACK, PUBREC, DISCONNECT
-        PACKET_IDENTIFIER_IN_USE = 145,               // PUBACK, PUBREC, SUBACK, UNSUBACK
-        PACKET_IDENTIFIER_NOT_FOUND = 146,            // PUBREL, PUBCOMP
-        RECEIVE_MAXIMUM_EXCEEDED = 147,               // DISCONNECT
-        TOPIC_ALIAS_INVALID = 148,                    // DISCONNECT
-        PACKET_TOO_LARGE = 149,                       // CONNACK, DISCONNECT
-        MESSAGE_RATE_TOO_HIGH = 150,                  // DISCONNECT
-        QUOTA_EXCEEDED = 151,                         // CONNACK, PUBACK, PUBREC, SUBACK, DISCONNECT
-        ADMINISTRATIVE_ACTION = 152,                  // DISCONNECT
-        PAYLOAD_FORMAT_INVALID = 153,                 // CONNACK, PUBACK, PUBREC, DISCONNECT
-        RETAIN_NOT_SUPPORTED = 154,                   // CONNACK, DISCONNECT
-        QOS_NOT_SUPPORTED = 155,                      // CONNACK, DISCONNECT
-        USE_ANOTHER_SERVER = 156,                     // CONNACK, DISCONNECT
-        SERVER_MOVED = 157,                           // CONNACK, DISCONNECT
-        SHARED_SUBSCRIPTIONS_NOT_SUPPORTED = 158,     // SUBACK, DISCONNECT
-        CONNECTION_RATE_EXCEEDED = 159,               // CONNACK, DISCONNECT
-        MAXIMUM_CONNECT_TIME = 160,                   // DISCONNECT
-        SUBSCRIPTION_IDENTIFIERS_NOT_SUPPORTED = 161, // SUBACK, DISCONNECT
-        WILDCARD_SUBSCRIPTIONS_NOT_SUPPORTED = 162    // SUBACK, DISCONNECT
 
-    };
+    BETTER_ENUM(PacketId, int,
+                CONNECT = (1 << 4),
+                CONNECT_ACKNOWLEDGE = (2 << 4),
+                PUBLISH = (3 << 4),
+                PUBLISH_ACKNOWLEDGE = (4 << 4),
+                PUBLISH_RECEIVED = (5 << 4),
+                PUBLISH_RELEASE = (6 << 4),
+                PUBLISH_COMPLETE = (7 << 4),
+                SUBSCRIBE = (8 << 4),
+                SUBSCRIBE_ACKNOWLEDGE = (9 << 4),
+                UNSUBSCRIBE = (10 << 4),
+                UNSUBSCRIBE_ACKNOWLEDGE = (11 << 4),
+                PING_REQUEST = (12 << 4),
+                PING_RESPONSE = (13 << 4),
+                DISCONNECT = (14 << 4),
+                AUTHENTICATION = (15 << 4))
+
+    BETTER_ENUM(ReasonCode, uint8_t,
+                SUCCESS = 0,                                  // CONNACK, PUBACK, PUBREC, PUBREL, PUBCOMP, UNSUBACK, AUTH
+                NORMAL_DISCONNECTION = 0,                     // Disconnect
+                GRANTED_QOS_0 = 0,                            // SUBACK
+                GRANTED_QOS_1 = 1,                            // SUBACK
+                GRANTED_QOS_2 = 2,                            // SUBACK
+                DISCONNECT_WITH_WILL_MESSAGE = 4,             // DISCONNECT
+                NO_MATCHING_SUBSCRIBERS = 16,                 // PUBACK, PUBREC
+                NO_SUBSCRIPTION_FOUND = 17,                   // UNSUBACK
+                CONTINUE_AUTHENTICATION = 24,                 // AUTH
+                RE_AUTHENTICATE = 25,                         // AUTH
+                UNSPECIFIED_ERROR = 128,                      // CONNACK, PUBACK, PUBREC, SUBACK, UNSUBACK, DISCONNECT
+                MALFORMED_PACKET = 129,                       // CONNACK, DISCONNECT
+                PROTOCOL_ERROR = 130,                         // CONNACK, DISCONNECT
+                IMPLEMENTATION_SPECIFIC_ERROR = 131,          // CONNACK, PUBACK, PUBREC, SUBACK, UNSUBACK, DISCONNECT
+                UNSUPPORTED_PROTOCOL_VERSION = 132,           // CONNACK
+                CLIENT_IDENTIFIER_NOT_VALID = 133,            // CONNACK
+                BAD_USER_NAME_OR_PASSWORD = 134,              // CONNACK
+                NOT_AUTHORIZED = 135,                         // CONNACK, PUBACK, PUBREC, SUBACK, UNSUBACK, DISCONNECT
+                SERVER_UNAVAILABLE = 136,                     // CONNACK
+                SERVER_BUSY = 137,                            // CONNACK, DISCONNECT
+                BANNED = 138,                                 // CONNACK
+                SERVER_SHUTTING_DOWN = 139,                   // DISCONNECT
+                BAD_AUTHENTICATION_METHOD = 140,              // CONNACK, DISCONNECT
+                KEEP_ALIVE_TIMEOUT = 141,                     // DISCONNECT
+                SESSION_TAKEN_OVER = 142,                     // DISCONNECT
+                TOPIC_FILTER_INVALID = 143,                   // SUBACK, UNSUBACK, DISCONNECT
+                TOPIC_NAME_INVALID = 144,                     // CONNACK, PUBACK, PUBREC, DISCONNECT
+                PACKET_IDENTIFIER_IN_USE = 145,               // PUBACK, PUBREC, SUBACK, UNSUBACK
+                PACKET_IDENTIFIER_NOT_FOUND = 146,            // PUBREL, PUBCOMP
+                RECEIVE_MAXIMUM_EXCEEDED = 147,               // DISCONNECT
+                TOPIC_ALIAS_INVALID = 148,                    // DISCONNECT
+                PACKET_TOO_LARGE = 149,                       // CONNACK, DISCONNECT
+                MESSAGE_RATE_TOO_HIGH = 150,                  // DISCONNECT
+                QUOTA_EXCEEDED = 151,                         // CONNACK, PUBACK, PUBREC, SUBACK, DISCONNECT
+                ADMINISTRATIVE_ACTION = 152,                  // DISCONNECT
+                PAYLOAD_FORMAT_INVALID = 153,                 // CONNACK, PUBACK, PUBREC, DISCONNECT
+                RETAIN_NOT_SUPPORTED = 154,                   // CONNACK, DISCONNECT
+                QOS_NOT_SUPPORTED = 155,                      // CONNACK, DISCONNECT
+                USE_ANOTHER_SERVER = 156,                     // CONNACK, DISCONNECT
+                SERVER_MOVED = 157,                           // CONNACK, DISCONNECT
+                SHARED_SUBSCRIPTIONS_NOT_SUPPORTED = 158,     // SUBACK, DISCONNECT
+                CONNECTION_RATE_EXCEEDED = 159,               // CONNACK, DISCONNECT
+                MAXIMUM_CONNECT_TIME = 160,                   // DISCONNECT
+                SUBSCRIPTION_IDENTIFIERS_NOT_SUPPORTED = 161, // SUBACK, DISCONNECT
+                WILDCARD_SUBSCRIPTIONS_NOT_SUPPORTED = 162    // SUBACK, DISCONNECT
+    )
 
 #define PROTOCOL_NAME_LENGTH 7
     const uint8_t PROTOCOL_NAME[] = {0, 0x4, 'M', 'Q', 'T', 'T', 0x5};
@@ -164,4 +165,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* PACKET */
+#endif /* SRC_PACKETS_PACKET */

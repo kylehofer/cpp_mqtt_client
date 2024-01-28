@@ -47,6 +47,7 @@ namespace PicoMqtt
         uint8_t *data = NULL;
         uint32_t length = 0;
         uint32_t bytesRead = 0;
+        bool ownership = true;
 
     protected:
     public:
@@ -55,6 +56,8 @@ namespace PicoMqtt
         Payload(void *data, uint32_t length);
         Payload(const Payload &payload);
         ~Payload();
+
+        static Payload wrap(void *data, uint32_t length);
 
         Payload &operator=(const Payload &right);
 

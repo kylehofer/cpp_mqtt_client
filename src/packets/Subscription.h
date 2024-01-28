@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef SUBSCRIPTION
-#define SUBSCRIPTION
+#ifndef SRC_PACKETS_SUBSCRIPTION
+#define SRC_PACKETS_SUBSCRIPTION
 
 #include <stdint.h>
 #include <vector>
@@ -81,4 +81,4 @@ namespace PicoMqtt
 
 }
 
-#endif /* SUBSCRIPTION */
+#endif /* SRC_PACKETS_SUBSCRIPTION */

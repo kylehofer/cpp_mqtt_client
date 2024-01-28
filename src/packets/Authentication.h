@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef AUTHENTICATION
-#define AUTHENTICATION
+#ifndef SRC_PACKETS_AUTHENTICATION
+#define SRC_PACKETS_AUTHENTICATION
 
 #include <stdint.h>
 #include "PropertiesPacket.h"
@@ -84,4 +84,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* AUTHENTICATION */
+#endif /* SRC_PACKETS_AUTHENTICATION */

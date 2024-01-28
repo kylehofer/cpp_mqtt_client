@@ -1,11 +1,8 @@
 #ifndef COMMON
 #define COMMON
 
-enum class QoS
-{
-    ZERO,
-    ONE,
-    TWO
-};
+#include "utils/enum.h"
+
+BETTER_ENUM(QoS, uint8_t, ZERO, ONE, TWO)
 
 #endif /* COMMON */

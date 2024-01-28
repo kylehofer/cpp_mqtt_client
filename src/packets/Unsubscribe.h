@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef UNSUBSCRIBE
-#define UNSUBSCRIBE
+#ifndef SRC_PACKETS_UNSUBSCRIBE
+#define SRC_PACKETS_UNSUBSCRIBE
 
 #include "Subscription.h"
 
@@ -56,4 +56,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* UNSUBSCRIBE */
+#endif /* SRC_PACKETS_UNSUBSCRIBE */
