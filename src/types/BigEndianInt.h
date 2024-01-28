@@ -95,7 +95,7 @@ namespace PicoMqtt
          */
         bool readFromClient(Client *client, uint32_t &read)
         {
-            if (client->available() >= size())
+            if (((size_t)client->available()) >= size())
             {
 #if BYTE_ORDER == BIG_ENDIAN
                 client.read(raw, size());

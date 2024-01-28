@@ -43,10 +43,10 @@ enum ReadingState
 
 #define REASON_CODE_SIZE 1
 
-Authentication::Authentication() : PropertiesPacket(AUTHENTICATION_ID)
+Authentication::Authentication() : PropertiesPacket(PacketId::AUTHENTICATION)
 {
 }
-Authentication::Authentication(uint8_t flags) : PropertiesPacket(AUTHENTICATION_ID | (flags & HEADER_BYTES_MASK))
+Authentication::Authentication(uint8_t flags) : PropertiesPacket(PacketId::AUTHENTICATION | (flags & HEADER_BYTES_MASK))
 {
 }
 

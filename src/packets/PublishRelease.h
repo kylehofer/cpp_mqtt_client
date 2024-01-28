@@ -1,5 +1,5 @@
 /*
- * File: SubscribeAcknowledge.h
+ * File: PublishRelease.h
  * Project: cpp_mqtt_client
  * Created Date: Monday February 27th 2023
  * Author: Kyle Hofer
@@ -29,23 +29,23 @@
  * HISTORY:
  */
 
-#ifndef SUBSCRIBEACKNOWLEDGE
-#define SUBSCRIBEACKNOWLEDGE
+#ifndef SRC_PACKETS_PUBLISHRELEASE
+#define SRC_PACKETS_PUBLISHRELEASE
 
-#include "ReasonsAcknowledge.h"
+#include "PublishAcknowledge.h"
 
 namespace PicoMqtt
 {
     /**
-     * @brief Represents a MQTT 5 Subscribe Acknowledge Packet
-     * Contains a collection of reason codes for the results of the topic being subscribed
+     * @brief Represents a MQTT 5 Publish Release Packet
+     * Contains a reason code with result of the Publish packet
+     * Third part of QoS 2 Delivery
      */
-    class SubscribeAcknowledge : public ReasonsAcknowledge
+    class PublishRelease : public Acknowledge
     {
-    private:
     public:
-        SubscribeAcknowledge();
-        SubscribeAcknowledge(uint8_t flags);
+        PublishRelease();
+        PublishRelease(uint8_t flags);
         /**
          * @brief Validates the packet to the MQTT 5 standards
          *
@@ -56,4 +56,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* SUBSCRIBEACKNOWLEDGE */
+#endif /* SRC_PACKETS_PUBLISHRELEASE */

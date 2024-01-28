@@ -1,5 +1,5 @@
 /*
- * File: UnsubscribeAcknowledge.h
+ * File: Subscribe.h
  * Project: cpp_mqtt_client
  * Created Date: Monday February 27th 2023
  * Author: Kyle Hofer
@@ -29,21 +29,25 @@
  * HISTORY:
  */
 
-#ifndef UNSUBSCRIBEACKNOWLEDGE
-#define UNSUBSCRIBEACKNOWLEDGE
+#ifndef SRC_PACKETS_SUBSCRIBE
+#define SRC_PACKETS_SUBSCRIBE
 
-#include "ReasonsAcknowledge.h"
+#include "Subscription.h"
+
 namespace PicoMqtt
 {
     /**
-     * @brief Represents a MQTT 5 Unsubscribe Acknowledge Packet
-     * Contains a collection of reason codes for the results of the topic being unsubscribed
+     * @brief Represents a MQTT 5 Subscribe Packet
+     * Contains a Variable Header with customziable Flags and Properties
+     * Contains a Payload of topics to Subscribe to
      */
-    class UnsubscribeAcknowledge : public ReasonsAcknowledge
+    class Subscribe : public Subscription
     {
+    private:
+    protected:
     public:
-        UnsubscribeAcknowledge();
-        UnsubscribeAcknowledge(uint8_t flags);
+        Subscribe();
+        Subscribe(uint8_t flags);
         /**
          * @brief Validates the packet to the MQTT 5 standards
          *
@@ -52,6 +56,7 @@ namespace PicoMqtt
          */
         virtual bool validate() override;
     };
+
 }
 
-#endif /* UNSUBSCRIBEACKNOWLEDGE */
+#endif /* SRC_PACKETS_SUBSCRIBE */

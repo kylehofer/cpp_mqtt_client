@@ -1,7 +1,7 @@
 /*
- * File: BlankPacket.h
+ * File: PacketUtility.h
  * Project: cpp_mqtt_client
- * Created Date: Saturday March 18th 2023
+ * Created Date: Thursday March 16th 2023
  * Author: Kyle Hofer
  *
  * MIT License
@@ -29,44 +29,51 @@
  * HISTORY:
  */
 
-#ifndef BLANKPACKET
-#define BLANKPACKET
+/**
+ * @brief Utility file for handling Packets
+ *
+ */
+
+#ifndef SRC_PACKETS_PACKETUTILITY
+#define SRC_PACKETS_PACKETUTILITY
 
 #include "Packet.h"
+#include "Authentication.h"
+#include "Connect.h"
+#include "ConnectAcknowledge.h"
+#include "Disconnect.h"
+#include "PingRequest.h"
+#include "PingResponse.h"
+#include "Publish.h"
+#include "PublishAcknowledge.h"
+#include "PublishComplete.h"
+#include "PublishReceived.h"
+#include "PublishRelease.h"
+#include "Subscribe.h"
+#include "SubscribeAcknowledge.h"
+#include "Unsubscribe.h"
+#include "UnsubscribeAcknowledge.h"
+#include "Client.h"
 
 namespace PicoMqtt
 {
     /**
-     * @brief Represents a MQTT 5 Ping Request Packet
-     * A basic packet that contains no other data other than a fixed header
+     * @brief Attempts to read a packet from the client.
+     * Keeps a progressively running buffer of data until the entire packet is read and
+     * the packet can be processed
      *
+     * @return Packet* The processed packet, NULL if a complete packet has not been receieved.
+     * Packet destruction must be handled by the caller
      */
-    class BlankPacket : public Packet
-    {
+    Packet *readPacketFromClient(Client *);
 
-    private:
-    protected:
-    public:
-        BlankPacket();
-        BlankPacket(uint8_t fixedHeaderByte) : Packet(fixedHeaderByte){};
-        /**
-         * @brief Reads data from a client which will then be used to fill in the Packet
-         *
-         * @param client The client to read data from
-         * @param read The amount of bytes read
-         * @return true If more data is required from the client
-         * @return false If the class has finished reading data from the client
-         */
-        virtual bool readFromClient(Client *client, uint32_t &read) override;
-        /**
-         * @brief Pushes the contents of the Packet to a communications client
-         *
-         * @param client The client to push data to
-         * @return size_t The amount of bytes written
-         */
-        virtual size_t push(PacketBuffer &buffer) override;
-        size_t size();
-    };
+    // /**
+    //  * @brief Constructs a packet from an identifier
+    //  *
+    //  * @param identifier
+    //  * @return Packet*
+    //  */
+    // static Packet *constructPacketFromId(uint8_t identifier);
 }
 
-#endif /* BLANKPACKET */
+#endif /* SRC_PACKETS_PACKETUTILITY */

@@ -1,5 +1,5 @@
 /*
- * File: PingResponse.h
+ * File: UnsubscribeAcknowledge.h
  * Project: cpp_mqtt_client
  * Created Date: Monday February 27th 2023
  * Author: Kyle Hofer
@@ -29,26 +29,21 @@
  * HISTORY:
  */
 
-#ifndef PINGRESPONSE
-#define PINGRESPONSE
+#ifndef SRC_PACKETS_UNSUBSCRIBEACKNOWLEDGE
+#define SRC_PACKETS_UNSUBSCRIBEACKNOWLEDGE
 
-#include "BlankPacket.h"
-
+#include "ReasonsAcknowledge.h"
 namespace PicoMqtt
 {
     /**
-     * @brief Represents a MQTT 5 base Ping Response Packet
-     * A basic packet that contains no other data other than a fixed header
-     *
+     * @brief Represents a MQTT 5 Unsubscribe Acknowledge Packet
+     * Contains a collection of reason codes for the results of the topic being unsubscribed
      */
-    class PingResponse : public BlankPacket
+    class UnsubscribeAcknowledge : public ReasonsAcknowledge
     {
-
-    private:
-    protected:
     public:
-        PingResponse();
-        PingResponse(uint8_t flags);
+        UnsubscribeAcknowledge();
+        UnsubscribeAcknowledge(uint8_t flags);
         /**
          * @brief Validates the packet to the MQTT 5 standards
          *
@@ -59,4 +54,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* PINGRESPONSE */
+#endif /* SRC_PACKETS_UNSUBSCRIBEACKNOWLEDGE */

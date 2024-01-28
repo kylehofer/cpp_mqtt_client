@@ -33,11 +33,11 @@
 
 using namespace PicoMqtt;
 
-PublishRelease::PublishRelease() : PublishRelease(PUBLISH_RELEASE_ID)
+PublishRelease::PublishRelease() : PublishRelease(PacketId::PUBLISH_RELEASE)
 {
 }
 
-PublishRelease::PublishRelease(uint8_t flags) : Acknowledge(PUBLISH_RELEASE_ID | (flags & HEADER_BYTES_MASK))
+PublishRelease::PublishRelease(uint8_t flags) : Acknowledge(PacketId::PUBLISH_RELEASE | (flags & HEADER_BYTES_MASK))
 {
     // Publish release must set the 2nd bit in the Fixed Header
     setFlags(2);

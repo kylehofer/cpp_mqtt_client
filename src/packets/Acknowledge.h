@@ -1,7 +1,7 @@
 /*
- * File: Payload.h
+ * File: Acknowledge.h
  * Project: cpp_mqtt_client
- * Created Date: Wednesday March 15th 2023
+ * Created Date: Thursday March 16th 2023
  * Author: Kyle Hofer
  *
  * MIT License
@@ -29,50 +29,45 @@
  * HISTORY:
  */
 
-#ifndef PAYLOAD
-#define PAYLOAD
+#ifndef SRC_PACKETS_ACKNOWLEDGE
+#define SRC_PACKETS_ACKNOWLEDGE
 
 #include <stdint.h>
-#include "ClientInteractor.h"
+#include "PropertiesPacket.h"
 
 namespace PicoMqtt
 {
     /**
-     * @brief Represents a MQTT 5 Publish Payloads
-     * Used for reading and writing an array of bytes to a communication client
+     * @brief Represents a MQTT 5 base Acknowledge Packet
+     * Contains common functionality to process a reason code used by other Acknowledge packets
+     *
      */
-    class Payload : ClientInteractor
+    class Acknowledge : public PropertiesPacket
     {
     private:
-        uint8_t *data = NULL;
-        uint32_t length = 0;
-        uint32_t bytesRead = 0;
+        uint8_t state = 0;
+        uint16_t packetIdentifier;
+        uint8_t reasonCode;
 
     protected:
+        Acknowledge(uint8_t fixedHeaderByte) : PropertiesPacket(fixedHeaderByte){};
+
     public:
-        Payload();
-        Payload(uint32_t length);
-        Payload(void *data, uint32_t length);
-        Payload(const Payload &payload);
-        ~Payload();
-
-        Payload &operator=(const Payload &right);
-
-        uint8_t operator[](int i) const { return data[i]; }
-        uint8_t &operator[](int i) { return data[i]; }
-
-        uint8_t *getData();
-        void setData(void *data, uint32_t length);
+        /**
+         * @brief Returns the byte size of the packet
+         *
+         * @return size_t
+         */
         size_t size();
         /**
-         * @brief Pushes the contents of the Payload to a communications client
+         * @brief Pushes the contents of the Acknowledge Packet to a communications client
          *
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
         virtual size_t push(PacketBuffer &buffer) override;
         /**
-         * @brief Reads data from a client which will then be used to fill in the Payload
+         * @brief Reads data from a client which will then be used to fill in the Acknowledge Packet
          *
          * @param client The client to read data from
          * @param read The amount of bytes read
@@ -80,6 +75,12 @@ namespace PicoMqtt
          * @return false If the class has finished reading data from the client
          */
         virtual bool readFromClient(Client *client, uint32_t &read) override;
+        uint8_t getReasonCode();
+        void setReasonCode(uint16_t value);
+        uint16_t getPacketIdentifier();
+        void setPacketIdentifier(uint16_t value);
     };
+
 }
-#endif /* PAYLOAD */
+
+#endif /* SRC_PACKETS_ACKNOWLEDGE */

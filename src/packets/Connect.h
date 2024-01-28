@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef CONNECT
-#define CONNECT
+#ifndef SRC_PACKETS_CONNECT
+#define SRC_PACKETS_CONNECT
 
 #include <stdint.h>
 #include "PropertiesPacket.h"
@@ -120,4 +120,4 @@ namespace PicoMqtt
 
 }
 
-#endif /* CONNECT */
+#endif /* SRC_PACKETS_CONNECT */

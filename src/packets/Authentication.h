@@ -1,5 +1,5 @@
 /*
- * File: Unsubscribe.h
+ * File: Authentication.h
  * Project: cpp_mqtt_client
  * Created Date: Monday February 27th 2023
  * Author: Kyle Hofer
@@ -29,23 +29,51 @@
  * HISTORY:
  */
 
-#ifndef UNSUBSCRIBE
-#define UNSUBSCRIBE
+#ifndef SRC_PACKETS_AUTHENTICATION
+#define SRC_PACKETS_AUTHENTICATION
 
-#include "Subscription.h"
+#include <stdint.h>
+#include "PropertiesPacket.h"
+#include "types/VariableByteInteger.h"
 
 namespace PicoMqtt
 {
     /**
-     * @brief Represents a MQTT 5 Unsubscribe Packet
-     * Contains a Variable Header with customziable Flags and Properties
-     * Contains a Payload of topics to Unsubscribe to
+     * @brief Represents a MQTT 5 Authentication Packet
+     *
      */
-    class Unsubscribe : public Subscription
+    class Authentication : public PropertiesPacket
     {
+    private:
+        uint8_t state = 0;
+        uint8_t reasonCode = 0;
+
+    protected:
     public:
-        Unsubscribe();
-        Unsubscribe(uint8_t flags);
+        Authentication();
+        Authentication(uint8_t flags);
+        /**
+         * @brief Pushes the contents of the Authentication Packet to a communications client
+         *
+         * @param client The client to push data to
+         * @return size_t The amount of bytes written
+         */
+        virtual size_t push(PacketBuffer &buffer) override;
+        /**
+         * @brief Reads data from a client which will then be used to fill in the Authentication Packet
+         *
+         * @param client The client to read data from
+         * @param read The amount of bytes read
+         * @return true If more data is required from the client
+         * @return false If the class has finished reading data from the client
+         */
+        virtual bool readFromClient(Client *client, uint32_t &read) override;
+        /**
+         * @brief Returns the byte size of the packet
+         *
+         * @return size_t
+         */
+        size_t size();
         /**
          * @brief Validates the packet to the MQTT 5 standards
          *
@@ -56,4 +84,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* UNSUBSCRIBE */
+#endif /* SRC_PACKETS_AUTHENTICATION */

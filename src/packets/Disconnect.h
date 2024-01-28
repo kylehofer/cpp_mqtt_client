@@ -1,7 +1,7 @@
 /*
- * File: ReasonsAcknowledge.h
+ * File: Disconnect.h
  * Project: cpp_mqtt_client
- * Created Date: Thursday March 16th 2023
+ * Created Date: Monday February 27th 2023
  * Author: Kyle Hofer
  *
  * MIT License
@@ -29,51 +29,70 @@
  * HISTORY:
  */
 
-#ifndef REASONSACKNOWLEDGE
-#define REASONSACKNOWLEDGE
+#ifndef SRC_PACKETS_DISCONNECT
+#define SRC_PACKETS_DISCONNECT
 
+#include <stdint.h>
 #include "PropertiesPacket.h"
-#include <vector>
+#include "types/VariableByteInteger.h"
 
 namespace PicoMqtt
 {
     /**
-     * @brief Contains code for Acknowledge Packets that receive more than a single reason code
-     * Base class for Subscribe and Unsubscribe Acknowledge packets
+     * @brief Represents a MQTT 5 Disconnect Packet
      *
      */
-    class ReasonsAcknowledge : public PropertiesPacket
+    class Disconnect : public PropertiesPacket
     {
     private:
         uint8_t state = 0;
-        uint16_t packetIdentifier;
-        vector<uint8_t> reasonCodes;
+        uint8_t reasonCode = 0;
 
     protected:
-        ReasonsAcknowledge(uint8_t fixedHeaderByte) : PropertiesPacket(fixedHeaderByte){};
-
     public:
+        Disconnect();
+        Disconnect(uint8_t flags);
         /**
-         * @brief Pushes the contents of the Reasons Acknowledge Packet to a communications client
+         * @brief Pushes the contents of the Disconnect Packet to a communications client
          *
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
         virtual size_t push(PacketBuffer &buffer) override;
         /**
-         * @brief Reads data from a client which will then be used to fill in the Reasons Acknowledge Packet
+         * @brief Reads data from a client which will then be used to fill in the Disconnect Packet
          *
          * @param client The client to read data from
          * @param read The amount of bytes read
          * @return true If more data is required from the client
          * @return false If the class has finished reading data from the client
          */
+
         virtual bool readFromClient(Client *client, uint32_t &read) override;
         size_t size();
 
-        vector<uint8_t> getReasonCodes();
-        uint16_t getPacketIdentifier();
+        /**
+         * @brief Set the Reason Code
+         *
+         * @param value
+         */
+        void setReasonCode(uint8_t value);
+
+        /**
+         * @brief Get the Reason Code
+         *
+         * @param value
+         */
+        uint8_t getReasonCode();
+        /**
+         * @brief Validates the packet to the MQTT 5 standards
+         *
+         * @return true
+         * @return false
+         */
+        virtual bool validate() override;
     };
+
 }
 
-#endif /* REASONSACKNOWLEDGE */
+#endif /* SRC_PACKETS_DISCONNECT */

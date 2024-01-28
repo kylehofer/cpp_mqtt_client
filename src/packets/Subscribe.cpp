@@ -33,11 +33,11 @@
 
 using namespace PicoMqtt;
 
-Subscribe::Subscribe() : Subscribe(SUBSCRIBE_ID)
+Subscribe::Subscribe() : Subscribe(PacketId::SUBSCRIBE)
 {
 }
 
-Subscribe::Subscribe(uint8_t flags) : Subscription(SUBSCRIBE_ID | (flags & HEADER_BYTES_MASK))
+Subscribe::Subscribe(uint8_t flags) : Subscription(PacketId::SUBSCRIBE | (flags & HEADER_BYTES_MASK))
 {
     // Subscribe needs to set it's flags to 2
     setFlags(2);

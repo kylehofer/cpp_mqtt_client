@@ -1,5 +1,5 @@
 /*
- * File: Subscribe.h
+ * File: PingResponse.h
  * Project: cpp_mqtt_client
  * Created Date: Monday February 27th 2023
  * Author: Kyle Hofer
@@ -29,25 +29,26 @@
  * HISTORY:
  */
 
-#ifndef SUBSCRIBE
-#define SUBSCRIBE
+#ifndef SRC_PACKETS_PINGRESPONSE
+#define SRC_PACKETS_PINGRESPONSE
 
-#include "Subscription.h"
+#include "BlankPacket.h"
 
 namespace PicoMqtt
 {
     /**
-     * @brief Represents a MQTT 5 Subscribe Packet
-     * Contains a Variable Header with customziable Flags and Properties
-     * Contains a Payload of topics to Subscribe to
+     * @brief Represents a MQTT 5 base Ping Response Packet
+     * A basic packet that contains no other data other than a fixed header
+     *
      */
-    class Subscribe : public Subscription
+    class PingResponse : public BlankPacket
     {
+
     private:
     protected:
     public:
-        Subscribe();
-        Subscribe(uint8_t flags);
+        PingResponse();
+        PingResponse(uint8_t flags);
         /**
          * @brief Validates the packet to the MQTT 5 standards
          *
@@ -56,7 +57,6 @@ namespace PicoMqtt
          */
         virtual bool validate() override;
     };
-
 }
 
-#endif /* SUBSCRIBE */
+#endif /* SRC_PACKETS_PINGRESPONSE */

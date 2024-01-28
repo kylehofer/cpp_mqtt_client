@@ -1,5 +1,5 @@
 /*
- * File: PublishReceived.h
+ * File: PublishAcknowledge.h
  * Project: cpp_mqtt_client
  * Created Date: Monday February 27th 2023
  * Author: Kyle Hofer
@@ -29,23 +29,23 @@
  * HISTORY:
  */
 
-#ifndef PUBLISHRECEIVED
-#define PUBLISHRECEIVED
+#ifndef SRC_PACKETS_PUBLISHACKNOWLEDGE
+#define SRC_PACKETS_PUBLISHACKNOWLEDGE
 
 #include "Acknowledge.h"
 
 namespace PicoMqtt
 {
     /**
-     * @brief Represents a MQTT 5 Publish Received Packet
+     * @brief Represents a MQTT 5 Publish Acknowledge Packet
      * Contains a reason code with result of the Publish packet
-     * Second part of QoS 2 Delivery
+     * Response after sending a Publish with QoS 1
      */
-    class PublishReceived : public Acknowledge
+    class PublishAcknowledge : public Acknowledge
     {
     public:
-        PublishReceived();
-        PublishReceived(uint8_t flags);
+        PublishAcknowledge();
+        PublishAcknowledge(uint8_t flags);
         /**
          * @brief Validates the packet to the MQTT 5 standards
          *
@@ -56,4 +56,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* PUBLISHRECEIVED */
+#endif /* SRC_PACKETS_PUBLISHACKNOWLEDGE */

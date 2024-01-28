@@ -1,5 +1,5 @@
 /*
- * File: PublishRelease.h
+ * File: PingRequest.h
  * Project: cpp_mqtt_client
  * Created Date: Monday February 27th 2023
  * Author: Kyle Hofer
@@ -29,23 +29,25 @@
  * HISTORY:
  */
 
-#ifndef PUBLISHRELEASE
-#define PUBLISHRELEASE
-
-#include "PublishAcknowledge.h"
+#ifndef SRC_PACKETS_PINGREQUEST
+#define SRC_PACKETS_PINGREQUEST
+#include "BlankPacket.h"
 
 namespace PicoMqtt
 {
     /**
-     * @brief Represents a MQTT 5 Publish Release Packet
-     * Contains a reason code with result of the Publish packet
-     * Third part of QoS 2 Delivery
+     * @brief Represents a MQTT 5 Ping Request Packet
+     * A basic packet that contains no other data other than a fixed header
+     *
      */
-    class PublishRelease : public Acknowledge
+    class PingRequest : public BlankPacket
     {
+
+    private:
+    protected:
     public:
-        PublishRelease();
-        PublishRelease(uint8_t flags);
+        PingRequest();
+        PingRequest(uint8_t flags);
         /**
          * @brief Validates the packet to the MQTT 5 standards
          *
@@ -56,4 +58,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* PUBLISHRELEASE */
+#endif /* SRC_PACKETS_PINGREQUEST */

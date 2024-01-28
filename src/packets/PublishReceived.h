@@ -1,7 +1,7 @@
 /*
- * File: PacketUtility.h
+ * File: PublishReceived.h
  * Project: cpp_mqtt_client
- * Created Date: Thursday March 16th 2023
+ * Created Date: Monday February 27th 2023
  * Author: Kyle Hofer
  *
  * MIT License
@@ -29,51 +29,31 @@
  * HISTORY:
  */
 
-/**
- * @brief Utility file for handling Packets
- *
- */
+#ifndef SRC_PACKETS_PUBLISHRECEIVED
+#define SRC_PACKETS_PUBLISHRECEIVED
 
-#ifndef PACKETUTILITY
-#define PACKETUTILITY
-
-#include "Packet.h"
-#include "Authentication.h"
-#include "Connect.h"
-#include "ConnectAcknowledge.h"
-#include "Disconnect.h"
-#include "PingRequest.h"
-#include "PingResponse.h"
-#include "Publish.h"
-#include "PublishAcknowledge.h"
-#include "PublishComplete.h"
-#include "PublishReceived.h"
-#include "PublishRelease.h"
-#include "Subscribe.h"
-#include "SubscribeAcknowledge.h"
-#include "Unsubscribe.h"
-#include "UnsubscribeAcknowledge.h"
-#include "Client.h"
+#include "Acknowledge.h"
 
 namespace PicoMqtt
 {
     /**
-     * @brief Attempts to read a packet from the client.
-     * Keeps a progressively running buffer of data until the entire packet is read and
-     * the packet can be processed
-     *
-     * @return Packet* The processed packet, NULL if a complete packet has not been receieved.
-     * Packet destruction must be handled by the caller
+     * @brief Represents a MQTT 5 Publish Received Packet
+     * Contains a reason code with result of the Publish packet
+     * Second part of QoS 2 Delivery
      */
-    Packet *readPacketFromClient(Client *);
-
-    // /**
-    //  * @brief Constructs a packet from an identifier
-    //  *
-    //  * @param identifier
-    //  * @return Packet*
-    //  */
-    // static Packet *constructPacketFromId(uint8_t identifier);
+    class PublishReceived : public Acknowledge
+    {
+    public:
+        PublishReceived();
+        PublishReceived(uint8_t flags);
+        /**
+         * @brief Validates the packet to the MQTT 5 standards
+         *
+         * @return true
+         * @return false
+         */
+        virtual bool validate() override;
+    };
 }
 
-#endif /* PACKETUTILITY */
+#endif /* SRC_PACKETS_PUBLISHRECEIVED */

@@ -47,7 +47,7 @@ ConnectAcknowledge::ConnectAcknowledge() : PropertiesPacket(0)
 {
 }
 
-ConnectAcknowledge::ConnectAcknowledge(uint8_t flags) : PropertiesPacket(CONNECT_ACKNOWLEDGE_ID | (flags & HEADER_BYTES_MASK))
+ConnectAcknowledge::ConnectAcknowledge(uint8_t flags) : PropertiesPacket(PacketId::CONNECT_ACKNOWLEDGE | (flags & HEADER_BYTES_MASK))
 {
     header.data = 0;
 }

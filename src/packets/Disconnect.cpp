@@ -43,11 +43,11 @@ enum ReadingState
 
 #define REASON_CODE_SIZE 1
 
-Disconnect::Disconnect() : PropertiesPacket(DISCONNECT_ID)
+Disconnect::Disconnect() : PropertiesPacket(PacketId::DISCONNECT)
 {
 }
 
-Disconnect::Disconnect(uint8_t flags) : PropertiesPacket(DISCONNECT_ID | (flags & HEADER_BYTES_MASK))
+Disconnect::Disconnect(uint8_t flags) : PropertiesPacket(PacketId::DISCONNECT | (flags & HEADER_BYTES_MASK))
 {
 }
 

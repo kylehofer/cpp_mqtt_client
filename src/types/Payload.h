@@ -1,7 +1,7 @@
 /*
- * File: Authentication.h
+ * File: Payload.h
  * Project: cpp_mqtt_client
- * Created Date: Monday February 27th 2023
+ * Created Date: Wednesday March 15th 2023
  * Author: Kyle Hofer
  *
  * MIT License
@@ -29,38 +29,53 @@
  * HISTORY:
  */
 
-#ifndef AUTHENTICATION
-#define AUTHENTICATION
+#ifndef PAYLOAD
+#define PAYLOAD
 
 #include <stdint.h>
-#include "PropertiesPacket.h"
-#include "types/VariableByteInteger.h"
+#include "ClientInteractor.h"
 
 namespace PicoMqtt
 {
     /**
-     * @brief Represents a MQTT 5 Authentication Packet
-     *
+     * @brief Represents a MQTT 5 Publish Payloads
+     * Used for reading and writing an array of bytes to a communication client
      */
-    class Authentication : public PropertiesPacket
+    class Payload : ClientInteractor
     {
     private:
-        uint8_t state = 0;
-        uint8_t reasonCode = 0;
+        uint8_t *data = NULL;
+        uint32_t length = 0;
+        uint32_t bytesRead = 0;
+        bool ownership = true;
 
     protected:
     public:
-        Authentication();
-        Authentication(uint8_t flags);
+        Payload();
+        Payload(uint32_t length);
+        Payload(void *data, uint32_t length);
+        Payload(const Payload &payload);
+        ~Payload();
+
+        static Payload wrap(void *data, uint32_t length);
+
+        Payload &operator=(const Payload &right);
+
+        uint8_t operator[](int i) const { return data[i]; }
+        uint8_t &operator[](int i) { return data[i]; }
+
+        uint8_t *getData();
+        void setData(void *data, uint32_t length);
+        size_t size();
         /**
-         * @brief Pushes the contents of the Authentication Packet to a communications client
+         * @brief Pushes the contents of the Payload to a communications client
          *
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
         virtual size_t push(PacketBuffer &buffer) override;
         /**
-         * @brief Reads data from a client which will then be used to fill in the Authentication Packet
+         * @brief Reads data from a client which will then be used to fill in the Payload
          *
          * @param client The client to read data from
          * @param read The amount of bytes read
@@ -68,20 +83,6 @@ namespace PicoMqtt
          * @return false If the class has finished reading data from the client
          */
         virtual bool readFromClient(Client *client, uint32_t &read) override;
-        /**
-         * @brief Returns the byte size of the packet
-         *
-         * @return size_t
-         */
-        size_t size();
-        /**
-         * @brief Validates the packet to the MQTT 5 standards
-         *
-         * @return true
-         * @return false
-         */
-        virtual bool validate() override;
     };
 }
-
-#endif /* AUTHENTICATION */
+#endif /* PAYLOAD */

@@ -1,5 +1,5 @@
 /*
- * File: PingRequest.h
+ * File: Unsubscribe.h
  * Project: cpp_mqtt_client
  * Created Date: Monday February 27th 2023
  * Author: Kyle Hofer
@@ -29,25 +29,23 @@
  * HISTORY:
  */
 
-#ifndef PINGREQUEST
-#define PINGREQUEST
-#include "BlankPacket.h"
+#ifndef SRC_PACKETS_UNSUBSCRIBE
+#define SRC_PACKETS_UNSUBSCRIBE
+
+#include "Subscription.h"
 
 namespace PicoMqtt
 {
     /**
-     * @brief Represents a MQTT 5 Ping Request Packet
-     * A basic packet that contains no other data other than a fixed header
-     *
+     * @brief Represents a MQTT 5 Unsubscribe Packet
+     * Contains a Variable Header with customziable Flags and Properties
+     * Contains a Payload of topics to Unsubscribe to
      */
-    class PingRequest : public BlankPacket
+    class Unsubscribe : public Subscription
     {
-
-    private:
-    protected:
     public:
-        PingRequest();
-        PingRequest(uint8_t flags);
+        Unsubscribe();
+        Unsubscribe(uint8_t flags);
         /**
          * @brief Validates the packet to the MQTT 5 standards
          *
@@ -58,4 +56,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* PINGREQUEST */
+#endif /* SRC_PACKETS_UNSUBSCRIBE */

@@ -1,7 +1,7 @@
 /*
- * File: Publish.h
+ * File: Subscription.h
  * Project: cpp_mqtt_client
- * Created Date: Monday February 27th 2023
+ * Created Date: Thursday March 16th 2023
  * Author: Kyle Hofer
  *
  * MIT License
@@ -29,44 +29,42 @@
  * HISTORY:
  */
 
-#ifndef PUBLISH
-#define PUBLISH
+#ifndef SRC_PACKETS_SUBSCRIPTION
+#define SRC_PACKETS_SUBSCRIPTION
 
 #include <stdint.h>
+#include <vector>
 #include "PropertiesPacket.h"
-#include "types/Payload.h"
-#include "types/Common.h"
+#include "types/SubscriptionPayload.h"
 
 namespace PicoMqtt
 {
     /**
-     * @brief Represents a MQTT 5 Publish Packet
+     * @brief Represents a base MQTT 5 packet for Un/Subscribe
      * Contains a Variable Header with customziable Flags and Properties
-     * Contains a Payload of bytes
+     * Contains a Payload of topics to Un/Subscribe to
      */
-    class Publish : public PropertiesPacket
+    class Subscription : public PropertiesPacket
     {
     private:
         uint8_t state = 0;
-        EncodedString topic;
-
-        uint16_t packetIdentifier = 0;
-        Payload payload;
+        uint16_t packetIdentifier;
+        vector<SubscriptionPayload *> payloads;
 
     protected:
+        Subscription(uint8_t fixedHeaderByte) : PropertiesPacket(fixedHeaderByte){};
+
     public:
-        Publish();
-        Publish(uint8_t flags);
         size_t size();
         /**
-         * @brief Pushes the contents of the Publish Packet to a communications client
+         * @brief Pushes the contents of the Subscription Packet to a communications client
          *
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
         virtual size_t push(PacketBuffer &buffer) override;
         /**
-         * @brief Reads data from a client which will then be used to fill in the Publish Packet
+         * @brief Reads data from a client which will then be used to fill in the Subscription Packet
          *
          * @param client The client to read data from
          * @param read The amount of bytes read
@@ -74,25 +72,13 @@ namespace PicoMqtt
          * @return false If the class has finished reading data from the client
          */
         virtual bool readFromClient(Client *client, uint32_t &read) override;
-        EncodedString &getTopic();
-        void setTopic(const char *data, uint32_t length);
-        void setTopic(EncodedString value);
-        Payload &getPayload();
-        void setPayload(void *data, uint32_t length);
-        void setPayload(Payload value);
-        uint16_t getPacketIdentifier();
+
+        void addPayload(SubscriptionPayload *payload);
+
         void setPacketIdentifier(uint16_t packetIdentifier);
-        void setQos(QoS value);
-        QoS getQos();
-        /**
-         * @brief Validates the packet to the MQTT 5 standards
-         *
-         * @return true
-         * @return false
-         */
-        virtual bool validate() override;
+        uint16_t getPacketIdentifier();
     };
 
 }
 
-#endif /* PUBLISH */
+#endif /* SRC_PACKETS_SUBSCRIPTION */

@@ -35,7 +35,7 @@
 
 using namespace PicoMqtt;
 
-bool BlankPacket::readFromClient(Client *client, uint32_t &read)
+bool BlankPacket::readFromClient(__attribute__((unused)) Client *client, __attribute__((unused)) uint32_t &read)
 {
     return false;
 }

@@ -1,5 +1,5 @@
 /*
- * File: ConnectAcknowledge.h
+ * File: Publish.h
  * Project: cpp_mqtt_client
  * Created Date: Monday February 27th 2023
  * Author: Kyle Hofer
@@ -29,52 +29,44 @@
  * HISTORY:
  */
 
-#ifndef CONNECTACKNOWLEDGE
-#define CONNECTACKNOWLEDGE
+#ifndef SRC_PACKETS_PUBLISH
+#define SRC_PACKETS_PUBLISH
 
 #include <stdint.h>
 #include "PropertiesPacket.h"
-#include "types/EncodedString.h"
-#include "types/BinaryData.h"
-#include "types/VariableByteInteger.h"
+#include "types/Payload.h"
+#include "types/Common.h"
 
 namespace PicoMqtt
 {
-    typedef union
-    {
-        struct
-        {
-            uint8_t reserved : 7;
-            uint8_t session : 1;
-            uint8_t reasonCode;
-        };
-        uint16_t data;
-    } ConnackHeader;
-
     /**
-     * @brief Represents a MQTT 5 Connect Acknowledge Packet
-     *
+     * @brief Represents a MQTT 5 Publish Packet
+     * Contains a Variable Header with customziable Flags and Properties
+     * Contains a Payload of bytes
      */
-    class ConnectAcknowledge : public PropertiesPacket
+    class Publish : public PropertiesPacket
     {
     private:
         uint8_t state = 0;
-        ConnackHeader header;
+        EncodedString topic;
+
+        uint16_t packetIdentifier = 0;
+        Payload payload;
 
     protected:
     public:
-        ConnectAcknowledge();
-        ConnectAcknowledge(uint8_t flags);
-        size_t size() { return 0; };
+        Publish();
+        Publish(uint8_t flags);
+        size_t size();
         /**
-         * @brief Pushes the contents of the Connect Acknowledge to a communications client
+         * @brief Pushes the contents of the Publish Packet to a communications client
          *
          * @param client The client to push data to
          * @return size_t The amount of bytes written
          */
-        virtual size_t push(PacketBuffer &buffer) override { return 0; };
+        virtual size_t push(PacketBuffer &buffer) override;
         /**
-         * @brief Reads data from a client which will then be used to fill in the Connect Acknowledge Packet
+         * @brief Reads data from a client which will then be used to fill in the Publish Packet
          *
          * @param client The client to read data from
          * @param read The amount of bytes read
@@ -82,23 +74,18 @@ namespace PicoMqtt
          * @return false If the class has finished reading data from the client
          */
         virtual bool readFromClient(Client *client, uint32_t &read) override;
-        uint32_t getSessionExpiryInterval();
-        uint16_t getReceiveMaximum();
-        uint8_t getMaximumQoS();
-        bool getRetainAvailable();
-        uint32_t getMaximumPacketSize();
-        EncodedString getAssignedClientIdentifier();
-        uint16_t getTopicAliasMaximum();
-        EncodedString getReasonString();
-        bool getWildcardSubscriptionAvailable();
-        bool getSubscriptionIdentifiersAvailable();
-        bool getSharedSubscriptionAvailable();
-        uint16_t getServerKeepAlive();
-        EncodedString getResponseInformation();
-        EncodedString getServerReference();
-        EncodedString getAuthenticationMethod();
-        BinaryData getAuthenticationData();
-        uint8_t getReasonCode();
+        EncodedString &getTopic();
+        void setTopic(const char *data, uint32_t length);
+        void setTopic(EncodedString value);
+        Payload &getPayload();
+        void setPayload(void *data, uint32_t length);
+        void setPayload(Payload value);
+        uint16_t getPacketIdentifier();
+        void setPacketIdentifier(uint16_t packetIdentifier);
+        void setQos(QoS value);
+        QoS getQos();
+        void setRetain(bool value);
+        bool getRetain();
         /**
          * @brief Validates the packet to the MQTT 5 standards
          *
@@ -110,4 +97,4 @@ namespace PicoMqtt
 
 }
 
-#endif /* CONNECTACKNOWLEDGE */
+#endif /* SRC_PACKETS_PUBLISH */
