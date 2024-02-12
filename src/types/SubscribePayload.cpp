@@ -37,7 +37,7 @@ using namespace PicoMqtt;
 
 SubscribePayload::SubscribePayload()
 {
-    options.data = 2;
+    options.data = 0;
 }
 
 size_t SubscribePayload::push(PacketBuffer &buffer)
@@ -48,4 +48,90 @@ size_t SubscribePayload::push(PacketBuffer &buffer)
 size_t SubscribePayload::size()
 {
     return OPTIONS_SIZE + SubscriptionPayload::size();
+}
+
+void SubscribePayload::setMaximumQos(QoS qos)
+{
+    switch (qos)
+    {
+    case QoS::ZERO:
+        options.maximumQos = 0;
+        break;
+    case QoS::ONE:
+        options.maximumQos = 1;
+        break;
+    case QoS::TWO:
+        options.maximumQos = 2;
+        break;
+    default:
+        break;
+    }
+}
+
+QoS SubscribePayload::getMaximumQos()
+{
+    switch (options.maximumQos)
+    {
+    case 0:
+        return QoS::ZERO;
+        break;
+    case 1:
+        return QoS::ONE;
+        break;
+    default:
+        return QoS::TWO;
+    }
+}
+
+void SubscribePayload::setNoLocal(bool value)
+{
+    options.noLocal = value;
+}
+
+bool SubscribePayload::getNoLocal()
+{
+    return options.noLocal;
+}
+
+void SubscribePayload::setRetainAsPublished(bool value)
+{
+    options.retainAsPublished = value;
+}
+
+bool SubscribePayload::getRetainAsPublished()
+{
+    return options.retainAsPublished;
+}
+
+void SubscribePayload::setRetainHandling(RetainHandling retain)
+{
+    switch (retain)
+    {
+    case RetainHandling::AT_SUBSCRIBE:
+        options.retainHandling = 0;
+        break;
+    case RetainHandling::AT_SUBSCRIBE_NOT_EXIST:
+        options.retainHandling = 1;
+        break;
+    case RetainHandling::NO_RETAIN:
+        options.retainHandling = 2;
+        break;
+    default:
+        break;
+    }
+}
+
+RetainHandling SubscribePayload::getRetainHandling()
+{
+    switch (options.retainHandling)
+    {
+    case 0:
+        return RetainHandling::AT_SUBSCRIBE;
+        break;
+    case 1:
+        return RetainHandling::AT_SUBSCRIBE_NOT_EXIST;
+        break;
+    default:
+        return RetainHandling::NO_RETAIN;
+    }
 }
