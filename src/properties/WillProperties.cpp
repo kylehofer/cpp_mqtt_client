@@ -119,6 +119,26 @@ void WillProperties::setBinaryPayload(const char *data, uint16_t length)
     payload = BinaryData(data, length);
 }
 
+void WillProperties::setQoS(QoS qos)
+{
+    this->qos = qos;
+}
+
+QoS WillProperties::getQoS()
+{
+    return qos;
+}
+
+void WillProperties::setRetain(bool retain)
+{
+    this->retain = retain;
+}
+
+bool WillProperties::getRetain()
+{
+    return retain;
+}
+
 size_t WillProperties::push(PacketBuffer &buffer)
 {
     size_t length = Properties::push(buffer);

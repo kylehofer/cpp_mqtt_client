@@ -103,6 +103,32 @@ void Connect::setClientId(const char *data, uint16_t length)
 void Connect::setWill(WillProperties *will)
 {
     connectFlags.will = (will != nullptr);
+
+    if (will)
+    {
+        switch (will->getQoS())
+        {
+        case QoS::ZERO:
+            connectFlags.willqos = 0;
+            break;
+        case QoS::ONE:
+            connectFlags.willqos = 1;
+            break;
+        case QoS::TWO:
+            connectFlags.willqos = 2;
+            break;
+        default:
+            break;
+        }
+
+        connectFlags.willretain = will->getRetain();
+    }
+    else
+    {
+        connectFlags.willqos = 0;
+        connectFlags.willretain = 0;
+    }
+
     willProperties = will;
 }
 
