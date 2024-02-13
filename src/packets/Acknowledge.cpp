@@ -49,7 +49,7 @@ size_t Acknowledge::size()
 {
     if (properties.length() > 0)
     {
-        return PACKET_IDENTIFIER_SIZE + REASON_CODE_SIZE + properties.size();
+        return PACKET_IDENTIFIER_SIZE + REASON_CODE_SIZE + properties.totalSize();
     }
     if (reasonCode > 0)
     {

@@ -103,7 +103,7 @@ bool Authentication::readFromClient(Client *client, uint32_t &bytes)
 
 size_t Authentication::size()
 {
-    return REASON_CODE_SIZE + properties.size();
+    return REASON_CODE_SIZE + properties.totalSize();
 }
 
 bool Authentication::validate()
