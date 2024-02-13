@@ -10,14 +10,6 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(googletest)
 
-# Grabbing mosquitto
-FetchContent_Declare(mosquitto_external
-    GIT_REPOSITORY https://github.com/eclipse/mosquitto.git
-    GIT_TAG b0277869d9806f6fab8e1bc11c4a4987c9a79ded # v2.0.15
-)
-
-FetchContent_MakeAvailable(mosquitto_external)
-
 file(GLOB_RECURSE TEST_SOURCES ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR} "./*.cc")
 
 add_executable(
@@ -32,7 +24,7 @@ target_link_libraries(
     MqttTests
     cpp_mqtt_client
     GTest::gtest_main
-    mosquitto_external
+    mosquitto
 )
 
 include(GoogleTest)

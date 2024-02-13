@@ -64,6 +64,12 @@ BufferData::BufferData(const char *string, uint16_t length)
 BufferData::BufferData(const BufferData &source)
 {
     state = source.state;
+
+    if (data)
+    {
+        free(data);
+    }
+
     if (source.data)
     {
         data = (char *)malloc(source.length);

@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef ENCODEDSTRING
-#define ENCODEDSTRING
+#ifndef SRC_TYPES_ENCODEDSTRING
+#define SRC_TYPES_ENCODEDSTRING
 
 #include "types/BufferData.h"
 
@@ -49,4 +49,4 @@ namespace PicoMqtt
     };
 }
 
-#endif /* ENCODEDSTRING */
+#endif /* SRC_TYPES_ENCODEDSTRING */

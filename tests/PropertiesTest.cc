@@ -133,7 +133,7 @@ TEST(PropertiesTest, Encode)
 
         uint32_t bytesRead = 0;
 
-        PacketBuffer buffer(properties.size());
+        PacketBuffer buffer(properties.totalSize());
         size_t written = properties.push(buffer);
 
         ASSERT_EQ(written, TEST_DATA_SIZE);

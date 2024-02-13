@@ -104,7 +104,7 @@ bool ReasonsAcknowledge::readFromClient(Client *client, uint32_t &bytes)
 
 size_t ReasonsAcknowledge::size()
 {
-    return PACKET_IDENTIFIER_SIZE + properties.size() + reasonCodes.size();
+    return PACKET_IDENTIFIER_SIZE + properties.totalSize() + reasonCodes.size();
 }
 
 vector<uint8_t> ReasonsAcknowledge::getReasonCodes()

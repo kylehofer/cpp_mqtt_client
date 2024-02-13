@@ -230,7 +230,7 @@ TEST_F(TestTcpClientTests, E2ESubscribe)
         char expectedTopic[] = "my/topic";
         uint8_t expectedData[] = {'w', 'o', 'r', 'd', '\0'};
 
-        for (size_t i = 0; i < topic.size(); i++)
+        for (size_t i = 0; i < topic.length; i++)
         {
             EXPECT_EQ(topic[i], expectedTopic[i]) << "at position " << i;
         }

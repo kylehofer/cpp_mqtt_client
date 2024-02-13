@@ -400,8 +400,9 @@ TEST(MqttClientTests, TestKeepAlivePeriod)
 
     uint8_t disconnectPacket[] = {
         0xE0, // Disconnect ID
-        0x01, // Remaining Length
+        0x02, // Remaining Length
         0x8D, // Reason Code: 141 Timeout
+        0x00, // No properties
     };
 
     for (size_t i = 0; i < 3; i++)
