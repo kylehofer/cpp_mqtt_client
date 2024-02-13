@@ -1,9 +1,10 @@
-#ifndef WILLPROPERTIES
-#define WILLPROPERTIES
+#ifndef SRC_PROPERTIES_WILLPROPERTIES
+#define SRC_PROPERTIES_WILLPROPERTIES
 
 #include "PicoMqttProperties.h"
 #include "types/EncodedString.h"
 #include "types/BinaryData.h"
+#include "types/Common.h"
 
 namespace PicoMqtt
 {
@@ -12,6 +13,8 @@ namespace PicoMqtt
     private:
         EncodedString topic;
         BinaryData payload;
+        QoS qos = QoS::ZERO;
+        bool retain;
         /**
          * @brief Set the Payload Format Indicator
          * 0 (0x00) Byte Indicates that the Will Message is unspecified bytes
@@ -19,7 +22,8 @@ namespace PicoMqtt
          *
          * @param value
          */
-        void setPayloadFormatIndicator(uint8_t value);
+        void
+        setPayloadFormatIndicator(uint8_t value);
 
     protected:
     public:
@@ -91,6 +95,11 @@ namespace PicoMqtt
         void setBinaryPayload(BinaryData &payload);
         void setBinaryPayload(const char *, uint16_t);
 
+        void setQoS(QoS qos);
+        QoS getQoS();
+        void setRetain(bool retain);
+        bool getRetain();
+
         /**
          * @brief Pushes the contents of the Will to a communications client
          *
@@ -103,4 +112,4 @@ namespace PicoMqtt
 
 }
 
-#endif /* WILLPROPERTIES */
+#endif /* SRC_PROPERTIES_WILLPROPERTIES */

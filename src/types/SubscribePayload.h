@@ -1,23 +1,32 @@
-#ifndef SUBSCRIBEPAYLOAD
-#define SUBSCRIBEPAYLOAD
+#ifndef SRC_TYPES_SUBSCRIBEPAYLOAD
+#define SRC_TYPES_SUBSCRIBEPAYLOAD
 
 #include <stdint.h>
 #include "types/SubscriptionPayload.h"
-// #include "types/EncodedString.h"
-// #include "types/Common.h"
-// #include "types/VariableByteInteger.h"
+#include "types/Common.h"
+#include "utils/enum.h"
 
 namespace PicoMqtt
 {
+    BETTER_ENUM(RetainHandling, uint8_t, AT_SUBSCRIBE, AT_SUBSCRIBE_NOT_EXIST, NO_RETAIN)
     typedef union
     {
+
         struct
         {
+#if BYTE_ORDER == BIG_ENDIAN
             unsigned char reserved : 2;
             unsigned char retainHandling : 2;
             unsigned char retainAsPublished : 1;
             unsigned char noLocal : 1;
             unsigned char maximumQos : 2;
+#else
+            unsigned char maximumQos : 2;
+            unsigned char noLocal : 1;
+            unsigned char retainAsPublished : 1;
+            unsigned char retainHandling : 2;
+            unsigned char reserved : 2;
+#endif
         };
         uint8_t data;
     } SubscriptionOptions;
@@ -53,10 +62,10 @@ namespace PicoMqtt
         void setRetainAsPublished(bool value);
         bool getRetainAsPublished();
 
-        void setRetainHandling();
-        void getRetainHandling();
+        void setRetainHandling(RetainHandling retain);
+        RetainHandling getRetainHandling();
     };
 
 }
 
-#endif /* SUBSCRIBEPAYLOAD */
+#endif /* SRC_TYPES_SUBSCRIBEPAYLOAD */

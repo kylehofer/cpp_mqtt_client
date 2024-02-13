@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef WORDPROPERTY
-#define WORDPROPERTY
+#ifndef SRC_PROPERTIES_WORDPROPERTY
+#define SRC_PROPERTIES_WORDPROPERTY
 
 #include <stdint.h>
 #include <stdio.h>
@@ -91,4 +91,4 @@ namespace PicoMqtt
     };
 
 }
-#endif /* WORDPROPERTY */
+#endif /* SRC_PROPERTIES_WORDPROPERTY */
