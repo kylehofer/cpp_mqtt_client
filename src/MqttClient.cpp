@@ -326,7 +326,7 @@ namespace PicoMqtt
                 while (qosZeroFailed.size() > 0)
                 {
                     auto identifier = qosZeroFailed.back();
-                    qosZeroSuccess.pop_back();
+                    qosZeroFailed.pop_back();
                     if (handler)
                     {
                         handler->onDeliveryFailure(identifier, ReasonCode::UNSPECIFIED_ERROR);
@@ -644,6 +644,7 @@ namespace PicoMqtt
 
     void MqttClient::mqttConnect()
     {
+        serverKeepAliveTimeRemaining = (getKeepAliveInterval() * KEEP_ALIVE_SCALER);
         setConnectionState(ConnectionState::CONNECTING);
         sendPacket(&connectPacket);
     }
