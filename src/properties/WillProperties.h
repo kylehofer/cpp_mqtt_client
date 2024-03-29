@@ -1,12 +1,12 @@
 #ifndef SRC_PROPERTIES_WILLPROPERTIES
 #define SRC_PROPERTIES_WILLPROPERTIES
 
-#include "PicoMqttProperties.h"
+#include "MqttProperties.h"
 #include "types/EncodedString.h"
 #include "types/BinaryData.h"
 #include "types/Common.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     class WillProperties : public Properties
     {

@@ -32,7 +32,7 @@
 #include "packets/Packet.h"
 #include <cstdio>
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 Packet::Packet(FixedHeader fixedHeader) : fixedHeader(fixedHeader)
 {

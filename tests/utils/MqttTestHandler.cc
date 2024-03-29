@@ -1,5 +1,5 @@
 #include "MqttTestHandler.h"
-namespace PicoMqtt
+namespace CppMqtt
 {
     void MqttTestHandler::onConnectionSuccess()
     {

@@ -53,15 +53,13 @@
 #include <chrono>
 #endif
 
-// #define PICO
-
 #ifdef PICO
 #include "pico/stdlib.h"
 #endif
 
 using namespace std;
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     typedef uint16_t Token;
     typedef function<void(Packet *)> packetResponse;

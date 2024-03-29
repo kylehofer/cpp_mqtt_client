@@ -35,7 +35,7 @@
 
 #include "types/VariableByteInteger.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 #define LOWER_SEVEN_BITS 0x7F
 

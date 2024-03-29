@@ -47,7 +47,7 @@ using namespace std;
 // MQTT 5 Specifies that that 1.5 times the Keep Alive Time is limit of the Keep Alive Timeout
 #define KEEP_ALIVE_SCALER 1.5 * SECONDS_TO_MS
 
-namespace PicoMqtt
+namespace CppMqtt
 {
 
     Packet *MqttClient::readNextPacket()

@@ -5,11 +5,11 @@
 #include <string>
 
 #include "../mocks/MockClient.h"
-#include "PicoMqttProperties.h"
+#include "MqttProperties.h"
 
 using namespace std;
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 struct StringPairTestData
 {

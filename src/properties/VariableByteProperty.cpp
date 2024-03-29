@@ -29,11 +29,11 @@
  * HISTORY:
  */
 
-#include "PicoMqttProperties.h"
+#include "MqttProperties.h"
 #include <string.h>
 #include "properties/VariableByteProperty.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 VariableByteProperty::VariableByteProperty()
 {

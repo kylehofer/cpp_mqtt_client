@@ -18,9 +18,11 @@ The following build flags are supported:
 | ------------- | ------------- |  ------------- |
 | BUILD_TARGET | PICO | The build target for the project. Pico requires pico sdk to be available. |
 | FETCH_REMOTE | ON | Whether to fetch remote dependencies through cmake. If disabled, the remote dependencies can be put within {PROJECT_ROOT}/external. |
-| MQTT_ENABLE_TESTING | OFF | Whether tests will be compiled. Forcibly disabled when building for PICO |
+| CPP_MQTT_TESTS | OFF | Whether tests will be compiled. |
+| CPP_MQTT_STATIC | ON | Builds as a static library. |
+| CPP_MQTT_SHARED | OFF | Builds as a shared library. |
 
 ## Dependencies
-### Only when building with MQTT_ENABLE_TESTING
+### Only when building with CPP_MQTT_TESTS
 - https://github.com/eclipse/mosquitto.git
 - https://github.com/google/googletest.git

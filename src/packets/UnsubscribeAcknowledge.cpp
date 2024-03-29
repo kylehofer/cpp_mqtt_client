@@ -31,7 +31,7 @@
 
 #include "packets/UnsubscribeAcknowledge.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 UnsubscribeAcknowledge::UnsubscribeAcknowledge() : ReasonsAcknowledge(PacketId::UNSUBSCRIBE_ACKNOWLEDGE)
 {

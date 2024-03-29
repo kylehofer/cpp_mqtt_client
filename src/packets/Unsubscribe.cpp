@@ -31,7 +31,7 @@
 
 #include "packets/Unsubscribe.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 Unsubscribe::Unsubscribe() : Unsubscribe(PacketId::UNSUBSCRIBE)
 {

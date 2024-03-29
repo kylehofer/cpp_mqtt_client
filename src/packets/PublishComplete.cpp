@@ -31,7 +31,7 @@
 
 #include "packets/PublishComplete.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 PublishComplete::PublishComplete() : Acknowledge(PacketId::PUBLISH_COMPLETE)
 {

@@ -36,7 +36,7 @@
 #include "Client.h"
 #include "ClientInteractor.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     /**
      * @brief A Class for ordering Integers in Big Endian Ordering for use with buffers

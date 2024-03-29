@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     class MqttClientOptions
     {

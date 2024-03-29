@@ -34,7 +34,7 @@
 
 #include "ReasonsAcknowledge.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     /**
      * @brief Represents a MQTT 5 Subscribe Acknowledge Packet

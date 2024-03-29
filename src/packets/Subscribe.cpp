@@ -31,7 +31,7 @@
 
 #include "packets/Subscribe.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 Subscribe::Subscribe() : Subscribe(PacketId::SUBSCRIBE)
 {

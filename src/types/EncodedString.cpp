@@ -31,7 +31,7 @@
 
 #include "types/EncodedString.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 EncodedString::EncodedString() : BufferData()
 {

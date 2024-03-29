@@ -31,7 +31,7 @@
 
 #include "packets/Subscription.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 enum ReadingState
 {

@@ -31,7 +31,7 @@
 
 #include "types/SubscribePayload.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 #define OPTIONS_SIZE 1
 

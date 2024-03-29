@@ -29,9 +29,9 @@
  * HISTORY:
  */
 
-#include "PicoMqttProperties.h"
+#include "MqttProperties.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 ByteProperty::ByteProperty()
 {

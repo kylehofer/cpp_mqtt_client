@@ -29,7 +29,7 @@
  * HISTORY:
  */
 
-#include "PicoMqttProperties.h"
+#include "MqttProperties.h"
 #include "stdlib.h"
 
 #define PROPERTY_POINTER_SIZE sizeof(Property *)
@@ -44,7 +44,7 @@ enum PropertiesReadState
     COMPLETE
 };
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 uint32_t Properties::length()
 {

@@ -6,7 +6,7 @@
 #include <tuple>
 #include <map>
 
-namespace PicoMqtt
+namespace CppMqtt
 {
 
     class MqttTestHandler : MqttClientHandler

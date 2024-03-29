@@ -31,7 +31,7 @@
 
 #include "packets/PublishRelease.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 PublishRelease::PublishRelease() : PublishRelease(PacketId::PUBLISH_RELEASE)
 {

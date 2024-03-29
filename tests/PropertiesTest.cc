@@ -5,11 +5,11 @@
 #include <string>
 
 #include "mocks/MockClient.h"
-#include "PicoMqttProperties.h"
+#include "MqttProperties.h"
 
 using namespace std;
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 #define PAYLOAD_FORMAT_INDICATOR_PROPERTY 1, 0
 #define MESSAGE_EXPIRY_INTERVAL_PROPERTY 2, 0, 0, 0, 0

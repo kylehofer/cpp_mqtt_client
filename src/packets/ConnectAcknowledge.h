@@ -38,7 +38,7 @@
 #include "types/BinaryData.h"
 #include "types/VariableByteInteger.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     typedef union
     {

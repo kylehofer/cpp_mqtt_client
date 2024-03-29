@@ -31,7 +31,7 @@
 
 #include "packets/Acknowledge.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 enum ReadingState
 {

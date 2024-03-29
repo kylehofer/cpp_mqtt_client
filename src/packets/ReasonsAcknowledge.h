@@ -35,7 +35,7 @@
 #include "PropertiesPacket.h"
 #include <vector>
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     /**
      * @brief Contains code for Acknowledge Packets that receive more than a single reason code

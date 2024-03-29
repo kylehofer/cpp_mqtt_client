@@ -14,7 +14,7 @@ enum class ReadState
 #define DEBUG(out, ...)
 #endif
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     static Packet *constructPacketFromId(uint8_t identifier)
     {

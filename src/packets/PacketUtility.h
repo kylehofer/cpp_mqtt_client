@@ -55,7 +55,7 @@
 #include "UnsubscribeAcknowledge.h"
 #include "Client.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     /**
      * @brief Attempts to read a packet from the client.

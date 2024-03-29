@@ -41,7 +41,7 @@
 
 #define HEADER_BYTES_MASK 0xF
 
-namespace PicoMqtt
+namespace CppMqtt
 {
 
     BETTER_ENUM(PacketId, int,

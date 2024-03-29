@@ -2,9 +2,9 @@
 #define SRC_PACKETS_PROPERTIESPACKET
 
 #include "Packet.h"
-#include "PicoMqttProperties.h"
+#include "MqttProperties.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
 
     /**

@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include "properties/Property.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     class StringProperty : public Property
     {

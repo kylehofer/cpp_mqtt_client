@@ -31,7 +31,7 @@
 
 #include "packets/PropertiesPacket.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 EncodedString PropertiesPacket::getUserProperty(EncodedString key)
 {

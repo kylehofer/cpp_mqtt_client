@@ -31,7 +31,7 @@
 
 #include "packets/PublishReceived.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 PublishReceived::PublishReceived() : Acknowledge(PacketId::PUBLISH_RECEIVED)
 {

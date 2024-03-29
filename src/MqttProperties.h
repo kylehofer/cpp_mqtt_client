@@ -1,5 +1,5 @@
 /*
- * File: PicoMqttProperties.h
+ * File: MqttProperties.h
  * Project: cpp_mqtt_client
  * Created Date: Sunday February 26th 2023
  * Author: Kyle Hofer
@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef PICOMQTTPROPERTIES
-#define PICOMQTTPROPERTIES
+#ifndef MQTTPROPERTIES
+#define MQTTPROPERTIES
 
 #include <stdint.h>
 #include <stdio.h>
@@ -53,7 +53,7 @@
 
 using namespace std;
 
-namespace PicoMqtt
+namespace CppMqtt
 {
 
     /**
@@ -317,4 +317,4 @@ namespace PicoMqtt
         SharedSubscriptionAvailable(uint8_t value) : ByteProperty(SHARED_SUBSCRIPTION_AVAILABLE, value){};
     };
 }
-#endif /* PICOMQTTPROPERTIES */
+#endif /* MQTTPROPERTIES */

@@ -8,7 +8,7 @@
 #include "PacketBuffer.h"
 
 using namespace std;
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 #define LENGTH_SIZE sizeof(uint16_t)
 

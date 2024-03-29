@@ -33,7 +33,7 @@
 #define MOCKMQTTCLIENT
 
 #include "MqttClient.h"
-namespace PicoMqtt
+namespace CppMqtt
 {
     /**
      * @brief Mock Client for controlling time

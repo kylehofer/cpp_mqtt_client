@@ -31,7 +31,7 @@
 
 #include "types/BinaryData.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 BinaryData::BinaryData() : BufferData()
 {

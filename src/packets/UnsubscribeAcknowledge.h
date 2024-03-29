@@ -33,7 +33,7 @@
 #define SRC_PACKETS_UNSUBSCRIBEACKNOWLEDGE
 
 #include "ReasonsAcknowledge.h"
-namespace PicoMqtt
+namespace CppMqtt
 {
     /**
      * @brief Represents a MQTT 5 Unsubscribe Acknowledge Packet
