@@ -31,7 +31,7 @@
 
 #include "packets/ReasonsAcknowledge.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 #define REASON_CODE_SIZE 1
 #define PACKET_IDENTIFIER_SIZE 2

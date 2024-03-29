@@ -69,7 +69,7 @@ enum PropertyCodes
     SHARED_SUBSCRIPTION_AVAILABLE = 241      /**< The value is 241 */
 };
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     /**
      * @brief

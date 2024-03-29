@@ -37,7 +37,7 @@
 #include "PropertiesPacket.h"
 #include "types/SubscriptionPayload.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     /**
      * @brief Represents a base MQTT 5 packet for Un/Subscribe

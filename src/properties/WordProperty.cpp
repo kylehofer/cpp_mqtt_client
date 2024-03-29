@@ -29,10 +29,10 @@
  * HISTORY:
  */
 
-#include "PicoMqttProperties.h"
+#include "MqttProperties.h"
 #include <string.h>
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 WordProperty::WordProperty()
 {

@@ -33,7 +33,7 @@
 
 #define BLANK_PACKET_SIZE 0
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 bool BlankPacket::readFromClient(__attribute__((unused)) Client *client, __attribute__((unused)) uint32_t &read)
 {

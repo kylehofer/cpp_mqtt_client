@@ -31,7 +31,7 @@
 
 #include "packets/SubscribeAcknowledge.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 SubscribeAcknowledge::SubscribeAcknowledge() : ReasonsAcknowledge(PacketId::SUBSCRIBE_ACKNOWLEDGE)
 {

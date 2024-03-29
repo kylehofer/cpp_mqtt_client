@@ -1,6 +1,6 @@
 /*
  * File: Client.h
- * Project: pico_tcp_client
+ * Project: cpp_mqtt_client
  * Created Date: Thursday December 29th 2022
  * Author: Kyle Hofer
  *

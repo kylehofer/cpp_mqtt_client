@@ -31,7 +31,7 @@
 
 #include "packets/Disconnect.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 enum ReadingState
 {

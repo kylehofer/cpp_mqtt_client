@@ -39,7 +39,7 @@
 #include "types/EncodedString.h"
 #include "types/BinaryData.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
 #define CONNECT_FLAGS_SIZE 3
     typedef union

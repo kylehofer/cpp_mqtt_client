@@ -31,7 +31,7 @@
 
 #include "WillProperties.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 #define BYTE_DATA 0
 #define UTF_8_DATA 1

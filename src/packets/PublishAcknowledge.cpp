@@ -31,7 +31,7 @@
 
 #include "packets/PublishAcknowledge.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 PublishAcknowledge::PublishAcknowledge() : Acknowledge(PacketId::PUBLISH_ACKNOWLEDGE)
 {

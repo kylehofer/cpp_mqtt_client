@@ -35,7 +35,7 @@
 #include <stdint.h>
 #include "ClientInteractor.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     /**
      * @brief Represents a MQTT 5 Publish Payloads

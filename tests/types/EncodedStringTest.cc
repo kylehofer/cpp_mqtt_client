@@ -18,7 +18,7 @@ struct EncodedTestSet
     uint8_t sizeRaw[2];
 };
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 class EncodedStringTest : public ::testing::TestWithParam<EncodedTestSet>
 {

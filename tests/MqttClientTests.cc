@@ -35,14 +35,14 @@
 #include "stdint.h"
 
 #include "mocks/MockClient.h"
-#include "PicoMqttProperties.h"
+#include "MqttProperties.h"
 #include "MqttClient.h"
 #include "mocks/MockMqttClient.h"
 #include "packets/ConnectAcknowledge.h"
 
 using namespace std;
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 TEST(MqttClientTests, SuccessfulConnect)
 {

@@ -31,6 +31,6 @@
 
 #include "MqttClientOptions.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
 }

@@ -32,7 +32,7 @@
 #include "types/Payload.h"
 #include <algorithm>
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 Payload::Payload()
 {

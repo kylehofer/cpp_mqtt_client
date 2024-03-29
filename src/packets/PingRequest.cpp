@@ -31,7 +31,7 @@
 
 #include "packets/PingRequest.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 PingRequest::PingRequest() : BlankPacket(PacketId::PING_REQUEST)
 {

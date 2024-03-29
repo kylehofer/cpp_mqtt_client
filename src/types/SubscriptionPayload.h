@@ -38,7 +38,7 @@
 #include "types/Common.h"
 #include "types/VariableByteInteger.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     /**
      * @brief Represents a MQTT 5 Subscription Payload

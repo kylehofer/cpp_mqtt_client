@@ -36,7 +36,7 @@
 #include "PropertiesPacket.h"
 #include "types/VariableByteInteger.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     /**
      * @brief Represents a MQTT 5 Authentication Packet

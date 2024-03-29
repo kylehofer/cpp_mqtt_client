@@ -34,7 +34,7 @@
 
 #include "types/BufferData.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     /**
      * @brief Represents a MQTT 5 Binary data

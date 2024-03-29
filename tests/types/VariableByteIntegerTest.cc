@@ -30,7 +30,7 @@ std::vector<VariableTestSet> variableTestSet{
     // {4294967295, 268435455, 4},
 };
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 class VariableByteIntegerTest : public ::testing::TestWithParam<VariableTestSet>
 {

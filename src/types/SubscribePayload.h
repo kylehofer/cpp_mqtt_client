@@ -6,7 +6,7 @@
 #include "types/Common.h"
 #include "utils/enum.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     BETTER_ENUM(RetainHandling, uint8_t, AT_SUBSCRIBE, AT_SUBSCRIBE_NOT_EXIST, NO_RETAIN)
     typedef union

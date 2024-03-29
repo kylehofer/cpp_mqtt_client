@@ -33,7 +33,7 @@
 
 #define VARIABLE_HEADER_SIZE 10
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 // Connect::Connect() : Connect(0)
 // {

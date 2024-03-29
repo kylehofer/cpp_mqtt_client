@@ -31,7 +31,7 @@
 
 #include "types/SubscriptionPayload.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 size_t SubscriptionPayload::push(PacketBuffer &buffer)
 {

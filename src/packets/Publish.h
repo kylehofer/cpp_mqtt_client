@@ -37,7 +37,7 @@
 #include "types/Payload.h"
 #include "types/Common.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     /**
      * @brief Represents a MQTT 5 Publish Packet

@@ -35,7 +35,7 @@
 #include "ClientInteractor.h"
 #include "types/BigEndianInt.h"
 
-namespace PicoMqtt
+namespace CppMqtt
 {
     /**
      * @brief Represents a raw buffer with a length

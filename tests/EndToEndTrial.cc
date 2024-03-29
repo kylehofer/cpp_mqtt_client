@@ -24,7 +24,7 @@ const char BROKER_HOSTNAME[] = "localhost";
 #define RETRY_TIMEOUT 5
 
 using namespace std;
-using namespace PicoMqtt;
+using namespace CppMqtt;
 using ::chrono::microseconds;
 using ::chrono::milliseconds;
 using ::this_thread::sleep_for;

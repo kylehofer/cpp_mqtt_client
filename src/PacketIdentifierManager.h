@@ -1,10 +1,10 @@
 #ifndef PACKETIDENTIFIERMANAGER
 #define PACKETIDENTIFIERMANAGER
-namespace PicoMqtt
+namespace CppMqtt
 {
     class PacketIdentifierManager
     {
-        }
+    }
 }
 
 #endif /* PACKETIDENTIFIERMANAGER */

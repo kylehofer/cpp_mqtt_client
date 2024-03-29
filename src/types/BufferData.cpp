@@ -37,7 +37,7 @@
 
 #include "types/BufferData.h"
 
-using namespace PicoMqtt;
+using namespace CppMqtt;
 
 #define STRING_LENGTH_SIZE sizeof(uint16_t)
 
