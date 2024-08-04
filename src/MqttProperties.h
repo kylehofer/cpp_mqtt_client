@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef MQTTPROPERTIES
-#define MQTTPROPERTIES
+#ifndef SRC_MQTTPROPERTIES
+#define SRC_MQTTPROPERTIES
 
 #include <stdint.h>
 #include <stdio.h>
@@ -317,4 +317,4 @@ namespace CppMqtt
         SharedSubscriptionAvailable(uint8_t value) : ByteProperty(SHARED_SUBSCRIPTION_AVAILABLE, value){};
     };
 }
-#endif /* MQTTPROPERTIES */
+#endif /* SRC_MQTTPROPERTIES */

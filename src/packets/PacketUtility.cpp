@@ -16,40 +16,72 @@ enum class ReadState
 
 namespace CppMqtt
 {
+
+#ifdef STATIC_MEMORY
+    union ALL_PACKETS
+    {
+        Authentication b;
+        Connect c;
+        ConnectAcknowledge d;
+        Disconnect e;
+        PingRequest f;
+        PingResponse g;
+        Publish h;
+        PublishAcknowledge i;
+        PublishComplete j;
+        PublishReceived k;
+        PublishRelease l;
+        Subscribe n;
+        SubscribeAcknowledge o;
+        Unsubscribe p;
+        UnsubscribeAcknowledge q;
+    };
+#define MAX_PACKET_SIZE sizeof(ALL_PACKETS)
+    static uint8_t PACKET_MEMORY_POOL[MAX_PACKET_SIZE];
+#define PACKET_CREATE(CLASS, IDENTIFIER) \
+    (Packet *)new (PACKET_MEMORY_POOL) CLASS(IDENTIFIER)
+#else
+#define PACKET_CREATE(CLASS, IDENTIFIER) \
+    (Packet *)new CLASS(IDENTIFIER)
+#endif
+
     static Packet *constructPacketFromId(uint8_t identifier)
     {
+#ifdef STATIC_MEMORY
+        memset(PACKET_MEMORY_POOL, 0, MAX_PACKET_SIZE);
+#endif
         switch (identifier & 0xF0) // Strip lower 4 bits
         {
-        case PacketId::PacketId::CONNECT:
-            return (Packet *)new Connect(identifier);
+        case PacketId::CONNECT:
+            return PACKET_CREATE(Connect, identifier);
         case PacketId::CONNECT_ACKNOWLEDGE:
-            return (Packet *)new ConnectAcknowledge(identifier);
+            return PACKET_CREATE(ConnectAcknowledge, identifier);
         case PacketId::PUBLISH:
-            return (Packet *)new Publish(identifier);
+            return PACKET_CREATE(Publish, identifier);
         case PacketId::PUBLISH_ACKNOWLEDGE:
-            return (Packet *)new PublishAcknowledge(identifier);
+            return PACKET_CREATE(PublishAcknowledge, identifier);
         case PacketId::PUBLISH_RECEIVED:
-            return (Packet *)new PublishReceived(identifier);
+            return PACKET_CREATE(PublishReceived, identifier);
         case PacketId::PUBLISH_RELEASE:
-            return (Packet *)new PublishRelease(identifier);
+            return PACKET_CREATE(PublishRelease, identifier);
         case PacketId::PUBLISH_COMPLETE:
-            return (Packet *)new PublishComplete(identifier);
+            return PACKET_CREATE(PublishComplete, identifier);
         case PacketId::SUBSCRIBE:
-            return (Packet *)new Subscribe(identifier);
+            return PACKET_CREATE(Subscribe, identifier);
         case PacketId::SUBSCRIBE_ACKNOWLEDGE:
-            return (Packet *)new SubscribeAcknowledge(identifier);
+            return PACKET_CREATE(SubscribeAcknowledge, identifier);
         case PacketId::UNSUBSCRIBE:
-            return (Packet *)new Unsubscribe(identifier);
+            return PACKET_CREATE(Unsubscribe, identifier);
         case PacketId::UNSUBSCRIBE_ACKNOWLEDGE:
-            return (Packet *)new UnsubscribeAcknowledge(identifier);
+            return PACKET_CREATE(UnsubscribeAcknowledge, identifier);
         case PacketId::PING_REQUEST:
-            return (Packet *)new PingRequest(identifier);
+            return PACKET_CREATE(PingRequest, identifier);
         case PacketId::PING_RESPONSE:
-            return (Packet *)new PingResponse(identifier);
+            return PACKET_CREATE(PingResponse, identifier);
         case PacketId::DISCONNECT:
-            return (Packet *)new Disconnect(identifier);
+            return PACKET_CREATE(Disconnect, identifier);
         case PacketId::AUTHENTICATION:
-            return (Packet *)new Authentication(identifier);
+            return PACKET_CREATE(Authentication, identifier);
         default:
             break;
         }

@@ -47,7 +47,12 @@ namespace CppMqtt
 
     public:
         BigEndianInt<uint16_t> length = 0;
+#ifdef STATIC_MEMORY
+#define MAX_BUFFER_SIZE 512
+        char data[MAX_BUFFER_SIZE];
+#else
         char *data = NULL;
+#endif
         BufferData();
         BufferData(const char *, uint16_t);
         BufferData(const BufferData &);

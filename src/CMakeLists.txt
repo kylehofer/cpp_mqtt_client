@@ -3,11 +3,16 @@ set(CMAKE_CXX_STANDARD 20)
 
 SET(CPP_MQTT_STATIC ON CACHE BOOL "")
 SET(CPP_MQTT_SHARED OFF CACHE BOOL "")
+SET(CPP_MQTT_DYNAMIC_MEMORY ON CACHE BOOL "")
 
 # initialize the Raspberry Pi Pico SDK
 IF(${BUILD_TARGET} STREQUAL "PICO")
     set(PICO_BOARD pico_w)
     pico_sdk_init()
+ENDIF()
+
+IF(NOT CPP_MQTT_DYNAMIC_MEMORY)
+    add_definitions(-DSTATIC_MEMORY)
 ENDIF()
 
 # Finding all of our source

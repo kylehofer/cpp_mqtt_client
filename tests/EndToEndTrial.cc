@@ -117,7 +117,7 @@ TEST_F(TestTcpClientTests, E2EPublish)
 
     mqttClient.setKeepAliveInterval(15500);
 
-    mqttClient.connect("localhost", BROKER_PORT, 0);
+    mqttClient.connect("localhost", BROKER_PORT, 1500);
     testClient.connect("localhost", BROKER_PORT);
 
     auto sync = [&client, &mqttClient]()
@@ -126,11 +126,15 @@ TEST_F(TestTcpClientTests, E2EPublish)
         mqttClient.sync();
     };
 
-    while (!mqttClient.connected())
+    int retries = 0;
+
+    while (!mqttClient.connected() && retries++ < MAX_RETRIES)
     {
-        client.sync();
-        mqttClient.sync();
+        sync();
+        this_thread::sleep_for(std::chrono::milliseconds(5));
     }
+
+    ASSERT_LT(retries, MAX_RETRIES);
 
     testClient.waitForReady(MAX_RETRIES);
 
