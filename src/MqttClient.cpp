@@ -147,7 +147,9 @@ namespace CppMqtt
         }
         }
 
+#ifndef STATIC_MEMORY
         delete packet;
+#endif
 
         return NULL;
     }
@@ -373,7 +375,6 @@ namespace CppMqtt
     {
         PacketBuffer packetBuffer(packet->totalSize());
         packet->push(packetBuffer);
-
         return client->write(packetBuffer.getBuffer(), packetBuffer.getLength());
     }
 

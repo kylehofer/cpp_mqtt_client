@@ -55,13 +55,13 @@ namespace CppMqtt
         };
 
     public:
-        BigEndianInt(){};
+        BigEndianInt() {};
         /**
          * @brief Constructor so this class can be initialized with the base integer type
          *
          * @param value
          */
-        BigEndianInt(T value) : value(value){};
+        BigEndianInt(T value) : value(value) {};
 
         /**
          * @brief Operator so this class can be treated as the base integer type with assignments
@@ -98,7 +98,7 @@ namespace CppMqtt
             if (((size_t)client->available()) >= size())
             {
 #if BYTE_ORDER == BIG_ENDIAN
-                client.read(raw, size());
+                client->read(raw, size());
 #else
                 for (int i = size() - 1; i >= 0; i--)
                 {

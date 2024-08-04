@@ -6,7 +6,12 @@
 class PacketBuffer
 {
 private:
+#ifdef STATIC_MEMORY
+#define MAX_PACKET_BUFFER_SIZE 4096
+    uint8_t buffer[MAX_PACKET_BUFFER_SIZE];
+#else
     uint8_t *buffer = NULL;
+#endif
     uint8_t *position;
     size_t length;
 

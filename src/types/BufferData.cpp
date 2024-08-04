@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cstdio>
+#include <stdexcept>
 
 #include "types/BufferData.h"
 
@@ -56,7 +57,14 @@ BufferData::BufferData()
 BufferData::BufferData(const char *string, uint16_t length)
 {
     state = IDLE;
+#ifdef STATIC_MEMORY
+    if (length > MAX_BUFFER_SIZE)
+    {
+        throw std::logic_error("Required Buffer size greater than available.");
+    }
+#else
     data = (char *)malloc(length);
+#endif
     memcpy(data, string, length);
     this->length = length;
 }
@@ -64,20 +72,25 @@ BufferData::BufferData(const char *string, uint16_t length)
 BufferData::BufferData(const BufferData &source)
 {
     state = source.state;
-
+#ifndef STATIC_MEMORY
     if (data)
     {
         free(data);
     }
+#endif
 
     if (source.data)
     {
+#ifndef STATIC_MEMORY
         data = (char *)malloc(source.length);
+#endif
         memcpy(data, source.data, source.length);
     }
     else
     {
+#ifndef STATIC_MEMORY
         data = NULL;
+#endif
     }
 
     length = source.length;
@@ -87,23 +100,30 @@ BufferData &BufferData::operator=(const BufferData &right)
 {
     if (&right != this)
     {
+#ifndef STATIC_MEMORY
         if (data)
         {
             free(data);
         }
+#endif
 
         state = right.state;
 
         if (right.data)
         {
             length = right.length;
+#ifndef STATIC_MEMORY
             data = (char *)malloc(right.length);
+#endif
+
             memcpy(data, right.data, length);
         }
         else
         {
             length = 0;
+#ifndef STATIC_MEMORY
             data = NULL;
+#endif
         }
     }
     return *this;
@@ -121,11 +141,13 @@ bool BufferData::operator!=(const BufferData &right)
 
 BufferData::~BufferData()
 {
+#ifndef STATIC_MEMORY
     if (data)
     {
         free(data);
         data = NULL;
     }
+#endif
 }
 
 size_t BufferData::push(PacketBuffer &buffer)
@@ -150,21 +172,31 @@ bool BufferData::readFromClient(Client *client, uint32_t &read)
     if (state == IDLE)
     {
         state = LENGTH;
+#ifdef STATIC_MEMORY
+        // memset(data, 0, MAX_BUFFER_SIZE);
+#else
         if (data != NULL)
         {
             free(data);
             data = NULL;
         }
+#endif
     }
 
     if (state == LENGTH && (size_t)client->available() >= STRING_LENGTH_SIZE)
     {
-        // read += client->read(&length, STRING_LENGTH_SIZE);
         length.readFromClient(client, read);
         state = DATA;
         if (length > 0)
         {
+#ifdef STATIC_MEMORY
+            if (length > MAX_BUFFER_SIZE)
+            {
+                throw std::logic_error("Required Buffer size greater than available.");
+            }
+#else
             data = (char *)malloc(length);
+#endif
             memset(data, 0, length);
         }
     }

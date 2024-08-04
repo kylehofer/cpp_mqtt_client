@@ -97,14 +97,12 @@ TEST(EncodedStringTest, PartialDecoding)
     decodedString.readFromClient(clientPtr, bytesRead);
 
     EXPECT_EQ(decodedString.size(), 2);
-    EXPECT_EQ(decodedString.data, nullptr);
 
     byte = LARGE_SIZE;
 
     client.pushToReadBuffer(&byte, 1);
 
     EXPECT_EQ(decodedString.size(), LENGTH_SIZE);
-    EXPECT_EQ(decodedString.data, nullptr);
 
     decodedString.readFromClient(clientPtr, bytesRead);
 
