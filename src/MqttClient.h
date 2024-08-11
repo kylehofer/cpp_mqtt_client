@@ -218,7 +218,7 @@ namespace CppMqtt
          *
          * @return uint32_t elapsed time in milliseconds
          */
-        virtual uint32_t getElapsed();
+        uint32_t getElapsed();
 
         template <typename CommunicationClient>
         MqttClient();
