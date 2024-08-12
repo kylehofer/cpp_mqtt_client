@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef BUFFERDATA
-#define BUFFERDATA
+#ifndef SRC_TYPES_BUFFERDATA
+#define SRC_TYPES_BUFFERDATA
 
 #include "ClientInteractor.h"
 #include "types/BigEndianInt.h"
@@ -87,4 +87,4 @@ namespace CppMqtt
 
 }
 
-#endif /* BUFFERDATA */
+#endif /* SRC_TYPES_BUFFERDATA */

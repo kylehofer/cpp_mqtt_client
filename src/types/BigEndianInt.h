@@ -29,8 +29,8 @@
  * HISTORY:
  */
 
-#ifndef BIGENDIANINT
-#define BIGENDIANINT
+#ifndef SRC_TYPES_BIGENDIANINT
+#define SRC_TYPES_BIGENDIANINT
 
 #include <stdint.h>
 #include "Client.h"
@@ -97,7 +97,7 @@ namespace CppMqtt
         {
             if (((size_t)client->available()) >= size())
             {
-#if BYTE_ORDER == BIG_ENDIAN
+#if ((BYTE_ORDER == BIG_ENDIAN && !defined(FORCE_LITTLE_ENDIAN)) || defined(FORCE_BIG_ENDIAN))
                 client->read(raw, size());
 #else
                 for (int i = size() - 1; i >= 0; i--)
@@ -120,7 +120,7 @@ namespace CppMqtt
          */
         size_t push(PacketBuffer &buffer)
         {
-#if BYTE_ORDER == BIG_ENDIAN
+#if ((BYTE_ORDER == BIG_ENDIAN && !defined(FORCE_LITTLE_ENDIAN)) || defined(FORCE_BIG_ENDIAN))
             buffer.push(raw, size());
 #else
             for (int i = size() - 1; i >= 0; i--)
@@ -144,4 +144,4 @@ namespace CppMqtt
     };
 }
 
-#endif /* BIGENDIANINT */
+#endif /* SRC_TYPES_BIGENDIANINT */

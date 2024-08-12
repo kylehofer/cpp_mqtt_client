@@ -50,7 +50,7 @@ namespace CppMqtt
         vector<uint8_t> reasonCodes;
 
     protected:
-        ReasonsAcknowledge(uint8_t fixedHeaderByte) : PropertiesPacket(fixedHeaderByte){};
+        ReasonsAcknowledge(uint8_t fixedHeaderByte) : PropertiesPacket(fixedHeaderByte) {};
 
     public:
         /**
