@@ -33,10 +33,19 @@
 #define SRC_PACKETS_REASONSACKNOWLEDGE
 
 #include "PropertiesPacket.h"
-#include <vector>
+#include "types/BigEndianInt.h"
+#include "CppMqttConfig.h"
+#include "utils/StaticVector.h"
 
 namespace CppMqtt
 {
+    /**
+     * @brief Reason codes from a SUBACK or UNSUBACK, one per topic.
+     * std::vector<uint8_t> with dynamic memory; holds up to
+     * CPP_MQTT_MAX_REASON_CODES with STATIC_MEMORY, further codes are dropped.
+     */
+    typedef Vector<uint8_t, CPP_MQTT_MAX_REASON_CODES> ReasonCodes;
+
     /**
      * @brief Contains code for Acknowledge Packets that receive more than a single reason code
      * Base class for Subscribe and Unsubscribe Acknowledge packets
@@ -46,8 +55,8 @@ namespace CppMqtt
     {
     private:
         uint8_t state = 0;
-        uint16_t packetIdentifier = 0;
-        vector<uint8_t> reasonCodes;
+        BigEndianInt<uint16_t> packetIdentifier = 0;
+        ReasonCodes reasonCodes;
 
     protected:
         ReasonsAcknowledge(uint8_t fixedHeaderByte) : PropertiesPacket(fixedHeaderByte) {};
@@ -71,7 +80,7 @@ namespace CppMqtt
         virtual bool readFromClient(Client *client, uint32_t &read) override;
         size_t size();
 
-        vector<uint8_t> getReasonCodes();
+        ReasonCodes getReasonCodes();
         uint16_t getPacketIdentifier();
     };
 }

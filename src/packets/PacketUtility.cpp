@@ -1,14 +1,7 @@
 
 #include "packets/PacketUtility.h"
 
-enum class ReadState
-{
-    IDENTIFIER_FLAGS,
-    PACKET_LENGTH,
-    PACKET_CONTENTS
-};
-
-#ifdef DEBUGGING
+#if defined(DEBUGGING) && DEBUGGING
 #define DEBUG(format, ...) printf(format, ##__VA_ARGS__);
 #else
 #define DEBUG(out, ...)
@@ -18,37 +11,17 @@ namespace CppMqtt
 {
 
 #ifdef STATIC_MEMORY
-    union ALL_PACKETS
-    {
-        Authentication b;
-        Connect c;
-        ConnectAcknowledge d;
-        Disconnect e;
-        PingRequest f;
-        PingResponse g;
-        Publish h;
-        PublishAcknowledge i;
-        PublishComplete j;
-        PublishReceived k;
-        PublishRelease l;
-        Subscribe n;
-        SubscribeAcknowledge o;
-        Unsubscribe p;
-        UnsubscribeAcknowledge q;
-    };
-#define MAX_PACKET_SIZE sizeof(ALL_PACKETS)
-    static uint8_t PACKET_MEMORY_POOL[MAX_PACKET_SIZE];
 #define PACKET_CREATE(CLASS, IDENTIFIER) \
-    (Packet *)new (PACKET_MEMORY_POOL) CLASS(IDENTIFIER)
+    (Packet *)new (pool) CLASS(IDENTIFIER)
 #else
 #define PACKET_CREATE(CLASS, IDENTIFIER) \
     (Packet *)new CLASS(IDENTIFIER)
 #endif
 
-    static Packet *constructPacketFromId(uint8_t identifier)
+    Packet *PacketReader::constructPacketFromId(uint8_t identifier)
     {
 #ifdef STATIC_MEMORY
-        memset(PACKET_MEMORY_POOL, 0, MAX_PACKET_SIZE);
+        memset(pool, 0, sizeof(pool));
 #endif
         switch (identifier & 0xF0) // Strip lower 4 bits
         {
@@ -57,7 +30,13 @@ namespace CppMqtt
         case PacketId::CONNECT_ACKNOWLEDGE:
             return PACKET_CREATE(ConnectAcknowledge, identifier);
         case PacketId::PUBLISH:
-            return PACKET_CREATE(Publish, identifier);
+        {
+            Publish *publish = (Publish *)PACKET_CREATE(Publish, identifier);
+#ifdef STATIC_MEMORY
+            publish->setReceiveBuffer(payloadStorage, sizeof(payloadStorage));
+#endif
+            return publish;
+        }
         case PacketId::PUBLISH_ACKNOWLEDGE:
             return PACKET_CREATE(PublishAcknowledge, identifier);
         case PacketId::PUBLISH_RECEIVED:
@@ -88,59 +67,105 @@ namespace CppMqtt
         return NULL;
     }
 
-    Packet *readPacketFromClient(Client *client)
+    void releasePacket(Packet *packet)
+    {
+        if (packet == NULL)
+        {
+            return;
+        }
+#ifdef STATIC_MEMORY
+        packet->~Packet();
+#else
+        delete packet;
+#endif
+    }
+
+    PacketReader::~PacketReader()
+    {
+        // A partially read packet is owned by the reader
+        releasePacket(packet);
+    }
+
+    Packet *PacketReader::finishPacket()
+    {
+        state = State::IDENTIFIER_FLAGS;
+        length = 0;
+        controlPacket = 0;
+        Packet *result = packet;
+        packet = NULL;
+        return result;
+    }
+
+    Packet *PacketReader::read(Client *client)
     {
         uint32_t read = 0;
-        static ReadState state = ReadState::IDENTIFIER_FLAGS;
-        static uint8_t controlPacket;
-        static VariableByteInteger length = 0;
-        static Packet *packet;
 
         while (client->available() > 0)
         {
             switch (state)
             {
-            case ReadState::IDENTIFIER_FLAGS:
+            case State::IDENTIFIER_FLAGS:
                 client->read(&controlPacket, 1);
-                state = ReadState::PACKET_LENGTH;
+                state = State::PACKET_LENGTH;
+                // NULL for an unrecognised packet type; its contents are skipped below
                 packet = constructPacketFromId(controlPacket);
-                packet->setFlags(controlPacket);
+                if (packet != NULL)
+                {
+                    packet->setFlags(controlPacket);
+                }
                 // TODO: Malformed packet check
                 break;
-            case ReadState::PACKET_LENGTH:
+            case State::PACKET_LENGTH:
                 if (!length.readFromClient(client, read))
                 {
                     // TODO: Max Packet length check
                     if (length == 0)
                     {
-                        state = ReadState::IDENTIFIER_FLAGS;
-                        length = 0;
-                        controlPacket = 0;
+                        if (packet == NULL)
                         {
-                            Packet *result = packet;
-                            packet = NULL;
-                            return result;
+                            // Unrecognised and empty: nothing to skip
+                            finishPacket();
+                            break;
                         }
+                        return finishPacket();
                     }
 
-                    state = ReadState::PACKET_CONTENTS;
+                    if (packet == NULL)
+                    {
+                        DEBUG("Skipping unrecognised packet type: %d\n", controlPacket);
+                        skipRemaining = length;
+                        state = State::SKIP_CONTENTS;
+                        break;
+                    }
+
+                    state = State::PACKET_CONTENTS;
 
                     packet->setRemainingLength(length);
                 }
                 break;
-            case ReadState::PACKET_CONTENTS:
+            case State::SKIP_CONTENTS:
+            {
+                uint8_t discard[16];
+                uint32_t toRead = skipRemaining < sizeof(discard) ? skipRemaining : sizeof(discard);
+                if ((uint32_t)client->available() < toRead)
+                {
+                    toRead = client->available();
+                }
+                client->read(discard, toRead);
+                skipRemaining -= toRead;
+                if (skipRemaining == 0)
+                {
+                    finishPacket();
+                }
+            }
+            break;
+            case State::PACKET_CONTENTS:
                 if (!packet->readFromClient(client, read))
                 {
-                    state = ReadState::IDENTIFIER_FLAGS;
-                    length = 0;
-                    controlPacket = 0;
-                    {
-                        Packet *result = packet;
-                        packet = NULL;
-                        return result;
-                    }
+                    return finishPacket();
                 }
-                break;
+                // The packet consumed all it could; wait for more data
+                return NULL;
 
             default:
                 break;
@@ -148,5 +173,11 @@ namespace CppMqtt
         }
 
         return NULL;
+    }
+
+    Packet *readPacketFromClient(Client *client)
+    {
+        static PacketReader reader;
+        return reader.read(client);
     }
 }

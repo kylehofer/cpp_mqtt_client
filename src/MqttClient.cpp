@@ -33,33 +33,45 @@
 #include "packets/PacketUtility.h"
 #include <algorithm>
 
-#ifdef DEBUGGING
-#define DEBUG(format, ...)  \
-    printf("MqttClient: "); \
-    printf(format, ##__VA_ARGS__)
+#if defined(ARDUINO) || defined(ESP8266) || defined(ESP32)
+#include <Arduino.h>
+#endif
+
+// Build with -DDEBUGGING (or -DDEBUGGING=1) to enable debug output
+#if defined(DEBUGGING) && DEBUGGING
+#define DEBUG(format, ...)          \
+    do                              \
+    {                               \
+        printf("MqttClient: ");     \
+        printf(format, ##__VA_ARGS__); \
+    } while (0)
 #else
-#define DEBUG(out, ...)
+#define DEBUG(out, ...) \
+    do                  \
+    {                   \
+    } while (0)
 #endif
 
 using namespace std;
 
 #define SECONDS_TO_MS 1000
-// MQTT 5 Specifies that that 1.5 times the Keep Alive Time is limit of the Keep Alive Timeout
-#define KEEP_ALIVE_SCALER 1.5 * SECONDS_TO_MS
+// MQTT 5 specifies 1.5 times the Keep Alive as the Keep Alive timeout.
+// Kept in integer milliseconds per second to avoid floating point (soft float on Cortex-M0+).
+#define KEEP_ALIVE_TIMEOUT_MS_PER_SECOND 1500
 
 namespace CppMqtt
 {
 
     Packet *MqttClient::readNextPacket()
     {
-        Packet *packet = readPacketFromClient(client);
+        Packet *packet = reader.read(client);
 
         if (packet == NULL)
         {
             return NULL;
         }
 
-        serverKeepAliveTimeRemaining = (getKeepAliveInterval() * KEEP_ALIVE_SCALER);
+        serverKeepAliveTimeRemaining = ((uint32_t)getKeepAliveInterval() * KEEP_ALIVE_TIMEOUT_MS_PER_SECOND);
 
         uint8_t packetType = packet->getPacketType();
 
@@ -147,34 +159,52 @@ namespace CppMqtt
         }
         }
 
-#ifndef STATIC_MEMORY
-        delete packet;
-#endif
+        releasePacket(packet);
 
         return NULL;
     }
 
     MqttClient::MqttClient()
     {
-    }
-
-    template <typename CommunicationClient>
-    MqttClient::MqttClient()
-    {
-        client = (Client *)new CommunicationClient();
+        applyStaticLimits();
     }
 
     MqttClient::MqttClient(Client *client)
     {
         this->client = client;
+        applyStaticLimits();
+    }
+
+    MqttClient::MqttClient(Client *client, TransmitBuffer *transmitBuffer) : transmitBuffer(transmitBuffer)
+    {
+        this->client = client;
+        applyStaticLimits();
+    }
+
+    void MqttClient::setTransmitBuffer(TransmitBuffer *transmitBuffer)
+    {
+        this->transmitBuffer = transmitBuffer;
     }
 
     MqttClient::~MqttClient()
     {
+#ifndef STATIC_MEMORY
         if (this->address)
         {
             free(this->address);
         }
+#endif
+    }
+
+    void MqttClient::applyStaticLimits()
+    {
+#ifdef STATIC_MEMORY
+        // Receive Maximum: incoming QoS 1/2 messages in flight at once, bounded by
+        // the fixed token list. Maximum Packet Size: bounded by the payload buffer,
+        // so every received payload fits.
+        connectPacket.setReceiveMaximum(CPP_MQTT_MAX_INFLIGHT);
+        connectPacket.setMaximumPacketSize(CPP_MQTT_MAX_PAYLOAD_LENGTH);
+#endif
     }
 
     int MqttClient::setWill(WillProperties *will)
@@ -190,16 +220,27 @@ namespace CppMqtt
             return 0;
         }
 
+#ifdef STATIC_MEMORY
+        if (strlen(address) > CPP_MQTT_MAX_ADDRESS_LENGTH)
+        {
+            DEBUG("Address longer than CPP_MQTT_MAX_ADDRESS_LENGTH\n");
+            return -1;
+        }
+        strcpy(this->address, address);
+#else
         if (this->address != nullptr)
         {
             free(this->address);
         }
 
         this->address = strdup(address);
+#endif
         this->port = port;
         this->connectTimeout = connectTimeout;
 
-        if (client->connect(address, port) != 0)
+        // Arduino clients return 1 on success and 0 or a negative code on failure;
+        // PicoTcpClient and the Linux test client follow the same rule
+        if (client->connect(address, port) <= 0)
         {
             setClientConnectionState(ConnectionState::DISCONNECTED);
             DEBUG("Communication Client failed to connect.\n");
@@ -207,16 +248,11 @@ namespace CppMqtt
             return -1;
         }
 
+        DEBUG("Client connect success\n");
+
         setClientConnectionState(ConnectionState::CONNECTING);
 
-#if defined(PICO)
-        lastExecutionTime = time_us_64();
-#elif defined(ARDUINO) || defined(ESP8266) || defined(ESP32)
-        uint32_t now = millis();
-        lastExecutionTime = millis();
-#elif defined(__linux__)
-        lastExecutionTime = std::chrono::system_clock::now();
-#endif
+        elapsedTime.elapsed();
         return 0;
     }
 
@@ -230,6 +266,9 @@ namespace CppMqtt
         disconnect.setReasonCode(reasonCode);
         sendPacket(&disconnect);
         setConnectionState(ConnectionState::DISCONNECTED);
+        // MQTT 5: the sender of a DISCONNECT must close the Network Connection
+        client->stop();
+        setClientConnectionState(ConnectionState::DISCONNECTED);
         if (handler)
         {
             handler->onDisconnection(reasonCode);
@@ -237,23 +276,9 @@ namespace CppMqtt
         return 0;
     }
 
-    template <typename... T>
-    void MqttClient::addSubscribePayload(Subscribe &packet, SubscribePayload &payload, T &...args)
-    {
-        addSubscribePayload(packet, payload);
-        addSubscribePayload(packet, args...);
-    }
-
     void MqttClient::addSubscribePayload(Subscribe &packet, SubscribePayload &payload)
     {
         addSubscriptionPayload((Subscription *)&packet, (SubscriptionPayload *)&payload);
-    }
-
-    template <typename... T>
-    void MqttClient::addUnsubscribePayload(Unsubscribe &packet, UnsubscribePayload &payload, T &...args)
-    {
-        addUnsubscribePayload(packet, payload);
-        addUnsubscribePayload(packet, args...);
     }
 
     void MqttClient::addUnsubscribePayload(Unsubscribe &packet, UnsubscribePayload &payload)
@@ -266,61 +291,41 @@ namespace CppMqtt
         packet->addPayload(payload);
     }
 
-    int MqttClient::subscribe(SubscribePayload &payload...)
+    int MqttClient::sendSubscription(Subscription &packet)
     {
-        if (!connected())
+        Token identifier = getPacketIdentifier();
+        packet.setPacketIdentifier(identifier);
+        if (sendPacket(&packet, CPP_MQTT_TRANSMIT_RESERVE) < 0)
         {
             return -1;
         }
-
-        Token identifier = getPacketIdentifier();
-
-        Subscribe packet;
-
-        addSubscribePayload(packet, payload);
-
-        packet.setPacketIdentifier(identifier);
-
-        sendPacket(&packet);
-
-        return identifier;
-    }
-
-    int MqttClient::unsubscribe(UnsubscribePayload &payload...)
-    {
-        if (!connected())
-        {
-            return -1;
-        }
-
-        Token identifier = getPacketIdentifier();
-
-        Unsubscribe packet;
-
-        addUnsubscribePayload(packet, payload);
-
-        packet.setPacketIdentifier(identifier);
-
-        sendPacket(&packet);
-
         return identifier;
     }
 
     void MqttClient::sync()
     {
+#if defined(ARDUINO) || defined(ESP8266) || defined(ESP32)
+#else
         client->sync();
+#endif
         uint32_t elapsed = getElapsed();
 
         if (client->connected())
         {
+            DEBUG("CLIENT IS CONNECTED\n");
             if (connectionState == +ConnectionState::DISCONNECTED)
             {
+                DEBUG("mqttConnect\n");
                 mqttConnect();
             }
             else
             {
                 updateKeepAlivePeriod(elapsed);
-                readNextPacket();
+                // A keep alive timeout closes the connection; nothing more to read
+                if (client->connected())
+                {
+                    readNextPacket();
+                }
             }
 
             if (connectionState == +ConnectionState::CONNECTED)
@@ -348,11 +353,15 @@ namespace CppMqtt
         }
         else
         {
+            DEBUG("CLIENT IS NOT CONNECTED\n");
             if (connectionState == +ConnectionState::CONNECTED)
             {
                 setClientConnectionState(ConnectionState::DISCONNECTED);
                 setConnectionState(ConnectionState::DISCONNECTED);
-                handler->onDisconnection(ReasonCode::UNSPECIFIED_ERROR);
+                if (handler)
+                {
+                    handler->onDisconnection(ReasonCode::UNSPECIFIED_ERROR);
+                }
             }
             else if (clientState == +ConnectionState::CONNECTING)
             {
@@ -361,7 +370,10 @@ namespace CppMqtt
                     setConnectionState(ConnectionState::DISCONNECTED);
                     setClientConnectionState(ConnectionState::DISCONNECTED);
                     client->stop();
-                    handler->onDisconnection(ReasonCode::UNSPECIFIED_ERROR);
+                    if (handler)
+                    {
+                        handler->onDisconnection(ReasonCode::UNSPECIFIED_ERROR);
+                    }
                 }
                 else
                 {
@@ -371,16 +383,49 @@ namespace CppMqtt
         }
     }
 
-    int MqttClient::sendPacket(Packet *packet)
+    int MqttClient::sendPacket(Packet *packet, size_t reserve)
     {
-        PacketBuffer packetBuffer(packet->totalSize());
+        if (transmitBuffer != NULL)
+        {
+            size_t packetLength = packet->totalSize();
+            if (transmitBuffer->writable() < packetLength + reserve)
+            {
+                // Not enough room: nothing is written, so the connection stays usable
+                DEBUG("Transmit buffer full; packet not sent\n");
+                return -1;
+            }
+            PacketBuffer packetBuffer(transmitBuffer, packetLength);
+            packet->push(packetBuffer);
+            // Commits only a complete packet, so a failure here sends nothing
+            return packetBuffer.flush() ? (int)packetLength : -1;
+        }
+
+        // Streamed to the socket in small chunks: the packet is never assembled
+        // in memory, so sending needs no allocation and little stack
+        size_t length = packet->totalSize();
+        PacketBuffer packetBuffer(client, length);
         packet->push(packetBuffer);
-        return client->write(packetBuffer.getBuffer(), packetBuffer.getLength());
+        bool complete = packetBuffer.flush() && packetBuffer.getLength() == length;
+
+        if (!complete)
+        {
+            if (packetBuffer.getLength() > 0)
+            {
+                // Part of a packet has been sent, so the stream can no longer be
+                // framed by the broker; the connection has to be dropped
+                DEBUG("Packet write failed part way; closing connection\n");
+                client->stop();
+                setClientConnectionState(ConnectionState::DISCONNECTED);
+                setConnectionState(ConnectionState::DISCONNECTED);
+            }
+            return -1;
+        }
+        return (int)length;
     }
 
     void MqttClient::updateKeepAlivePeriod(uint32_t timeElapsed)
     {
-        if (getKeepAliveInterval() > 0)
+        if (timeElapsed > 0 && getKeepAliveInterval() > 0)
         {
             if (serverKeepAliveTimeRemaining <= timeElapsed)
             {
@@ -489,16 +534,23 @@ namespace CppMqtt
             return;
         }
 
+        // A Server Keep Alive replaces the client's requested interval
+        if (packet->getServerKeepAlive() > 0)
+        {
+            connectPacket.setKeepAliveInterval(packet->getServerKeepAlive());
+        }
+
+        // Start both timers from the interval now in force. readNextPacket set the
+        // server timer before this CONNACK could change the interval, which left
+        // it at 0 when the client had requested no keep alive.
+        serverKeepAliveTimeRemaining = (uint32_t)getKeepAliveInterval() * KEEP_ALIVE_TIMEOUT_MS_PER_SECOND;
+        clientKeepAliveTimeRemaining = (uint32_t)getKeepAliveInterval() * SECONDS_TO_MS;
+
         setConnectionState(ConnectionState::CONNECTED);
 
         if (handler)
         {
             handler->onConnectionSuccess();
-        }
-
-        if (packet->getServerKeepAlive() > 0)
-        {
-            connectPacket.setKeepAliveInterval(packet->getServerKeepAlive());
         }
     }
 
@@ -527,10 +579,15 @@ namespace CppMqtt
         break;
         case QoS::TWO:
         {
-            if (publishQueue.contains(identifier))
-                delete publishQueue[identifier];
+            // Deliver once, on first receipt. A retransmitted PUBLISH with the
+            // same identifier (before PUBREL) is acknowledged but not delivered again.
+            if (find(serverTokens.begin(), serverTokens.end(), identifier) == serverTokens.end())
+            {
+                // Receive Maximum keeps a conforming broker within the fixed list
+                pushBack(serverTokens, identifier);
+                messageReceived(packet->getTopic(), packet->getPayload());
+            }
 
-            publishQueue[identifier] = new Publish(*packet);
             PublishReceived received;
             received.setPacketIdentifier(identifier);
             received.setReasonCode(0);
@@ -603,12 +660,10 @@ namespace CppMqtt
         Token identifier = packet->getPacketIdentifier();
         // Validate Packet
 
-        if (publishQueue.contains(identifier))
+        auto pending = find(serverTokens.begin(), serverTokens.end(), identifier);
+        if (pending != serverTokens.end())
         {
-            Publish *publish = publishQueue[identifier];
-            messageReceived(publish->getTopic(), publish->getPayload());
-            delete publish;
-            publishQueue.erase(identifier);
+            serverTokens.erase(pending);
         }
 
         PublishComplete complete;
@@ -645,7 +700,8 @@ namespace CppMqtt
 
     void MqttClient::mqttConnect()
     {
-        serverKeepAliveTimeRemaining = (getKeepAliveInterval() * KEEP_ALIVE_SCALER);
+        DEBUG("Sending MQTT Connect\n");
+        serverKeepAliveTimeRemaining = ((uint32_t)getKeepAliveInterval() * KEEP_ALIVE_TIMEOUT_MS_PER_SECOND);
         setConnectionState(ConnectionState::CONNECTING);
         sendPacket(&connectPacket);
     }
@@ -657,10 +713,14 @@ namespace CppMqtt
 
     bool MqttClient::hasClientToken(uint16_t token)
     {
-        auto item = ranges::find_if(clientTokens.begin(), clientTokens.end(),
-                                    [token](uint16_t item)
-                                    { return item == token; });
-        return item != clientTokens.end();
+        for (auto &item : clientTokens)
+        {
+            if (item == token)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     void MqttClient::removeClientToken(uint16_t token)
@@ -670,39 +730,7 @@ namespace CppMqtt
 
     uint32_t MqttClient::getElapsed()
     {
-
-#if defined(PICO)
-        uint64_t now = time_us_64();
-        uint64_t duration;
-        if (now < lastExecutionTime)
-        {
-            duration = (now + (0xFFFFFFFF ^ lastExecutionTime)) / 1000;
-        }
-        else
-        {
-            duration = (now - lastExecutionTime) / 1000;
-        }
-        lastExecutionTime = now;
-#elif defined(ARDUINO) || defined(ESP8266) || defined(ESP32)
-        uint32_t now = millis();
-        uint32_t duration;
-        if (now < lastExecutionTime)
-        {
-            duration = (now + (0xFFFF ^ lastExecutionTime));
-        }
-        else
-        {
-            duration = (now - lastExecutionTime);
-        }
-        lastExecutionTime = now;
-#elif defined(__linux__)
-        const auto now = std::chrono::system_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastExecutionTime).count();
-        lastExecutionTime = now;
-
-#endif
-
-        return duration;
+        return elapsedTime.elapsed();
     }
 
     uint16_t MqttClient::getKeepAliveInterval()
@@ -789,13 +817,21 @@ namespace CppMqtt
     {
         if (!connected())
         {
-            return -1;
+            return PUBLISH_FAILED;
+        }
+
+        // With STATIC_MEMORY the result of every publish must be tracked in a
+        // fixed list; refuse rather than lose the delivery callback
+        if ((qos == +QoS::ZERO) ? (isFull(qosZeroSuccess) || isFull(qosZeroFailed)) : isFull(clientTokens))
+        {
+            return PUBLISH_FAILED;
         }
 
         Publish publishPacket;
 
         publishPacket.setTopic(topic);
-        publishPacket.setPayload(payload);
+        // Sent straight from the caller's memory, without a copy
+        publishPacket.setPayloadReference(payload.getData(), payload.size());
         publishPacket.setQos(qos);
         publishPacket.setRetain(retain);
 
@@ -806,23 +842,28 @@ namespace CppMqtt
             publishPacket.setPacketIdentifier(packetIdentifier);
         }
 
-        auto result = sendPacket(&publishPacket);
+        auto result = sendPacket(&publishPacket, CPP_MQTT_TRANSMIT_RESERVE);
 
         if (qos == +QoS::ZERO)
         {
             // TODO: Implement feedback from when the TCP Client succeeds in sending messages
             if (result >= 0)
             {
-                qosZeroSuccess.push_back(packetIdentifier);
+                pushBack(qosZeroSuccess, packetIdentifier);
             }
             else
             {
-                qosZeroFailed.push_back(packetIdentifier);
+                pushBack(qosZeroFailed, packetIdentifier);
             }
         }
         else
         {
-            clientTokens.push_back(packetIdentifier);
+            if (result < 0)
+            {
+                // Never sent, so no acknowledgement will arrive to complete the token
+                return PUBLISH_FAILED;
+            }
+            pushBack(clientTokens, packetIdentifier);
         }
 
         return packetIdentifier;

@@ -40,6 +40,14 @@
 #include "mocks/MockMqttClient.h"
 #include "packets/ConnectAcknowledge.h"
 
+// With STATIC_MEMORY the CONNECT carries Receive Maximum (3 bytes) and Maximum
+// Packet Size (5 bytes) properties announcing the client's fixed limits
+#ifdef STATIC_MEMORY
+#define CONNECT_PROPERTIES_LENGTH 8
+#else
+#define CONNECT_PROPERTIES_LENGTH 0
+#endif
+
 using namespace std;
 
 using namespace CppMqtt;
@@ -73,7 +81,7 @@ TEST(MqttClientTests, SuccessfulConnect)
 
     uint8_t expectedData[] = {
         0x10, // Connect ID
-        0x0D, // Remaining Length
+        0x0D + CONNECT_PROPERTIES_LENGTH, // Remaining Length
         0x00,
         0x04,
         'M',
@@ -84,12 +92,13 @@ TEST(MqttClientTests, SuccessfulConnect)
         0x00,  // Flags
         0x00,  // Keep Alive Upper
         0x00,  // Keep Alive Lower
-        0x00}; // Properties Length
+        CONNECT_PROPERTIES_LENGTH}; // Properties Length
 
     for (size_t i = 0; i < 11; i++)
     {
         ASSERT_EQ(writeBuffer[i], expectedData[i]) << "at position " << i;
     }
+    ASSERT_EQ(writeBuffer[12], CONNECT_PROPERTIES_LENGTH) << "properties length";
 
     mqttClient.sync();
 
@@ -139,7 +148,7 @@ TEST(MqttClientTests, FailedConnect)
 
     uint8_t expectedData[] = {
         0x10, // Connect ID
-        0x0D, // Remaining Length
+        0x0D + CONNECT_PROPERTIES_LENGTH, // Remaining Length
         0x00,
         0x04,
         'M',
@@ -150,14 +159,15 @@ TEST(MqttClientTests, FailedConnect)
         0x00,  // Flags
         0x00,  // Keep Alive Upper
         0x00,  // Keep Alive Lower
-        0x00}; // Properties Length
+        CONNECT_PROPERTIES_LENGTH}; // Properties Length
 
     for (size_t i = 0; i < 11; i++)
     {
         ASSERT_EQ(writeBuffer[i], expectedData[i]) << "at position " << i;
     }
+    ASSERT_EQ(writeBuffer[12], CONNECT_PROPERTIES_LENGTH) << "properties length";
 
-    ASSERT_EQ(client.written(), 15);
+    ASSERT_EQ(client.written(), (size_t)(15 + CONNECT_PROPERTIES_LENGTH));
 
     mqttClient.sync();
 
@@ -201,7 +211,7 @@ void setupConnected(MockClient &client, MqttClient &mqttClient)
 
     uint8_t expectedData[] = {
         0x10, // Connect ID
-        0x0D, // Remaining Length
+        0x0D + CONNECT_PROPERTIES_LENGTH, // Remaining Length
         0x00,
         0x04,
         'M',
@@ -212,12 +222,13 @@ void setupConnected(MockClient &client, MqttClient &mqttClient)
         0x00,  // Flags
         0x00,  // Keep Alive Upper
         0x00,  // Keep Alive Lower
-        0x00}; // Properties Length
+        CONNECT_PROPERTIES_LENGTH}; // Properties Length
 
     for (size_t i = 0; i < 11; i++)
     {
         ASSERT_EQ(writeBuffer[i], expectedData[i]) << "at position " << i;
     }
+    ASSERT_EQ(writeBuffer[12], CONNECT_PROPERTIES_LENGTH) << "properties length";
 
     client.clearWriteBuffer();
 
@@ -298,8 +309,8 @@ TEST(MqttClientTests, PublishQos1)
     const unsigned char puback[] = {
         0x40,                    // ID
         0x04,                    // Variable Length
-        (uint8_t)(token & 0xFF), // Packet Identifier Lower
-        (uint8_t)(token >> 8),   // Packet Identifier Upper
+        (uint8_t)(token >> 8),   // Packet Identifier MSB (Big Endian)
+        (uint8_t)(token & 0xFF), // Packet Identifier LSB
         0x00,                    // Reason Code
         0x00                     // No properties
     };
@@ -330,8 +341,8 @@ TEST(MqttClientTests, PublishQos2)
     const unsigned char pubrec[] = {
         0x50,                    // ID
         0x04,                    // Variable Length
-        (uint8_t)(token & 0xFF), // Packet Identifier Lower
-        (uint8_t)(token >> 8),   // Packet Identifier Upper
+        (uint8_t)(token >> 8),   // Packet Identifier MSB (Big Endian)
+        (uint8_t)(token & 0xFF), // Packet Identifier LSB
         0x00,                    // Reason Code
         0x00                     // No properties
     };
@@ -345,8 +356,8 @@ TEST(MqttClientTests, PublishQos2)
     const unsigned char pubcomp[] = {
         0x70,                    // ID
         0x04,                    // Variable Length
-        (uint8_t)(token & 0xFF), // Packet Identifier Lower
-        (uint8_t)(token >> 8),   // Packet Identifier Upper
+        (uint8_t)(token >> 8),   // Packet Identifier MSB (Big Endian)
+        (uint8_t)(token & 0xFF), // Packet Identifier LSB
         0x00,                    // Reason Code
         0x00                     // No properties
     };

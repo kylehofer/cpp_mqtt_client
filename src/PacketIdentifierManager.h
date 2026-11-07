@@ -4,7 +4,7 @@ namespace CppMqtt
 {
     class PacketIdentifierManager
     {
-    }
+    };
 }
 
 #endif /* PACKETIDENTIFIERMANAGER */

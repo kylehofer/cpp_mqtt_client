@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "gtest/gtest.h"
+#include "utils/TestPacketBuffer.h"
 #include "stdint.h"
 #include <string>
 
@@ -73,6 +74,13 @@ static uint8_t testData[] = {
 
 TEST(PropertiesTest, Decode)
 {
+#ifdef STATIC_MEMORY
+    // One of every property type: 27 properties in one packet
+    if (CPP_MQTT_MAX_PROPERTIES < 27 || CPP_MQTT_PROPERTY_POOL_SIZE < 27)
+    {
+        GTEST_SKIP() << "Needs CPP_MQTT_MAX_PROPERTIES and CPP_MQTT_PROPERTY_POOL_SIZE of at least 27";
+    }
+#endif
 
     for (size_t i = 0; i < 1; i++)
     {
@@ -95,45 +103,52 @@ TEST(PropertiesTest, Decode)
 
 TEST(PropertiesTest, Encode)
 {
+#ifdef STATIC_MEMORY
+    // One of every property type: 27 properties in one packet
+    if (CPP_MQTT_MAX_PROPERTIES < 27 || CPP_MQTT_PROPERTY_POOL_SIZE < 27)
+    {
+        GTEST_SKIP() << "Needs CPP_MQTT_MAX_PROPERTIES and CPP_MQTT_PROPERTY_POOL_SIZE of at least 27";
+    }
+#endif
 
     for (size_t i = 0; i < 1; i++)
     {
         MockClient client;
         Properties properties;
 
-        properties.addProperty((Property *)new PayloadFormatIndicatorProperty());
-        properties.addProperty((Property *)new MessageExpiryIntervalProperty());
-        properties.addProperty((Property *)new ContentTypeProperty());
-        properties.addProperty((Property *)new ResponseTopic());
-        properties.addProperty((Property *)new CorrelationData());
-        properties.addProperty((Property *)new SubscriptionIdentifier());
-        properties.addProperty((Property *)new SessionExpiryInterval());
-        properties.addProperty((Property *)new AssignedClientIdentifier());
-        properties.addProperty((Property *)new ServerKeepAlive());
-        properties.addProperty((Property *)new AuthenticationMethod());
-        properties.addProperty((Property *)new AuthenticationData());
-        properties.addProperty((Property *)new RequestProblemInformation());
-        properties.addProperty((Property *)new WillDelayInterval());
-        properties.addProperty((Property *)new RequestResponseInformation());
-        properties.addProperty((Property *)new ResponseInformation());
-        properties.addProperty((Property *)new ServerReference());
-        properties.addProperty((Property *)new ReasonString());
-        properties.addProperty((Property *)new ReceiveMaxium());
-        properties.addProperty((Property *)new TopicAliasMaximum());
-        properties.addProperty((Property *)new TopicAlias());
-        properties.addProperty((Property *)new MaxiumumQoS());
-        properties.addProperty((Property *)new RetainAvailable());
-        properties.addProperty((Property *)new UserProperty());
-        properties.addProperty((Property *)new MaximumPacketSize());
-        properties.addProperty((Property *)new WildcardSubscriptionAvailable());
-        properties.addProperty((Property *)new SubscriptionIdentifierAvailable());
-        properties.addProperty((Property *)new SharedSubscriptionAvailable());
+        ASSERT_NE(properties.add<PayloadFormatIndicatorProperty>(), nullptr);
+        ASSERT_NE(properties.add<MessageExpiryIntervalProperty>(), nullptr);
+        ASSERT_NE(properties.add<ContentTypeProperty>(), nullptr);
+        ASSERT_NE(properties.add<ResponseTopic>(), nullptr);
+        ASSERT_NE(properties.add<CorrelationData>(), nullptr);
+        ASSERT_NE(properties.add<SubscriptionIdentifier>(), nullptr);
+        ASSERT_NE(properties.add<SessionExpiryInterval>(), nullptr);
+        ASSERT_NE(properties.add<AssignedClientIdentifier>(), nullptr);
+        ASSERT_NE(properties.add<ServerKeepAlive>(), nullptr);
+        ASSERT_NE(properties.add<AuthenticationMethod>(), nullptr);
+        ASSERT_NE(properties.add<AuthenticationData>(), nullptr);
+        ASSERT_NE(properties.add<RequestProblemInformation>(), nullptr);
+        ASSERT_NE(properties.add<WillDelayInterval>(), nullptr);
+        ASSERT_NE(properties.add<RequestResponseInformation>(), nullptr);
+        ASSERT_NE(properties.add<ResponseInformation>(), nullptr);
+        ASSERT_NE(properties.add<ServerReference>(), nullptr);
+        ASSERT_NE(properties.add<ReasonString>(), nullptr);
+        ASSERT_NE(properties.add<ReceiveMaxium>(), nullptr);
+        ASSERT_NE(properties.add<TopicAliasMaximum>(), nullptr);
+        ASSERT_NE(properties.add<TopicAlias>(), nullptr);
+        ASSERT_NE(properties.add<MaxiumumQoS>(), nullptr);
+        ASSERT_NE(properties.add<RetainAvailable>(), nullptr);
+        ASSERT_NE(properties.add<UserProperty>(), nullptr);
+        ASSERT_NE(properties.add<MaximumPacketSize>(), nullptr);
+        ASSERT_NE(properties.add<WildcardSubscriptionAvailable>(), nullptr);
+        ASSERT_NE(properties.add<SubscriptionIdentifierAvailable>(), nullptr);
+        ASSERT_NE(properties.add<SharedSubscriptionAvailable>(), nullptr);
 
         Client *clientPtr = (Client *)&client;
 
         uint32_t bytesRead = 0;
 
-        PacketBuffer buffer(properties.totalSize());
+        TestPacketBuffer buffer;
         size_t written = properties.push(buffer);
 
         ASSERT_EQ(written, TEST_DATA_SIZE);

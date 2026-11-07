@@ -14,12 +14,12 @@ namespace CppMqtt
     public:
         int connectionResult = -1;
         int disconnectionResult = -1;
-        map<Token, vector<uint8_t>> subscribeResult;
-        map<Token, vector<uint8_t>> unsubscribeResult;
-        queue<EncodedString> topicQueue;
-        queue<Payload> payloadQueue;
-        queue<Token> deliveryQueue;
-        queue<tuple<Token, uint8_t>> deliveryFailureQueue;
+        std::map<Token, ReasonCodes> subscribeResult;
+        std::map<Token, ReasonCodes> unsubscribeResult;
+        std::queue<EncodedString> topicQueue;
+        std::queue<Payload> payloadQueue;
+        std::queue<Token> deliveryQueue;
+        std::queue<std::tuple<Token, uint8_t>> deliveryFailureQueue;
 
         virtual void onConnectionSuccess() override;
         virtual void onConnectionFailure(int reasonCode) override;
@@ -27,8 +27,8 @@ namespace CppMqtt
         virtual void onMessage(EncodedString &topic, Payload &payload) override;
         virtual void onDeliveryComplete(Token token) override;
         virtual void onDeliveryFailure(Token token, int reasonCode) override;
-        virtual void onSubscribeResult(Token token, vector<uint8_t> reasonCodes) override;
-        virtual void onUnsubscribeResult(Token token, vector<uint8_t> reasonCodes) override;
+        virtual void onSubscribeResult(Token token, ReasonCodes reasonCodes) override;
+        virtual void onUnsubscribeResult(Token token, ReasonCodes reasonCodes) override;
     };
 }
 

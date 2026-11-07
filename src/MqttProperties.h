@@ -29,18 +29,16 @@
  * HISTORY:
  */
 
-#ifndef SRC_MQTTPROPERTIES
-#define SRC_MQTTPROPERTIES
+#ifndef SRC_MQTT_PROPERTIES
+#define SRC_MQTT_PROPERTIES
 
 #include <stdint.h>
 #include <stdio.h>
-#include <vector>
-#include <ranges>
-#include <functional>
-#include <algorithm>
+#include "CppMqttConfig.h"
+#include "utils/StaticVector.h"
 #include "types/VariableByteInteger.h"
 #include "types/EncodedString.h"
-#include "Client.h"
+#include "SocketClient.h"
 #include "ClientInteractor.h"
 
 #include "properties/Property.h"
@@ -50,8 +48,8 @@
 #include "properties/StringProperty.h"
 #include "properties/VariableByteProperty.h"
 #include "properties/WordProperty.h"
+#include "properties/PropertyPool.h"
 
-using namespace std;
 
 namespace CppMqtt
 {
@@ -64,41 +62,92 @@ namespace CppMqtt
     {
     private:
         uint32_t count = 0;
-        vector<Property *> properties;
+        Vector<Property *, CPP_MQTT_MAX_PROPERTIES> properties;
         uint8_t state = 0;
+        // Parse state for readFromClient, kept per instance so separate
+        // packets or connections never share it
+        VariableByteInteger readLength;
+        VariableByteInteger readIdentifier;
+        Property *readProperty = NULL;
+        uint32_t readCount = 0;
 
     protected:
     public:
         Properties();
         Properties(uint32_t count);
         virtual ~Properties();
+        // Properties owns raw Property pointers; a copy would double free them.
+        Properties(const Properties &) = delete;
+        Properties &operator=(const Properties &) = delete;
         size_t size();
         size_t totalSize();
         uint32_t length();
-        void addProperty(Property *property);
+        /**
+         * @brief Takes ownership of a property made by createProperty().
+         * If the property cannot be held (more than CPP_MQTT_MAX_PROPERTIES with
+         * STATIC_MEMORY) it is destroyed.
+         *
+         * @return true If the property was added
+         */
+        bool addProperty(Property *property);
+
+        /**
+         * @brief Creates a property and adds it
+         *
+         * @return T* The added property, or NULL if there was no room for it
+         */
+        template <typename T, typename... Args>
+        T *add(Args &&...args)
+        {
+            T *property = createProperty<T>(std::forward<Args>(args)...);
+            if (property == NULL || !addProperty(property))
+            {
+                return NULL;
+            }
+            return property;
+        }
+
+        /**
+         * @brief Sets the value of the single property with T's identifier,
+         * creating it if absent
+         *
+         * @return T* The property, or NULL if it had to be created and there was no room
+         */
+        template <typename T, typename V>
+        T *set(PropertyCodes identifier, const V &value)
+        {
+            T *property = (T *)get(identifier);
+            if (property != NULL)
+            {
+                property->setValue(value);
+                return property;
+            }
+            return add<T>(value);
+        }
+
         void clear();
 
         static Property *constructPropertyFromId(PropertyCodes identifier);
 
         bool has(PropertyCodes identifier);
         Property *get(PropertyCodes identifier);
-        template <typename T>
-        void each(PropertyCodes identifier, std::function<bool(T *)> const &callback)
+        /**
+         * @brief Calls callback(T *) for each property with the identifier, in
+         * order, until it returns false. Takes any callable, so no allocation.
+         */
+        template <typename T, typename Callback>
+        void each(PropertyCodes identifier, Callback &&callback)
         {
-            // void Properties::each(PropertyCodes identifier, void (*callback)(T *))
-
-            auto result = properties.begin();
-            auto end = properties.end();
-
-            while (end != (result = ranges::find_if(result, end,
-                                                    [identifier](Property *property)
-                                                    { return property->getIdentifier() == identifier; })))
+            for (auto &property : properties)
             {
-                if (!callback((T *)*result))
+                if (property->getIdentifier() == identifier)
                 {
-                    break;
+                    if (!callback((T *)property))
+                    {
+                        break;
+                    }
                 }
-            };
+            }
         }
         void each(bool (*filter)(Property *), void (*callback)(Property *));
 
@@ -123,198 +172,198 @@ namespace CppMqtt
     class PayloadFormatIndicatorProperty : public ByteProperty
     {
     public:
-        PayloadFormatIndicatorProperty() : ByteProperty(PAYLOAD_FORMAT_INDICATOR){};
-        PayloadFormatIndicatorProperty(uint8_t value) : ByteProperty(PAYLOAD_FORMAT_INDICATOR, value){};
+        PayloadFormatIndicatorProperty() : ByteProperty(PAYLOAD_FORMAT_INDICATOR) {};
+        PayloadFormatIndicatorProperty(uint8_t value) : ByteProperty(PAYLOAD_FORMAT_INDICATOR, value) {};
     };
 
     class MessageExpiryIntervalProperty : public DWordProperty
     {
     public:
-        MessageExpiryIntervalProperty() : DWordProperty(MESSAGE_EXPIRY_INTERVAL){};
-        MessageExpiryIntervalProperty(uint32_t value) : DWordProperty(MESSAGE_EXPIRY_INTERVAL, value){};
+        MessageExpiryIntervalProperty() : DWordProperty(MESSAGE_EXPIRY_INTERVAL) {};
+        MessageExpiryIntervalProperty(uint32_t value) : DWordProperty(MESSAGE_EXPIRY_INTERVAL, value) {};
     };
 
     class ContentTypeProperty : public StringProperty
     {
     public:
-        ContentTypeProperty() : StringProperty(CONTENT_TYPE){};
-        ContentTypeProperty(EncodedString value) : StringProperty(CONTENT_TYPE, value){};
-        ContentTypeProperty(const char *value, uint32_t length) : StringProperty(CONTENT_TYPE, value, length){};
+        ContentTypeProperty() : StringProperty(CONTENT_TYPE) {};
+        ContentTypeProperty(EncodedString value) : StringProperty(CONTENT_TYPE, value) {};
+        ContentTypeProperty(const char *value, uint32_t length) : StringProperty(CONTENT_TYPE, value, length) {};
     };
 
     class ResponseTopic : public StringProperty
     {
     public:
-        ResponseTopic() : StringProperty(RESPONSE_TOPIC){};
-        ResponseTopic(EncodedString value) : StringProperty(RESPONSE_TOPIC, value){};
-        ResponseTopic(const char *value, uint32_t length) : StringProperty(RESPONSE_TOPIC, value, length){};
+        ResponseTopic() : StringProperty(RESPONSE_TOPIC) {};
+        ResponseTopic(EncodedString value) : StringProperty(RESPONSE_TOPIC, value) {};
+        ResponseTopic(const char *value, uint32_t length) : StringProperty(RESPONSE_TOPIC, value, length) {};
     };
 
     class CorrelationData : public BinaryProperty
     {
     public:
-        CorrelationData() : BinaryProperty(CORRELATION_DATA){};
-        CorrelationData(EncodedString value) : BinaryProperty(CORRELATION_DATA, value){};
+        CorrelationData() : BinaryProperty(CORRELATION_DATA) {};
+        CorrelationData(EncodedString value) : BinaryProperty(CORRELATION_DATA, value) {};
     };
 
     class SubscriptionIdentifier : public VariableByteProperty
     {
     public:
-        SubscriptionIdentifier() : VariableByteProperty(SUBSCRIPTION_IDENTIFIER){};
-        SubscriptionIdentifier(VariableByteInteger value) : VariableByteProperty(SUBSCRIPTION_IDENTIFIER, value){};
+        SubscriptionIdentifier() : VariableByteProperty(SUBSCRIPTION_IDENTIFIER) {};
+        SubscriptionIdentifier(VariableByteInteger value) : VariableByteProperty(SUBSCRIPTION_IDENTIFIER, value) {};
     };
 
     class SessionExpiryInterval : public DWordProperty
     {
     public:
-        SessionExpiryInterval() : DWordProperty(SESSION_EXPIRY_INTERVAL){};
-        SessionExpiryInterval(uint32_t value) : DWordProperty(SESSION_EXPIRY_INTERVAL, value){};
+        SessionExpiryInterval() : DWordProperty(SESSION_EXPIRY_INTERVAL) {};
+        SessionExpiryInterval(uint32_t value) : DWordProperty(SESSION_EXPIRY_INTERVAL, value) {};
     };
 
     class AssignedClientIdentifier : public StringProperty
     {
     public:
-        AssignedClientIdentifier() : StringProperty(ASSIGNED_CLIENT_IDENTIFER){};
-        AssignedClientIdentifier(EncodedString value) : StringProperty(ASSIGNED_CLIENT_IDENTIFER, value){};
-        AssignedClientIdentifier(const char *value, uint32_t length) : StringProperty(ASSIGNED_CLIENT_IDENTIFER, value, length){};
+        AssignedClientIdentifier() : StringProperty(ASSIGNED_CLIENT_IDENTIFER) {};
+        AssignedClientIdentifier(EncodedString value) : StringProperty(ASSIGNED_CLIENT_IDENTIFER, value) {};
+        AssignedClientIdentifier(const char *value, uint32_t length) : StringProperty(ASSIGNED_CLIENT_IDENTIFER, value, length) {};
     };
 
     class ServerKeepAlive : public WordProperty
     {
     public:
-        ServerKeepAlive() : WordProperty(SERVER_KEEP_ALIVE){};
-        ServerKeepAlive(uint16_t value) : WordProperty(SERVER_KEEP_ALIVE, value){};
+        ServerKeepAlive() : WordProperty(SERVER_KEEP_ALIVE) {};
+        ServerKeepAlive(uint16_t value) : WordProperty(SERVER_KEEP_ALIVE, value) {};
     };
 
     class AuthenticationMethod : public StringProperty
     {
     public:
-        AuthenticationMethod() : StringProperty(AUTHENTICATION_METHOD){};
-        AuthenticationMethod(EncodedString value) : StringProperty(AUTHENTICATION_METHOD, value){};
-        AuthenticationMethod(const char *value, uint32_t length) : StringProperty(AUTHENTICATION_METHOD, value, length){};
+        AuthenticationMethod() : StringProperty(AUTHENTICATION_METHOD) {};
+        AuthenticationMethod(EncodedString value) : StringProperty(AUTHENTICATION_METHOD, value) {};
+        AuthenticationMethod(const char *value, uint32_t length) : StringProperty(AUTHENTICATION_METHOD, value, length) {};
     };
 
     class AuthenticationData : public BinaryProperty
     {
     public:
-        AuthenticationData() : BinaryProperty(AUTHENTICATION_DATA){};
-        AuthenticationData(EncodedString value) : BinaryProperty(AUTHENTICATION_DATA, value){};
-        AuthenticationData(const char *value, uint32_t length) : BinaryProperty(AUTHENTICATION_METHOD, value, length){};
+        AuthenticationData() : BinaryProperty(AUTHENTICATION_DATA) {};
+        AuthenticationData(EncodedString value) : BinaryProperty(AUTHENTICATION_DATA, value) {};
+        AuthenticationData(const char *value, uint32_t length) : BinaryProperty(AUTHENTICATION_METHOD, value, length) {};
     };
 
     class RequestProblemInformation : public ByteProperty
     {
     public:
-        RequestProblemInformation() : ByteProperty(REQUEST_PROBLEM_INFORMATION){};
-        RequestProblemInformation(uint8_t value) : ByteProperty(REQUEST_PROBLEM_INFORMATION, value){};
+        RequestProblemInformation() : ByteProperty(REQUEST_PROBLEM_INFORMATION) {};
+        RequestProblemInformation(uint8_t value) : ByteProperty(REQUEST_PROBLEM_INFORMATION, value) {};
     };
 
     class WillDelayInterval : public DWordProperty
     {
     public:
-        WillDelayInterval() : DWordProperty(WILL_DELAY_INTERVAL){};
-        WillDelayInterval(uint32_t value) : DWordProperty(WILL_DELAY_INTERVAL, value){};
+        WillDelayInterval() : DWordProperty(WILL_DELAY_INTERVAL) {};
+        WillDelayInterval(uint32_t value) : DWordProperty(WILL_DELAY_INTERVAL, value) {};
     };
 
     class RequestResponseInformation : public ByteProperty
     {
     public:
-        RequestResponseInformation() : ByteProperty(REQUEST_RESPONSE_INFORMATION){};
-        RequestResponseInformation(uint8_t value) : ByteProperty(REQUEST_RESPONSE_INFORMATION, value){};
+        RequestResponseInformation() : ByteProperty(REQUEST_RESPONSE_INFORMATION) {};
+        RequestResponseInformation(uint8_t value) : ByteProperty(REQUEST_RESPONSE_INFORMATION, value) {};
     };
 
     class ResponseInformation : public StringProperty
     {
     public:
-        ResponseInformation() : StringProperty(RESPONSE_INFORMATION){};
-        ResponseInformation(EncodedString value) : StringProperty(RESPONSE_INFORMATION, value){};
-        ResponseInformation(const char *value, uint32_t length) : StringProperty(RESPONSE_INFORMATION, value, length){};
+        ResponseInformation() : StringProperty(RESPONSE_INFORMATION) {};
+        ResponseInformation(EncodedString value) : StringProperty(RESPONSE_INFORMATION, value) {};
+        ResponseInformation(const char *value, uint32_t length) : StringProperty(RESPONSE_INFORMATION, value, length) {};
     };
 
     class ServerReference : public StringProperty
     {
     public:
-        ServerReference() : StringProperty(SERVER_REFERENCE){};
-        ServerReference(EncodedString value) : StringProperty(SERVER_REFERENCE, value){};
-        ServerReference(const char *value, uint32_t length) : StringProperty(SERVER_REFERENCE, value, length){};
+        ServerReference() : StringProperty(SERVER_REFERENCE) {};
+        ServerReference(EncodedString value) : StringProperty(SERVER_REFERENCE, value) {};
+        ServerReference(const char *value, uint32_t length) : StringProperty(SERVER_REFERENCE, value, length) {};
     };
 
     class ReasonString : public StringProperty
     {
     public:
-        ReasonString() : StringProperty(REASON_STRING){};
-        ReasonString(EncodedString value) : StringProperty(REASON_STRING, value){};
-        ReasonString(const char *value, uint32_t length) : StringProperty(REASON_STRING, value, length){};
+        ReasonString() : StringProperty(REASON_STRING) {};
+        ReasonString(EncodedString value) : StringProperty(REASON_STRING, value) {};
+        ReasonString(const char *value, uint32_t length) : StringProperty(REASON_STRING, value, length) {};
     };
 
     class ReceiveMaxium : public WordProperty
     {
     public:
-        ReceiveMaxium() : WordProperty(RECEIVE_MAXIMUM){};
-        ReceiveMaxium(uint16_t value) : WordProperty(RECEIVE_MAXIMUM, value){};
+        ReceiveMaxium() : WordProperty(RECEIVE_MAXIMUM) {};
+        ReceiveMaxium(uint16_t value) : WordProperty(RECEIVE_MAXIMUM, value) {};
     };
 
     class TopicAliasMaximum : public WordProperty
     {
     public:
-        TopicAliasMaximum() : WordProperty(TOPIC_ALIAS_MAXIMUM){};
-        TopicAliasMaximum(uint16_t value) : WordProperty(TOPIC_ALIAS_MAXIMUM, value){};
+        TopicAliasMaximum() : WordProperty(TOPIC_ALIAS_MAXIMUM) {};
+        TopicAliasMaximum(uint16_t value) : WordProperty(TOPIC_ALIAS_MAXIMUM, value) {};
     };
 
     class TopicAlias : public WordProperty
     {
     public:
-        TopicAlias() : WordProperty(TOPIC_ALIAS){};
-        TopicAlias(uint16_t value) : WordProperty(TOPIC_ALIAS, value){};
+        TopicAlias() : WordProperty(TOPIC_ALIAS) {};
+        TopicAlias(uint16_t value) : WordProperty(TOPIC_ALIAS, value) {};
     };
 
     class MaxiumumQoS : public ByteProperty
     {
     public:
-        MaxiumumQoS() : ByteProperty(MAXIMUM_QOS){};
-        MaxiumumQoS(uint8_t value) : ByteProperty(MAXIMUM_QOS, value){};
+        MaxiumumQoS() : ByteProperty(MAXIMUM_QOS) {};
+        MaxiumumQoS(uint8_t value) : ByteProperty(MAXIMUM_QOS, value) {};
     };
 
     class RetainAvailable : public ByteProperty
     {
     public:
-        RetainAvailable() : ByteProperty(RETAIN_AVAILABLE){};
-        RetainAvailable(uint8_t value) : ByteProperty(RETAIN_AVAILABLE, value){};
+        RetainAvailable() : ByteProperty(RETAIN_AVAILABLE) {};
+        RetainAvailable(uint8_t value) : ByteProperty(RETAIN_AVAILABLE, value) {};
     };
 
     class UserProperty : public StringPairProperty
     {
     public:
-        UserProperty() : StringPairProperty(USER_PROPERTY){};
-        UserProperty(EncodedString key, EncodedString value) : StringPairProperty(USER_PROPERTY, key, value){};
+        UserProperty() : StringPairProperty(USER_PROPERTY) {};
+        UserProperty(EncodedString key, EncodedString value) : StringPairProperty(USER_PROPERTY, key, value) {};
     };
 
     class MaximumPacketSize : public DWordProperty
     {
     public:
-        MaximumPacketSize() : DWordProperty(MAXIMUM_PACKET_SIZE){};
-        MaximumPacketSize(uint32_t value) : DWordProperty(MAXIMUM_PACKET_SIZE, value){};
+        MaximumPacketSize() : DWordProperty(MAXIMUM_PACKET_SIZE) {};
+        MaximumPacketSize(uint32_t value) : DWordProperty(MAXIMUM_PACKET_SIZE, value) {};
     };
 
     class WildcardSubscriptionAvailable : public ByteProperty
     {
     public:
-        WildcardSubscriptionAvailable() : ByteProperty(WILDCARD_SUBSCRIPTION_AVAILABLE){};
-        WildcardSubscriptionAvailable(uint8_t value) : ByteProperty(WILDCARD_SUBSCRIPTION_AVAILABLE, value){};
+        WildcardSubscriptionAvailable() : ByteProperty(WILDCARD_SUBSCRIPTION_AVAILABLE) {};
+        WildcardSubscriptionAvailable(uint8_t value) : ByteProperty(WILDCARD_SUBSCRIPTION_AVAILABLE, value) {};
     };
 
     class SubscriptionIdentifierAvailable : public ByteProperty
     {
     public:
-        SubscriptionIdentifierAvailable() : ByteProperty(SUBSCRIPTION_IDENTIFIERS_AVAILABLE){};
-        SubscriptionIdentifierAvailable(uint8_t value) : ByteProperty(SUBSCRIPTION_IDENTIFIERS_AVAILABLE, value){};
+        SubscriptionIdentifierAvailable() : ByteProperty(SUBSCRIPTION_IDENTIFIERS_AVAILABLE) {};
+        SubscriptionIdentifierAvailable(uint8_t value) : ByteProperty(SUBSCRIPTION_IDENTIFIERS_AVAILABLE, value) {};
     };
 
     class SharedSubscriptionAvailable : public ByteProperty
     {
     public:
-        SharedSubscriptionAvailable() : ByteProperty(SHARED_SUBSCRIPTION_AVAILABLE){};
-        SharedSubscriptionAvailable(uint8_t value) : ByteProperty(SHARED_SUBSCRIPTION_AVAILABLE, value){};
+        SharedSubscriptionAvailable() : ByteProperty(SHARED_SUBSCRIPTION_AVAILABLE) {};
+        SharedSubscriptionAvailable(uint8_t value) : ByteProperty(SHARED_SUBSCRIPTION_AVAILABLE, value) {};
     };
 }
-#endif /* SRC_MQTTPROPERTIES */
+#endif /* SRC_MQTT_PROPERTIES */

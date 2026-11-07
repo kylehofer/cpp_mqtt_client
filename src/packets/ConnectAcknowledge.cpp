@@ -68,9 +68,9 @@ bool ConnectAcknowledge::readFromClient(Client *client, uint32_t &read)
         switch (state)
         {
         case VARIABLE_HEADER_FIXED:
-            if (client->available() > VARIABLE_HEADER_FIXED_SIZE)
+            if (client->available() >= VARIABLE_HEADER_FIXED_SIZE)
             {
-                bytes += client->read(&(header.data), VARIABLE_HEADER_FIXED_SIZE);
+                bytes += client->read((uint8_t *)&(header.data), VARIABLE_HEADER_FIXED_SIZE);
                 state = VARIABLE_HEADER_PROPERTIES;
             }
             break;
@@ -84,9 +84,15 @@ bool ConnectAcknowledge::readFromClient(Client *client, uint32_t &read)
         }
 
         readBytes(bytes);
+
+        // No progress: wait for more data rather than spinning on a partial field
+        if (bytes == 0)
+        {
+            break;
+        }
     }
 
-    read += getRemainingLength() - start;
+    read += start - getRemainingLength();
 
     return state != COMPLETE;
 }
@@ -273,11 +279,11 @@ EncodedString ConnectAcknowledge::getAuthenticationMethod()
 
 BinaryData ConnectAcknowledge::getAuthenticationData()
 {
-    Property *property = properties.get(AUTHENTICATION_METHOD);
+    Property *property = properties.get(AUTHENTICATION_DATA);
 
     if (property != NULL)
     {
-        return ((AuthenticationMethod *)property)->getValue();
+        return ((AuthenticationData *)property)->getValue();
     }
     return BinaryData();
 }

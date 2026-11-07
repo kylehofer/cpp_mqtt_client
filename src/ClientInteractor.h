@@ -33,7 +33,7 @@
 #define CLIENTINTERACTOR
 
 #include <string.h>
-#include "Client.h"
+#include "SocketClient.h"
 #include "PacketBuffer.h"
 
 /**

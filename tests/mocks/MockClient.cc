@@ -84,6 +84,13 @@ int MockClient::read(void *buffer, size_t size)
 
 void MockClient::stop()
 {
+    stopCount++;
+    isConnected = false;
+}
+
+int MockClient::stopped()
+{
+    return stopCount;
 }
 
 uint8_t MockClient::connected()

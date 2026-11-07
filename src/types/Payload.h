@@ -34,6 +34,7 @@
 
 #include <stdint.h>
 #include "ClientInteractor.h"
+#include "CppMqttConfig.h"
 
 namespace CppMqtt
 {
@@ -48,21 +49,58 @@ namespace CppMqtt
         uint32_t length = 0;
         uint32_t bytesRead = 0;
         bool ownership = true;
+        bool truncated = false;
 
     protected:
     public:
+        /**
+         * With dynamic memory a Payload owns a copy of its bytes, except one made
+         * with wrap() or setReference().
+         *
+         * With STATIC_MEMORY a Payload never owns memory: the data constructor,
+         * copies and assignment all refer to the original bytes, which must stay
+         * valid while the Payload is used.
+         */
         Payload();
+#ifndef STATIC_MEMORY
+        /**
+         * @brief Allocates length bytes. Not available with STATIC_MEMORY.
+         */
         Payload(uint32_t length);
+#endif
         Payload(void *data, uint32_t length);
         Payload(const Payload &payload);
         ~Payload();
 
+        /**
+         * @brief A Payload that refers to data without copying or owning it
+         */
         static Payload wrap(void *data, uint32_t length);
 
         Payload &operator=(const Payload &right);
 
         uint8_t operator[](int i) const { return data[i]; }
         uint8_t &operator[](int i) { return data[i]; }
+
+        /**
+         * @brief Refers to data without copying or owning it, in either memory mode
+         */
+        void setReference(void *data, uint32_t length);
+
+#ifndef STATIC_MEMORY
+        /**
+         * @brief Replaces the contents with length newly allocated bytes, for
+         * reading into. Not available with STATIC_MEMORY.
+         */
+        void allocate(uint32_t length);
+#endif
+
+        /**
+         * @brief Whether a received payload was larger than the receive buffer
+         * (STATIC_MEMORY only) and was cut to CPP_MQTT_MAX_PAYLOAD_LENGTH bytes
+         */
+        bool wasTruncated();
+        void setTruncated(bool value);
 
         uint8_t *getData();
         void setData(void *data, uint32_t length);

@@ -33,7 +33,9 @@
 #define SRC_PACKETS_PUBLISH
 
 #include <stdint.h>
+#include "CppMqttConfig.h"
 #include "PropertiesPacket.h"
+#include "types/BigEndianInt.h"
 #include "types/Payload.h"
 #include "types/Common.h"
 
@@ -50,8 +52,15 @@ namespace CppMqtt
         uint8_t state = 0;
         EncodedString topic;
 
-        uint16_t packetIdentifier = 0;
+        BigEndianInt<uint16_t> packetIdentifier = 0;
         Payload payload;
+#ifdef STATIC_MEMORY
+        // Where a received payload is stored, provided by the PacketReader
+        uint8_t *receiveBuffer = NULL;
+        uint32_t receiveCapacity = 0;
+        // Payload bytes beyond receiveCapacity, read and dropped
+        uint32_t discardRemaining = 0;
+#endif
 
     protected:
     public:
@@ -76,10 +85,28 @@ namespace CppMqtt
         virtual bool readFromClient(Client *client, uint32_t &read) override;
         EncodedString &getTopic();
         void setTopic(const char *data, uint32_t length);
-        void setTopic(EncodedString value);
+        void setTopic(const EncodedString &value);
         Payload &getPayload();
+        /**
+         * @brief Sets the payload to send. Copies the data with dynamic memory;
+         * with STATIC_MEMORY refers to it, so it must outlive the packet.
+         */
         void setPayload(void *data, uint32_t length);
-        void setPayload(Payload value);
+        void setPayload(const Payload &value);
+
+        /**
+         * @brief Sets the payload to send without copying, in either memory mode.
+         * data must stay valid until the packet has been sent.
+         */
+        void setPayloadReference(void *data, uint32_t length);
+
+#ifdef STATIC_MEMORY
+        /**
+         * @brief Sets the memory a received payload is read into. Payload bytes
+         * beyond capacity are discarded and the payload is marked truncated.
+         */
+        void setReceiveBuffer(uint8_t *buffer, uint32_t capacity);
+#endif
         uint16_t getPacketIdentifier();
         void setPacketIdentifier(uint16_t packetIdentifier);
         void setQos(QoS value);

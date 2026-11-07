@@ -13,9 +13,6 @@ IF(${BUILD_TARGET} STREQUAL "PICO")
     pico_sdk_init()
 ENDIF()
 
-IF(NOT CPP_MQTT_DYNAMIC_MEMORY)
-    add_definitions(-DSTATIC_MEMORY)
-ENDIF()
 
 # Finding all of our source
 file(GLOB_RECURSE SOURCES ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR} "./*.cpp")
@@ -28,6 +25,17 @@ ELSEIF(CPP_MQTT_SHARED)
 ENDIF()
 
 target_include_directories(cpp_mqtt_client PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/")
+
+# The memory mode changes object layouts, so it is PUBLIC: every target that
+# links cpp_mqtt_client is compiled with the same define as the library.
+IF(NOT CPP_MQTT_DYNAMIC_MEMORY)
+    target_compile_definitions(cpp_mqtt_client PUBLIC CPP_MQTT_STATIC_MEMORY)
+ENDIF()
+
+target_link_libraries(
+    cpp_mqtt_client
+    elapsed_time
+)
 
 IF(${BUILD_TARGET} STREQUAL "PICO")
     target_link_libraries(cpp_mqtt_client

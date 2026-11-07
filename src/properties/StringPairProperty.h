@@ -35,6 +35,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "properties/Property.h"
+#include "types/EncodedString.h"
+#include "types/BinaryData.h"
 
 namespace CppMqtt
 {

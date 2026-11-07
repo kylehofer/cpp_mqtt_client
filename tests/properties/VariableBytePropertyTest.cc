@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "gtest/gtest.h"
+#include "utils/TestPacketBuffer.h"
 #include "stdint.h"
 
 #include "../mocks/MockClient.h"
@@ -58,7 +59,7 @@ TYPED_TEST_P(VariableBytePropertyTest, Encode)
         size_t bytesWritten;
 
         variableByteProperty->setValue(VariableByteInteger(data.raw));
-        PacketBuffer packetBuffer(variableByteProperty->size());
+        TestPacketBuffer packetBuffer;
         bytesWritten = variableByteProperty->push(packetBuffer);
 
         char *writeBuffer = (char *)packetBuffer.getBuffer();

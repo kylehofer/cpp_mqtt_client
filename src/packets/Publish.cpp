@@ -40,6 +40,7 @@ enum ReadingState
     VARIABLE_HEADER_IDENTIFIER,
     VARIABLE_HEADER_PROPERTIES,
     VARIABLE_HEADER_PAYLOAD,
+    PAYLOAD_DISCARD,
     COMPLETE
 };
 
@@ -114,9 +115,8 @@ bool Publish::readFromClient(Client *client, uint32_t &bytes)
             }
             break;
         case VARIABLE_HEADER_IDENTIFIER:
-            if (client->available() >= PACKET_IDENTIFIER_SIZE)
+            if (!packetIdentifier.readFromClient(client, read))
             {
-                read += client->read(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
                 state = VARIABLE_HEADER_PROPERTIES;
             }
             break;
@@ -125,21 +125,58 @@ bool Publish::readFromClient(Client *client, uint32_t &bytes)
             if (!properties.readFromClient(client, read))
             {
                 state = VARIABLE_HEADER_PAYLOAD;
-                payload = Payload(getRemainingLength() - read);
+                uint32_t payloadLength = getRemainingLength() - read;
+#ifdef STATIC_MEMORY
+                uint32_t stored = payloadLength < receiveCapacity ? payloadLength : receiveCapacity;
+                payload.setReference(receiveBuffer, stored);
+                payload.setTruncated(stored < payloadLength);
+                discardRemaining = payloadLength - stored;
+#else
+                payload.allocate(payloadLength);
+#endif
             }
             break;
         case VARIABLE_HEADER_PAYLOAD:
             if (!payload.readFromClient(client, read))
             {
+#ifdef STATIC_MEMORY
+                state = (discardRemaining > 0) ? PAYLOAD_DISCARD : COMPLETE;
+#else
                 state = COMPLETE;
+#endif
             }
             break;
+#ifdef STATIC_MEMORY
+        case PAYLOAD_DISCARD:
+        {
+            uint8_t discard[16];
+            uint32_t toRead = discardRemaining < sizeof(discard) ? discardRemaining : sizeof(discard);
+            if ((uint32_t)client->available() < toRead)
+            {
+                toRead = client->available();
+            }
+            uint32_t count = client->read(discard, toRead);
+            discardRemaining -= count;
+            read += count;
+            if (discardRemaining == 0)
+            {
+                state = COMPLETE;
+            }
+        }
+        break;
+#endif
         default:
             break;
         }
 
         readBytes(read);
         bytes += read;
+
+        // No progress: wait for more data rather than spinning on a partial field
+        if (read == 0)
+        {
+            break;
+        }
     }
 
     return dataRemaining();
@@ -173,7 +210,7 @@ size_t Publish::push(PacketBuffer &buffer)
 
     if (getQos() != +QoS::ZERO)
     {
-        written += buffer.push(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
+        written += packetIdentifier.push(buffer);
     }
 
     written += properties.push(buffer);
@@ -199,7 +236,7 @@ void Publish::setTopic(const char *data, uint32_t length)
     topic = EncodedString(data, length);
 }
 
-void Publish::setTopic(EncodedString value)
+void Publish::setTopic(const EncodedString &value)
 {
     topic = value;
 }
@@ -209,10 +246,23 @@ void Publish::setPayload(void *data, uint32_t length)
     payload = Payload(data, length);
 }
 
-void Publish::setPayload(Payload value)
+void Publish::setPayload(const Payload &value)
 {
     payload = value;
 }
+
+void Publish::setPayloadReference(void *data, uint32_t length)
+{
+    payload.setReference(data, length);
+}
+
+#ifdef STATIC_MEMORY
+void Publish::setReceiveBuffer(uint8_t *buffer, uint32_t capacity)
+{
+    receiveBuffer = buffer;
+    receiveCapacity = capacity;
+}
+#endif
 
 uint16_t Publish::getPacketIdentifier()
 {

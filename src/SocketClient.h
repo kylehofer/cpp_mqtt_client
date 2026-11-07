@@ -28,9 +28,12 @@
  *
  * HISTORY:
  */
-#ifndef CLIENT
-#define CLIENT
-
+#ifndef SRC_SOCKET_CLIENT
+#define SRC_SOCKET_CLIENT
+#if defined(ARDUINO) || defined(ESP8266) || defined(ESP32)
+#include <Arduino.h>
+#include <Client.h>
+#else
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -49,5 +52,6 @@ public:
     virtual uint8_t connected() = 0;
     virtual void sync() = 0;
 };
+#endif
 
-#endif /* CLIENT */
+#endif /* SRC_SOCKET_CLIENT */

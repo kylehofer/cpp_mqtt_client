@@ -34,7 +34,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cstdio>
-#include <stdexcept>
 
 #include "types/BufferData.h"
 
@@ -58,80 +57,75 @@ BufferData::BufferData(const char *string, uint16_t length)
 {
     state = IDLE;
 #ifdef STATIC_MEMORY
-    if (length > MAX_BUFFER_SIZE)
+    if (length > CPP_MQTT_MAX_STRING_LENGTH)
     {
-        throw std::logic_error("Required Buffer size greater than available.");
+        // Keep what fits rather than throwing; exceptions are often disabled on embedded targets
+        length = CPP_MQTT_MAX_STRING_LENGTH;
+        truncated = true;
     }
 #else
     data = (char *)malloc(length);
 #endif
-    memcpy(data, string, length);
+    if (length > 0)
+    {
+        memcpy(data, string, length);
+    }
     this->length = length;
 }
 
 BufferData::BufferData(const BufferData &source)
 {
-    state = source.state;
-#ifndef STATIC_MEMORY
-    if (data)
+    state = IDLE;
+    truncated = source.truncated;
+    length = source.length;
+#ifdef STATIC_MEMORY
+    memcpy(data, source.data, source.length);
+#else
+    if (source.data != NULL && source.length > 0)
     {
-        free(data);
-    }
-#endif
-
-    if (source.data)
-    {
-#ifndef STATIC_MEMORY
         data = (char *)malloc(source.length);
-#endif
         memcpy(data, source.data, source.length);
     }
     else
     {
-#ifndef STATIC_MEMORY
         data = NULL;
-#endif
+        length = 0;
     }
-
-    length = source.length;
+#endif
 }
 
 BufferData &BufferData::operator=(const BufferData &right)
 {
     if (&right != this)
     {
-#ifndef STATIC_MEMORY
-        if (data)
+        state = IDLE;
+        truncated = right.truncated;
+        length = right.length;
+#ifdef STATIC_MEMORY
+        memcpy(data, right.data, right.length);
+#else
+        if (data != NULL)
         {
             free(data);
+            data = NULL;
         }
-#endif
-
-        state = right.state;
-
-        if (right.data)
+        if (right.data != NULL && right.length > 0)
         {
-            length = right.length;
-#ifndef STATIC_MEMORY
             data = (char *)malloc(right.length);
-#endif
-
-            memcpy(data, right.data, length);
+            memcpy(data, right.data, right.length);
         }
         else
         {
             length = 0;
-#ifndef STATIC_MEMORY
-            data = NULL;
-#endif
         }
+#endif
     }
     return *this;
 }
 
 bool BufferData::operator==(const BufferData &right)
 {
-    return (length == right.length && memcmp(data, right.data, length));
+    return (length == right.length && (length == 0 || memcmp(data, right.data, length) == 0));
 }
 
 bool BufferData::operator!=(const BufferData &right)
@@ -172,9 +166,9 @@ bool BufferData::readFromClient(Client *client, uint32_t &read)
     if (state == IDLE)
     {
         state = LENGTH;
-#ifdef STATIC_MEMORY
-        // memset(data, 0, MAX_BUFFER_SIZE);
-#else
+        received = 0;
+        truncated = false;
+#ifndef STATIC_MEMORY
         if (data != NULL)
         {
             free(data);
@@ -183,30 +177,84 @@ bool BufferData::readFromClient(Client *client, uint32_t &read)
 #endif
     }
 
-    if (state == LENGTH && (size_t)client->available() >= STRING_LENGTH_SIZE)
+    if (state == LENGTH)
     {
-        length.readFromClient(client, read);
+        if (length.readFromClient(client, read))
+        {
+            // The two length bytes have not arrived yet
+            return true;
+        }
+
         state = DATA;
+        received = 0;
+#ifdef STATIC_MEMORY
+        // Anything beyond the fixed buffer is read and discarded
+        truncated = length > CPP_MQTT_MAX_STRING_LENGTH;
+        memset(data, 0, truncated ? CPP_MQTT_MAX_STRING_LENGTH : (uint16_t)length);
+#else
         if (length > 0)
         {
-#ifdef STATIC_MEMORY
-            if (length > MAX_BUFFER_SIZE)
-            {
-                throw std::logic_error("Required Buffer size greater than available.");
-            }
-#else
             data = (char *)malloc(length);
-#endif
             memset(data, 0, length);
         }
+#endif
     }
 
-    if (state == DATA && (size_t)client->available() >= length)
+    // Read whatever has arrived; the string may span several reads
+    while (state == DATA && received < length && client->available() > 0)
     {
-        read += client->read(data, length);
+        uint32_t toRead = length - received;
+        if ((uint32_t)client->available() < toRead)
+        {
+            toRead = client->available();
+        }
+
+        int count;
+#ifdef STATIC_MEMORY
+        if (received < CPP_MQTT_MAX_STRING_LENGTH)
+        {
+            if (toRead > (uint32_t)(CPP_MQTT_MAX_STRING_LENGTH - received))
+            {
+                toRead = CPP_MQTT_MAX_STRING_LENGTH - received;
+            }
+            count = client->read((uint8_t *)data + received, toRead);
+        }
+        else
+        {
+            uint8_t discard[16];
+            if (toRead > sizeof(discard))
+            {
+                toRead = sizeof(discard);
+            }
+            count = client->read(discard, toRead);
+        }
+#else
+        count = client->read((uint8_t *)data + received, toRead);
+#endif
+        if (count <= 0)
+        {
+            break;
+        }
+        received += count;
+        read += count;
+    }
+
+    if (state == DATA && received >= length)
+    {
+#ifdef STATIC_MEMORY
+        if (truncated)
+        {
+            length = CPP_MQTT_MAX_STRING_LENGTH;
+        }
+#endif
         state = IDLE;
         return false;
     }
 
     return true;
+}
+
+bool BufferData::wasTruncated()
+{
+    return truncated;
 }

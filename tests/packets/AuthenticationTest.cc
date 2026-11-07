@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+#include "utils/TestPacketBuffer.h"
 #include "stdint.h"
 #include <string>
 
@@ -18,7 +19,7 @@ TEST(AuthenticationTest, push)
     Client *clientPtr = (Client *)&client;
     Authentication authentication;
 
-    PacketBuffer packetBuffer(authentication.totalSize());
+    TestPacketBuffer packetBuffer;
 
     authentication.push(packetBuffer);
 

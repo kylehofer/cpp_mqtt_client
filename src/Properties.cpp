@@ -41,6 +41,7 @@ enum PropertiesReadState
     LENGTH = 0,
     IDENTIFIER,
     PROPERTY_VALUE,
+    SKIP_REMAINING,
     COMPLETE
 };
 
@@ -88,26 +89,32 @@ size_t Properties::push(PacketBuffer &buffer)
     return written;
 }
 
-void Properties::addProperty(Property *property)
+bool Properties::addProperty(Property *property)
 {
-    properties.push_back(property);
+    if (property == NULL)
+    {
+        return false;
+    }
+    if (!pushBack(properties, property))
+    {
+        destroyProperty(property);
+        return false;
+    }
+    return true;
 }
 
 bool Properties::readFromClient(Client *client, uint32_t &read)
 {
-    static VariableByteInteger propertiesLength;
-    static VariableByteInteger propertyIdentifier;
-    static Property *property;
-    static uint32_t bytesRead = 0;
-
-    while (client->available() > 0 && (state == PropertiesReadState::LENGTH || bytesRead < propertiesLength.value))
+    while (client->available() > 0 && (state == PropertiesReadState::LENGTH || readCount < readLength.value))
     {
+        const uint32_t progress = readCount + read;
+
         switch (state)
         {
         case PropertiesReadState::LENGTH:
-            if (!propertiesLength.readFromClient(client, read))
+            if (!readLength.readFromClient(client, read))
             {
-                bytesRead = 0;
+                readCount = 0;
                 state = PropertiesReadState::IDENTIFIER;
                 // break;b
             }
@@ -115,37 +122,61 @@ bool Properties::readFromClient(Client *client, uint32_t &read)
         case PropertiesReadState::IDENTIFIER:
             while (client->available() > 0)
             {
-                if (!propertyIdentifier.readFromClient(client, bytesRead))
+                if (!readIdentifier.readFromClient(client, readCount))
                 {
 
-                    state = PropertiesReadState::PROPERTY_VALUE;
-                    property = constructPropertyFromId(static_cast<PropertyCodes>(propertyIdentifier.value));
+                    readProperty = constructPropertyFromId(static_cast<PropertyCodes>(readIdentifier.value));
+                    readIdentifier.value = 0;
+                    // An unknown identifier means the value length is unknown, so the
+                    // rest of the properties block is skipped instead of dereferencing NULL
+                    state = (readProperty != NULL) ? PropertiesReadState::PROPERTY_VALUE : PropertiesReadState::SKIP_REMAINING;
                     break;
                 }
             }
             break;
         case PropertiesReadState::PROPERTY_VALUE:
-            if (!property->readFromClient(client, bytesRead))
+            if (!readProperty->readFromClient(client, readCount))
             {
-                addProperty(property);
-                propertyIdentifier.value = 0;
-                if (bytesRead < propertiesLength.value)
+                addProperty(readProperty);
+                readProperty = NULL;
+                if (readCount < readLength.value)
                 {
                     state = PropertiesReadState::IDENTIFIER;
                 }
             }
             break;
+        case PropertiesReadState::SKIP_REMAINING:
+        {
+            uint8_t discard[16];
+            uint32_t toRead = readLength.value - readCount;
+            if (toRead > sizeof(discard))
+            {
+                toRead = sizeof(discard);
+            }
+            if ((uint32_t)client->available() < toRead)
+            {
+                toRead = client->available();
+            }
+            readCount += client->read(discard, toRead);
+        }
+        break;
         default:
+            break;
+        }
+
+        // No progress: wait for more data rather than spinning on a partial property
+        if (readCount + read == progress)
+        {
             break;
         }
     }
 
-    if (bytesRead >= propertiesLength.value)
+    if (readCount >= readLength.value)
     {
-        read += bytesRead;
+        read += readCount;
         state = PropertiesReadState::LENGTH;
-        bytesRead = 0;
-        propertiesLength.value = 0;
+        readCount = 0;
+        readLength.value = 0;
         return false;
     }
     return true;
@@ -156,59 +187,59 @@ Property *Properties::constructPropertyFromId(PropertyCodes identifier)
     switch (identifier)
     {
     case PAYLOAD_FORMAT_INDICATOR:
-        return (Property *)new PayloadFormatIndicatorProperty();
+        return createProperty<PayloadFormatIndicatorProperty>();
     case MESSAGE_EXPIRY_INTERVAL:
-        return (Property *)new MessageExpiryIntervalProperty();
+        return createProperty<MessageExpiryIntervalProperty>();
     case CONTENT_TYPE:
-        return (Property *)new ContentTypeProperty();
+        return createProperty<ContentTypeProperty>();
     case RESPONSE_TOPIC:
-        return (Property *)new ResponseTopic();
+        return createProperty<ResponseTopic>();
     case CORRELATION_DATA:
-        return (Property *)new CorrelationData();
+        return createProperty<CorrelationData>();
     case SUBSCRIPTION_IDENTIFIER:
-        return (Property *)new SubscriptionIdentifier();
+        return createProperty<SubscriptionIdentifier>();
     case SESSION_EXPIRY_INTERVAL:
-        return (Property *)new SessionExpiryInterval();
+        return createProperty<SessionExpiryInterval>();
     case ASSIGNED_CLIENT_IDENTIFER:
-        return (Property *)new AssignedClientIdentifier();
+        return createProperty<AssignedClientIdentifier>();
     case SERVER_KEEP_ALIVE:
-        return (Property *)new ServerKeepAlive();
+        return createProperty<ServerKeepAlive>();
     case AUTHENTICATION_METHOD:
-        return (Property *)new AuthenticationMethod();
+        return createProperty<AuthenticationMethod>();
     case AUTHENTICATION_DATA:
-        return (Property *)new AuthenticationData();
+        return createProperty<AuthenticationData>();
     case REQUEST_PROBLEM_INFORMATION:
-        return (Property *)new RequestProblemInformation();
+        return createProperty<RequestProblemInformation>();
     case WILL_DELAY_INTERVAL:
-        return (Property *)new WillDelayInterval();
+        return createProperty<WillDelayInterval>();
     case REQUEST_RESPONSE_INFORMATION:
-        return (Property *)new RequestResponseInformation();
+        return createProperty<RequestResponseInformation>();
     case RESPONSE_INFORMATION:
-        return (Property *)new ResponseInformation();
+        return createProperty<ResponseInformation>();
     case SERVER_REFERENCE:
-        return (Property *)new ServerReference();
+        return createProperty<ServerReference>();
     case REASON_STRING:
-        return (Property *)new ReasonString();
+        return createProperty<ReasonString>();
     case RECEIVE_MAXIMUM:
-        return (Property *)new ReceiveMaxium();
+        return createProperty<ReceiveMaxium>();
     case TOPIC_ALIAS_MAXIMUM:
-        return (Property *)new TopicAliasMaximum();
+        return createProperty<TopicAliasMaximum>();
     case TOPIC_ALIAS:
-        return (Property *)new TopicAlias();
+        return createProperty<TopicAlias>();
     case MAXIMUM_QOS:
-        return (Property *)new MaxiumumQoS();
+        return createProperty<MaxiumumQoS>();
     case RETAIN_AVAILABLE:
-        return (Property *)new RetainAvailable();
+        return createProperty<RetainAvailable>();
     case USER_PROPERTY:
-        return (Property *)new UserProperty();
+        return createProperty<UserProperty>();
     case MAXIMUM_PACKET_SIZE:
-        return (Property *)new MaximumPacketSize();
+        return createProperty<MaximumPacketSize>();
     case WILDCARD_SUBSCRIPTION_AVAILABLE:
-        return (Property *)new WildcardSubscriptionAvailable();
+        return createProperty<WildcardSubscriptionAvailable>();
     case SUBSCRIPTION_IDENTIFIERS_AVAILABLE:
-        return (Property *)new SubscriptionIdentifierAvailable();
+        return createProperty<SubscriptionIdentifierAvailable>();
     case SHARED_SUBSCRIPTION_AVAILABLE:
-        return (Property *)new SharedSubscriptionAvailable();
+        return createProperty<SharedSubscriptionAvailable>();
     default:
         break;
     }
@@ -225,9 +256,17 @@ Properties::Properties(__attribute__((unused)) uint32_t count)
 
 void Properties::clear()
 {
+    // Discard any partially read property and reset the parse state
+    destroyProperty(readProperty);
+    readProperty = NULL;
+    readLength.value = 0;
+    readIdentifier.value = 0;
+    readCount = 0;
+    state = 0;
+
     for (auto &property : properties)
     {
-        delete property;
+        destroyProperty(property);
     };
 
     properties.clear();
@@ -245,11 +284,14 @@ bool Properties::has(PropertyCodes identifier)
 
 Property *Properties::get(PropertyCodes identifier)
 {
-    auto result = ranges::find_if(properties.begin(), properties.end(),
-                                  [identifier](Property *property)
-                                  { return property->getIdentifier() == identifier; });
-
-    return (result != properties.end()) ? *result : NULL;
+    for (auto &property : properties)
+    {
+        if (property->getIdentifier() == identifier)
+        {
+            return property;
+        }
+    }
+    return NULL;
 }
 
 // // void Properties::each(PropertyCodes identifier, void (*callback)(T *))
@@ -269,14 +311,13 @@ Property *Properties::get(PropertyCodes identifier)
 // }
 void Properties::each(bool (*filter)(Property *), void (*callback)(Property *))
 {
-
-    auto result = properties.begin();
-    auto end = properties.end();
-
-    while (end != (result = ranges::find_if(result, end, filter)))
+    for (auto &property : properties)
     {
-        callback(*result);
-    };
+        if (filter(property))
+        {
+            callback(property);
+        }
+    }
 }
 
 // for (auto property : properties)

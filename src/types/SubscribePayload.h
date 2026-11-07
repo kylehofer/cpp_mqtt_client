@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "types/SubscriptionPayload.h"
 #include "types/Common.h"
+#include "types/Endian.h"
 #include "utils/enum.h"
 
 namespace CppMqtt
@@ -14,7 +15,7 @@ namespace CppMqtt
 
         struct
         {
-#if ((BYTE_ORDER == BIG_ENDIAN && !defined(FORCE_LITTLE_ENDIAN)) || defined(FORCE_BIG_ENDIAN))
+#if CPP_MQTT_BIG_ENDIAN
             unsigned char reserved : 2;
             unsigned char retainHandling : 2;
             unsigned char retainAsPublished : 1;

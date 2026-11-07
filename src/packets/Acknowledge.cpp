@@ -64,7 +64,7 @@ size_t Acknowledge::push(PacketBuffer &buffer)
     // Fixed Header
     size_t written = Packet::push(buffer);
 
-    written += buffer.push(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
+    written += packetIdentifier.push(buffer);
 
     if (bytes > (PACKET_IDENTIFIER_SIZE + REASON_CODE_SIZE))
     {
@@ -95,9 +95,8 @@ bool Acknowledge::readFromClient(Client *client, uint32_t &bytes)
         switch (state)
         {
         case IDENTIFIER:
-            if (client->available() >= PACKET_IDENTIFIER_SIZE)
+            if (!packetIdentifier.readFromClient(client, read))
             {
-                read += client->read(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
                 state = REASON_CODE;
             }
             break;
@@ -118,9 +117,15 @@ bool Acknowledge::readFromClient(Client *client, uint32_t &bytes)
         }
 
         readBytes(read);
+
+        // No progress: wait for more data rather than spinning on a partial field
+        if (read == 0)
+        {
+            break;
+        }
     }
 
-    bytes += getRemainingLength() - start;
+    bytes += start - getRemainingLength();
 
     if (!dataRemaining())
     {

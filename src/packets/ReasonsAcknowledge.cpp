@@ -67,9 +67,8 @@ bool ReasonsAcknowledge::readFromClient(Client *client, uint32_t &bytes)
         switch (state)
         {
         case IDENTIFIER:
-            if (client->available() >= PACKET_IDENTIFIER_SIZE)
+            if (!packetIdentifier.readFromClient(client, read))
             {
-                read += client->read(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
                 state = PROPERTIES;
             }
             break;
@@ -83,16 +82,22 @@ bool ReasonsAcknowledge::readFromClient(Client *client, uint32_t &bytes)
         {
             uint8_t reasonCode = 0;
             read += client->read(&reasonCode, REASON_CODE_SIZE);
-            reasonCodes.push_back(reasonCode);
+            pushBack(reasonCodes, reasonCode);
         }
         default:
             break;
         }
 
         readBytes(read);
+
+        // No progress: wait for more data rather than spinning on a partial field
+        if (read == 0)
+        {
+            break;
+        }
     }
 
-    bytes += getRemainingLength() - start;
+    bytes += start - getRemainingLength();
 
     if (!dataRemaining())
     {
@@ -107,7 +112,7 @@ size_t ReasonsAcknowledge::size()
     return PACKET_IDENTIFIER_SIZE + properties.totalSize() + reasonCodes.size();
 }
 
-vector<uint8_t> ReasonsAcknowledge::getReasonCodes()
+ReasonCodes ReasonsAcknowledge::getReasonCodes()
 {
     return reasonCodes;
 }

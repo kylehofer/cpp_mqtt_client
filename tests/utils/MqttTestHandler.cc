@@ -32,12 +32,12 @@ namespace CppMqtt
         deliveryFailureQueue.push({token, reasonCode});
     }
 
-    void MqttTestHandler::onSubscribeResult(Token token, vector<uint8_t> reasonCodes)
+    void MqttTestHandler::onSubscribeResult(Token token, ReasonCodes reasonCodes)
     {
         subscribeResult[token] = reasonCodes;
     }
 
-    void MqttTestHandler::onUnsubscribeResult(Token token, vector<uint8_t> reasonCodes)
+    void MqttTestHandler::onUnsubscribeResult(Token token, ReasonCodes reasonCodes)
     {
         unsubscribeResult[token] = reasonCodes;
     }

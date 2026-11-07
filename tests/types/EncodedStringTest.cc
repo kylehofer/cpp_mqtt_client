@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "gtest/gtest.h"
+#include "utils/TestPacketBuffer.h"
 #include "stdint.h"
 #include <string>
 
@@ -65,7 +66,7 @@ TEST(EncodedStringTest, EncodeDecode)
             ASSERT_EQ(decodedString.data[i], testData.expected[i]) << "Buffers are incorrect at index " << i;
         }
 
-        PacketBuffer packetBuffer(decodedString.size());
+        TestPacketBuffer packetBuffer;
         uint32_t length = decodedString.push(packetBuffer);
 
         char *writeBuffer = (char *)packetBuffer.getBuffer();
@@ -121,14 +122,23 @@ TEST(EncodedStringTest, PartialDecoding)
 
     client.pushToReadBuffer((void *)"A fairly large string but not large enough", 42);
 
-    decodedString.readFromClient(clientPtr, bytesRead);
+    // Partial data is stored as it arrives, so a string larger than the
+    // socket's receive buffer can still be read
+    ASSERT_TRUE(decodedString.readFromClient(clientPtr, bytesRead));
+    ASSERT_EQ(client.available(), 0);
 
     ASSERT_EQ(decodedString.size(), 51);
     ASSERT_NE(decodedString.data, nullptr);
 
-    for (size_t i = 0; i < LARGE_SIZE; i++)
+    const char *partialValue = "A fairly large string but not large enough";
+
+    for (size_t i = 0; i < 42; i++)
     {
-        ASSERT_EQ(decodedString.data[i], '\0');
+        ASSERT_EQ(decodedString.data[i], partialValue[i]) << "at position " << i;
+    }
+    for (size_t i = 42; i < LARGE_SIZE; i++)
+    {
+        ASSERT_EQ(decodedString.data[i], '\0') << "at position " << i;
     }
 
     client.pushToReadBuffer((void *)", but this should finish off the string", 40);

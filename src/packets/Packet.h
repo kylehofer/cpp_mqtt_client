@@ -35,7 +35,7 @@
 #include <stdint.h>
 #include "types/VariableByteInteger.h"
 #include "types/EncodedString.h"
-#include "Client.h"
+#include "SocketClient.h"
 #include "ClientInteractor.h"
 #include "utils/enum.h"
 

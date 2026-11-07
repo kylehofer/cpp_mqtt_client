@@ -16,9 +16,20 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
 IF(${BUILD_TARGET} STREQUAL "PICO")
+    # set(PICO_SDK_FETCH_FROM_GIT ON)
     add_definitions(-DPICO)
     include(pico_sdk_import.cmake)
 ENDIF()
+
+CPMAddPackage(
+        elapsed_time
+        GIT_REPOSITORY git@github.com:kylehofer/elapsed_time.git
+        GIT_TAG main
+        OPTIONS
+        "ELAPSED_TIME_STATIC ON"
+    )
+
+# 
 
 project(cpp_mqtt C CXX ASM)
 

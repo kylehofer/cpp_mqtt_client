@@ -32,6 +32,7 @@
 #ifndef SRC_MQTTCLIENT
 #define SRC_MQTTCLIENT
 
+#include "CppMqttConfig.h"
 #include "properties/WillProperties.h"
 #include "types/SubscribePayload.h"
 #include "types/UnsubscribePayload.h"
@@ -41,12 +42,14 @@
 #include "packets/Packet.h"
 #include "packets/ConnectAcknowledge.h"
 #include "packets/Disconnect.h"
-#include <functional>
-#include <map>
-#include "Client.h"
+#include <type_traits>
+#include "SocketClient.h"
+#include "TransmitBuffer.h"
 #include "packets/PacketUtility.h"
 #include "types/Common.h"
 #include "utils/enum.h"
+
+#include <ElapsedTime.h>
 
 #ifdef __linux__
 #include <iostream>
@@ -57,12 +60,12 @@
 #include "pico/stdlib.h"
 #endif
 
-using namespace std;
 
 namespace CppMqtt
 {
     typedef uint16_t Token;
-    typedef function<void(Packet *)> packetResponse;
+    // Returned by publish() on failure. MQTT never uses 0 as a Packet Identifier.
+    constexpr Token PUBLISH_FAILED = 0;
 
     BETTER_ENUM(ConnectionState, uint8_t,
                 DISCONNECTED,
@@ -82,20 +85,16 @@ namespace CppMqtt
         virtual void onMessage(EncodedString &topic, Payload &payload) = 0;
         virtual void onDeliveryComplete(Token token) = 0;
         virtual void onDeliveryFailure(Token token, int reasonCode) = 0;
-        virtual void onSubscribeResult(Token token, vector<uint8_t> reasonCodes) = 0;
-        virtual void onUnsubscribeResult(Token token, vector<uint8_t> reasonCodes) = 0;
+        virtual void onSubscribeResult(Token token, ReasonCodes reasonCodes) = 0;
+        virtual void onUnsubscribeResult(Token token, ReasonCodes reasonCodes) = 0;
     };
 
     class MqttClient
     {
     private:
-        WillProperties *willProperties;
+        WillProperties *willProperties = NULL;
         Connect connectPacket;
         bool awaitingPingResponse = false;
-        map<Token, Publish *> publishQueue;
-        // Original idea was to use a hashmap of responses to packets.
-        // However hard coded responses would be more practical
-        map<uint8_t, packetResponse> responses;
         ConnectionState connectionState = ConnectionState::DISCONNECTED;
         ConnectionState clientState = ConnectionState::DISCONNECTED;
 
@@ -121,31 +120,41 @@ namespace CppMqtt
 
         int32_t autoReconnect = -1;
 
+#ifdef STATIC_MEMORY
+        char address[CPP_MQTT_MAX_ADDRESS_LENGTH + 1] = {0};
+#else
         char *address = nullptr;
+#endif
         int port = -1;
         uint32_t connectTimeout = -1;
         uint32_t reconnectTimer = 0;
         bool attemptingReconnect = false;
 
-#if defined(PICO)
-        uint64_t lastExecutionTime = 0;
-#elif defined(ARDUINO)
-        uint32_t lastExecutionTime = 0;
-#elif defined(__linux__)
-        std::chrono::_V2::system_clock::time_point lastExecutionTime;
-#endif
-        vector<uint16_t> qosZeroFailed;
-        vector<uint16_t> qosZeroSuccess;
-        vector<uint16_t> clientTokens;
-        vector<uint16_t> serverTokens;
+        ElapsedTime elapsedTime;
 
-        template <typename... T>
-        void addSubscribePayload(Subscribe &packet, SubscribePayload &payload, T &...args);
+        // Parse state for packets arriving on this connection
+        PacketReader reader;
+
+        Vector<uint16_t, CPP_MQTT_MAX_INFLIGHT> qosZeroFailed;
+        Vector<uint16_t, CPP_MQTT_MAX_INFLIGHT> qosZeroSuccess;
+        Vector<uint16_t, CPP_MQTT_MAX_INFLIGHT> clientTokens;
+        // Packet Identifiers of received QoS 2 publishes awaiting a PUBREL.
+        // The message is delivered on PUBLISH; the identifier is kept only to
+        // suppress duplicate delivery until the PUBREL arrives.
+        Vector<uint16_t, CPP_MQTT_MAX_INFLIGHT> serverTokens;
+
         void addSubscribePayload(Subscribe &packet, SubscribePayload &payload);
-
-        template <typename... T>
-        void addUnsubscribePayload(Unsubscribe &packet, UnsubscribePayload &payload, T &...args);
         void addUnsubscribePayload(Unsubscribe &packet, UnsubscribePayload &payload);
+
+        /**
+         * @brief Assigns a packet identifier to a SUBSCRIBE or UNSUBSCRIBE and sends it
+         *
+         * @return int The packet identifier used as the token
+         */
+        int sendSubscription(Subscription &packet);
+
+        // When set, packets are encoded straight into the network client's memory
+        TransmitBuffer *transmitBuffer = NULL;
 
         void addSubscriptionPayload(Subscription *packet, SubscriptionPayload *payload);
 
@@ -197,8 +206,11 @@ namespace CppMqtt
          * @brief Sends a packet through the client
          *
          * @param packet
+         * @param reserve With a TransmitBuffer, bytes that must stay free after this
+         * packet; the packet is not sent if they would not
+         * @return int The packet's length, or -1 if it was not sent
          */
-        int sendPacket(Packet *packet);
+        int sendPacket(Packet *packet, size_t reserve = 0);
 
         /**
          * @brief Updates the keep alive period timers
@@ -209,29 +221,99 @@ namespace CppMqtt
         void updateKeepAlivePeriod(uint32_t timeElapsed);
 
         void setConnectionState(ConnectionState state);
+
+        /**
+         * @brief With STATIC_MEMORY, tells the broker the client's fixed limits in
+         * the CONNECT packet so it never sends more than the buffers can hold
+         */
+        void applyStaticLimits();
         void setClientConnectionState(ConnectionState state);
 
     protected:
-        Client *client;
+        Client *client = NULL;
         /**
          * @brief Return the elapsed time since the last call
          *
          * @return uint32_t elapsed time in milliseconds
          */
-        uint32_t getElapsed();
-
-        template <typename CommunicationClient>
-        MqttClient();
+        // Virtual so tests can supply a controlled clock (see MockMqttClient)
+        virtual uint32_t getElapsed();
 
     public:
         MqttClient();
         MqttClient(Client *client);
+
+        /**
+         * @brief A client whose packets are encoded straight into the network
+         * client's transmit buffer (often the same object as client)
+         */
+        MqttClient(Client *client, TransmitBuffer *transmitBuffer);
+
+        /**
+         * @brief Encodes packets straight into the network client's memory instead
+         * of calling Client::write(). NULL returns to Client::write().
+         */
+        void setTransmitBuffer(TransmitBuffer *transmitBuffer);
         ~MqttClient();
+
+        // Not copyable: it owns a connection's parse state and packet storage.
+        // Construct it in place (for example with emplace()) instead.
+        MqttClient(const MqttClient &) = delete;
+        MqttClient &operator=(const MqttClient &) = delete;
         int setWill(WillProperties *);
         int connect(const char *address, int port, uint32_t connectTimeout);
         int disconnect(ReasonCode reasonCode);
-        int subscribe(SubscribePayload &payload...);
-        int unsubscribe(UnsubscribePayload &payload...);
+        /**
+         * @brief Subscribes to one or more topics in a single SUBSCRIBE packet
+         *
+         * @param payload The first topic and its options
+         * @param others Further SubscribePayloads to include in the same packet
+         * @return int The token for the subscription, or -1 if not connected
+         */
+        template <typename... T>
+        int subscribe(SubscribePayload &payload, T &...others)
+        {
+            static_assert((std::is_base_of_v<SubscribePayload, T> && ...),
+                          "subscribe() only takes SubscribePayload arguments");
+#ifdef STATIC_MEMORY
+            static_assert(sizeof...(T) + 1 <= CPP_MQTT_MAX_SUBSCRIPTIONS,
+                          "More topics than CPP_MQTT_MAX_SUBSCRIPTIONS in one packet");
+#endif
+            if (!connected())
+            {
+                return -1;
+            }
+            Subscribe packet;
+            addSubscribePayload(packet, payload);
+            (addSubscribePayload(packet, others), ...);
+            return sendSubscription(packet);
+        }
+
+        /**
+         * @brief Unsubscribes from one or more topics in a single UNSUBSCRIBE packet
+         *
+         * @param payload The first topic
+         * @param others Further UnsubscribePayloads to include in the same packet
+         * @return int The token for the unsubscription, or -1 if not connected
+         */
+        template <typename... T>
+        int unsubscribe(UnsubscribePayload &payload, T &...others)
+        {
+            static_assert((std::is_base_of_v<UnsubscribePayload, T> && ...),
+                          "unsubscribe() only takes UnsubscribePayload arguments");
+#ifdef STATIC_MEMORY
+            static_assert(sizeof...(T) + 1 <= CPP_MQTT_MAX_SUBSCRIPTIONS,
+                          "More topics than CPP_MQTT_MAX_SUBSCRIPTIONS in one packet");
+#endif
+            if (!connected())
+            {
+                return -1;
+            }
+            Unsubscribe packet;
+            addUnsubscribePayload(packet, payload);
+            (addUnsubscribePayload(packet, others), ...);
+            return sendSubscription(packet);
+        }
         void sync();
         void setCleanStart(bool value);
         void setMaxInflightMessages();
@@ -279,7 +361,8 @@ namespace CppMqtt
          * @param topic The topic to publish the payload with
          * @param payload The payload to publish
          * @param qos The QOS of the payload to publish
-         * @return uint16_t The unique token used to identify a publish packet
+         * @return uint16_t The unique token used to identify a publish packet, or
+         * PUBLISH_FAILED (0) if the packet could not be sent. 0 is never a valid token.
          */
         uint16_t publish(EncodedString &topic, Payload &payload, QoS qos, bool retain = false);
 

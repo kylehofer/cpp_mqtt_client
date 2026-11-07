@@ -3,6 +3,7 @@
 #include <tuple>
 #include <vector>
 #include "gtest/gtest.h"
+#include "utils/TestPacketBuffer.h"
 #include "stdint.h"
 
 #include "../mocks/MockClient.h"
@@ -58,7 +59,7 @@ TEST_P(VariableByteIntegerTest, EncodeDecode)
     EXPECT_EQ(decodeInteger.value, testData.expected);
     EXPECT_EQ(decodeInteger.size(), testData.length);
 
-    PacketBuffer packetBuffer(decodeInteger.size());
+    TestPacketBuffer packetBuffer;
     uint32_t length = decodeInteger.push(packetBuffer);
 
     char *writeBuffer = (char *)packetBuffer.getBuffer();

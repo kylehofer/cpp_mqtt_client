@@ -38,14 +38,31 @@
 #include "types/VariableByteInteger.h"
 #include "types/EncodedString.h"
 #include "types/BinaryData.h"
+#include "types/BigEndianInt.h"
+#include "types/Endian.h"
 
 namespace CppMqtt
 {
+// Connect Flags byte followed by the 16 bit Keep Alive
 #define CONNECT_FLAGS_SIZE 3
+    /**
+     * @brief The single Connect Flags byte of the Connect variable header.
+     * The Keep Alive is held separately so it is encoded in network byte order
+     * and so this union is exactly one byte with no padding.
+     */
     typedef union
     {
         struct
         {
+#if CPP_MQTT_BIG_ENDIAN
+            unsigned char username : 1;
+            unsigned char password : 1;
+            unsigned char willretain : 1;
+            unsigned char willqos : 2;
+            unsigned char will : 1;
+            unsigned char clean : 1;
+            unsigned char reserved : 1;
+#else
             unsigned char reserved : 1;
             unsigned char clean : 1;
             unsigned char will : 1;
@@ -53,10 +70,11 @@ namespace CppMqtt
             unsigned char willretain : 1;
             unsigned char password : 1;
             unsigned char username : 1;
-            uint16_t keepAliveInterval = 0;
+#endif
         };
-        uint8_t data[CONNECT_FLAGS_SIZE];
+        uint8_t data;
     } ConnectFlags;
+    static_assert(sizeof(ConnectFlags) == 1, "ConnectFlags must be a single byte");
 
     /**
      * @brief Represents a MQTT 5 Connect Packet
@@ -67,11 +85,12 @@ namespace CppMqtt
     private:
         uint8_t state = 0;
         ConnectFlags connectFlags;
+        BigEndianInt<uint16_t> keepAliveInterval = 0;
 
         EncodedString clientIdentifier;
         WillProperties *willProperties = NULL;
-        EncodedString *userName;
-        BinaryData *password;
+        EncodedString *userName = NULL;
+        BinaryData *password = NULL;
 
     protected:
     public:

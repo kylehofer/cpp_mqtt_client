@@ -33,6 +33,7 @@
 #define SRC_TYPES_BUFFERDATA
 
 #include "ClientInteractor.h"
+#include "CppMqttConfig.h"
 #include "types/BigEndianInt.h"
 
 namespace CppMqtt
@@ -44,12 +45,14 @@ namespace CppMqtt
     class BufferData : ClientInteractor
     {
         uint16_t state;
+        // Bytes of the string received so far while reading from a client
+        uint16_t received = 0;
+        bool truncated = false;
 
     public:
         BigEndianInt<uint16_t> length = 0;
 #ifdef STATIC_MEMORY
-#define MAX_BUFFER_SIZE 512
-        char data[MAX_BUFFER_SIZE];
+        char data[CPP_MQTT_MAX_STRING_LENGTH];
 #else
         char *data = NULL;
 #endif
@@ -73,6 +76,12 @@ namespace CppMqtt
          */
         virtual size_t push(PacketBuffer &buffer) override;
         size_t size();
+
+        /**
+         * @brief Whether the data was longer than the fixed buffer (STATIC_MEMORY only)
+         * and was cut to CPP_MQTT_MAX_STRING_LENGTH bytes. Always false with dynamic memory.
+         */
+        bool wasTruncated();
 
         /**
          * @brief Reads data from a client which will then be used to fill in the raw Buffer

@@ -82,7 +82,7 @@ bool Disconnect::readFromClient(Client *client, uint32_t &bytes)
             if (client->available() >= REASON_CODE_SIZE)
             {
                 read += client->read(&reasonCode, REASON_CODE_SIZE);
-                state = REASON_CODE;
+                state = PROPERTIES;
             }
             break;
         case PROPERTIES:
@@ -96,10 +96,21 @@ bool Disconnect::readFromClient(Client *client, uint32_t &bytes)
         }
 
         readBytes(read);
+
+        // No progress: wait for more data rather than spinning on a partial field
+        if (read == 0)
+        {
+            break;
+        }
     }
 
-    bytes += getRemainingLength() - start;
-    return state == COMPLETE;
+    if (!dataRemaining())
+    {
+        state = COMPLETE;
+    }
+
+    bytes += start - getRemainingLength();
+    return state != COMPLETE;
 }
 
 size_t Disconnect::size()

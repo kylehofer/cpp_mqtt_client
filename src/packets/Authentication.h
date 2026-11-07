@@ -74,6 +74,7 @@ namespace CppMqtt
          * @return size_t
          */
         size_t size();
+        uint8_t getReasonCode();
         /**
          * @brief Validates the packet to the MQTT 5 standards
          *

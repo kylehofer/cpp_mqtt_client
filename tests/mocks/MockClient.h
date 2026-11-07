@@ -1,7 +1,7 @@
 #ifndef TESTS_MOCKS_MOCKCLIENT
 #define TESTS_MOCKS_MOCKCLIENT
 
-#include "Client.h"
+#include "SocketClient.h"
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -15,9 +15,10 @@ private:
     size_t readCount = 0;
     size_t writeCount = 0;
     bool isConnected = false;
+    int stopCount = 0;
 
 public:
-    MockClient(){};
+    MockClient() {};
     ~MockClient()
     {
         if (readBuffer)
@@ -37,6 +38,8 @@ public:
     int available();
     int read(void *buffer, size_t size);
     void stop();
+    // Number of times stop() has been called
+    int stopped();
     uint8_t connected();
 
     bool resizeReadBuffer(size_t);

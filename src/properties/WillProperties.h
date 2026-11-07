@@ -14,7 +14,7 @@ namespace CppMqtt
         EncodedString topic;
         BinaryData payload;
         QoS qos = QoS::ZERO;
-        bool retain;
+        bool retain = false;
         /**
          * @brief Set the Payload Format Indicator
          * 0 (0x00) Byte Indicates that the Will Message is unspecified bytes

@@ -2,7 +2,7 @@
 #define TESTTCPCLIENT
 
 #include "stdint.h"
-#include "Client.h"
+#include "SocketClient.h"
 
 using namespace std;
 
@@ -43,8 +43,8 @@ private:
     int open(int port);
 
 public:
-    TestTcpClient() : port(0){};
-    TestTcpClient(int port) : port(port){};
+    TestTcpClient() : port(0) {};
+    TestTcpClient(int port) : port(port) {};
     ~TestTcpClient();
 
     void flush();

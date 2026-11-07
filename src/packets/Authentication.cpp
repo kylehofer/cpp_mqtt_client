@@ -81,7 +81,7 @@ bool Authentication::readFromClient(Client *client, uint32_t &bytes)
             if (client->available() >= REASON_CODE_SIZE)
             {
                 read += client->read(&reasonCode, REASON_CODE_SIZE);
-                state = REASON_CODE;
+                state = PROPERTIES;
             }
             break;
         case PROPERTIES:
@@ -95,10 +95,21 @@ bool Authentication::readFromClient(Client *client, uint32_t &bytes)
         }
 
         readBytes(read);
+
+        // No progress: wait for more data rather than spinning on a partial field
+        if (read == 0)
+        {
+            break;
+        }
     }
 
-    bytes += getRemainingLength() - start;
-    return state == COMPLETE;
+    if (!dataRemaining())
+    {
+        state = COMPLETE;
+    }
+
+    bytes += start - getRemainingLength();
+    return state != COMPLETE;
 }
 
 size_t Authentication::size()
@@ -109,4 +120,9 @@ size_t Authentication::size()
 bool Authentication::validate()
 {
     return true;
+}
+
+uint8_t Authentication::getReasonCode()
+{
+    return reasonCode;
 }

@@ -38,9 +38,42 @@ Payload::Payload()
 {
 }
 
+#ifdef STATIC_MEMORY
+/*
+ * With STATIC_MEMORY a Payload never owns memory. Constructing from data,
+ * copying and assigning all refer to the same bytes, which must stay valid for
+ * as long as the Payload is used.
+ */
 Payload::Payload(const Payload &payload)
+    : data(payload.data), length(payload.length), ownership(false), truncated(payload.truncated)
 {
-    if (payload.data)
+}
+
+Payload::Payload(void *data, uint32_t length) : data((uint8_t *)data), length(length), ownership(false)
+{
+}
+
+Payload &Payload::operator=(const Payload &right)
+{
+    if (&right != this)
+    {
+        data = right.data;
+        length = right.length;
+        ownership = false;
+        truncated = right.truncated;
+        bytesRead = 0;
+    }
+    return *this;
+}
+
+void Payload::setData(void *data, uint32_t length)
+{
+    setReference(data, length);
+}
+#else
+Payload::Payload(const Payload &payload) : truncated(payload.truncated)
+{
+    if (payload.data && payload.length > 0)
     {
         length = payload.length;
         data = (uint8_t *)malloc(payload.length);
@@ -61,36 +94,28 @@ Payload::Payload(uint32_t length)
 
 Payload::Payload(void *data, uint32_t length) : Payload(length)
 {
-    memcpy(this->data, data, length);
-}
-
-Payload::~Payload()
-{
-    if (data && ownership)
+    if (length > 0)
     {
-        free(data);
+        memcpy(this->data, data, length);
     }
-}
-
-Payload Payload::wrap(void *data, uint32_t length)
-{
-    Payload payload;
-    payload.data = (uint8_t *)data;
-    payload.length = length;
-    payload.ownership = false;
-    return payload;
 }
 
 Payload &Payload::operator=(const Payload &right)
 {
     if (&right != this)
     {
-        if (data)
+        // Memory from wrap() belongs to the caller and must not be freed here
+        if (data && ownership)
         {
             free(data);
         }
 
-        if (right.data)
+        // The copy always owns its own buffer and starts a fresh read
+        ownership = true;
+        bytesRead = 0;
+        truncated = right.truncated;
+
+        if (right.data && right.length > 0)
         {
             length = right.length;
             data = (uint8_t *)malloc(right.length);
@@ -105,6 +130,60 @@ Payload &Payload::operator=(const Payload &right)
     return *this;
 }
 
+void Payload::setData(void *data, uint32_t length)
+{
+    // Copies the data, like the Payload(void *, uint32_t) constructor
+    *this = Payload(data, length);
+}
+#endif
+
+Payload::~Payload()
+{
+#ifndef STATIC_MEMORY
+    if (data && ownership)
+    {
+        free(data);
+    }
+#endif
+}
+
+Payload Payload::wrap(void *data, uint32_t length)
+{
+    Payload payload;
+    payload.setReference(data, length);
+    return payload;
+}
+
+#ifndef STATIC_MEMORY
+void Payload::allocate(uint32_t length)
+{
+    if (data && ownership)
+    {
+        free(data);
+    }
+    data = (length > 0) ? (uint8_t *)malloc(length) : NULL;
+    this->length = (data != NULL) ? length : 0;
+    ownership = true;
+    truncated = false;
+    bytesRead = 0;
+}
+#endif
+
+void Payload::setReference(void *data, uint32_t length)
+{
+#ifndef STATIC_MEMORY
+    if (this->data && ownership)
+    {
+        free(this->data);
+    }
+#endif
+    this->data = (uint8_t *)data;
+    this->length = length;
+    ownership = false;
+    truncated = false;
+    bytesRead = 0;
+}
+
 uint8_t *Payload::getData()
 {
     return data;
@@ -113,6 +192,16 @@ uint8_t *Payload::getData()
 size_t Payload::size()
 {
     return length;
+}
+
+bool Payload::wasTruncated()
+{
+    return truncated;
+}
+
+void Payload::setTruncated(bool value)
+{
+    truncated = value;
 }
 
 size_t Payload::push(PacketBuffer &buffer)

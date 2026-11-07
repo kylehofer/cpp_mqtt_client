@@ -34,6 +34,7 @@
 
 #include <stdint.h>
 #include "PropertiesPacket.h"
+#include "types/BigEndianInt.h"
 
 namespace CppMqtt
 {
@@ -46,7 +47,7 @@ namespace CppMqtt
     {
     private:
         uint8_t state = 0;
-        uint16_t packetIdentifier;
+        BigEndianInt<uint16_t> packetIdentifier = 0;
         uint8_t reasonCode;
 
     protected:

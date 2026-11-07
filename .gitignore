@@ -3,3 +3,5 @@ temp
 .*
 clients/
 demo/
+build-host/
+build-static/

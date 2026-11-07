@@ -33,8 +33,10 @@
 #define SRC_PACKETS_SUBSCRIPTION
 
 #include <stdint.h>
-#include <vector>
+#include "CppMqttConfig.h"
+#include "utils/StaticVector.h"
 #include "PropertiesPacket.h"
+#include "types/BigEndianInt.h"
 #include "types/SubscriptionPayload.h"
 
 namespace CppMqtt
@@ -48,8 +50,8 @@ namespace CppMqtt
     {
     private:
         uint8_t state = 0;
-        uint16_t packetIdentifier;
-        vector<SubscriptionPayload *> payloads;
+        BigEndianInt<uint16_t> packetIdentifier = 0;
+        Vector<SubscriptionPayload *, CPP_MQTT_MAX_SUBSCRIPTIONS> payloads;
 
     protected:
         Subscription(uint8_t fixedHeaderByte) : PropertiesPacket(fixedHeaderByte){};
@@ -73,7 +75,11 @@ namespace CppMqtt
          */
         virtual bool readFromClient(Client *client, uint32_t &read) override;
 
-        void addPayload(SubscriptionPayload *payload);
+        /**
+         * @return true If the payload was added; false if CPP_MQTT_MAX_SUBSCRIPTIONS
+         * are already held with STATIC_MEMORY
+         */
+        bool addPayload(SubscriptionPayload *payload);
 
         void setPacketIdentifier(uint16_t packetIdentifier);
         uint16_t getPacketIdentifier();

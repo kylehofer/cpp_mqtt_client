@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "gtest/gtest.h"
+#include "utils/TestPacketBuffer.h"
 #include "stdint.h"
 
 #include "../mocks/MockClient.h"
@@ -40,7 +41,7 @@ TYPED_TEST_P(BytePropertyTest, Encode)
         Client *clientPtr = (Client *)&client;
         size_t bytesWritten;
 
-        PacketBuffer buffer(byteProperty->size());
+        TestPacketBuffer buffer;
 
         byteProperty->setValue(data.raw);
         bytesWritten = byteProperty->push(buffer);

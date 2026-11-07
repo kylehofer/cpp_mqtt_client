@@ -1,0 +1,28 @@
+{
+    "name": "cpp_mqtt_client",
+    "version": "1.0.0",
+    "description": "MQTT 5 client for microcontrollers such as the Raspberry Pi Pico, with an optional allocation-free build (define CPP_MQTT_STATIC_MEMORY in build_flags).",
+    "keywords": "mqtt, mqtt5, iot, embedded, pico, static-memory",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kylehofer/cpp_mqtt_client.git"
+    },
+    "build": {
+        "srcFilter": [
+            "+<**/*.cpp>",
+            "-<**/tests/*>"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Kyle Hofer",
+            "email": "kylehofer@neurak.com.au",
+            "url": "https://www.neurak.au",
+            "maintainer": true
+        }
+    ],
+    "license": "MIT",
+    "homepage": "https://www.neurak.au",
+    "frameworks": "*",
+    "platforms": "*"
+}

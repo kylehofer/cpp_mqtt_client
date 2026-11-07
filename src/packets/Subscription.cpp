@@ -60,7 +60,7 @@ size_t Subscription::push(PacketBuffer &buffer)
     // Fixed Header
     size_t written = Packet::push(buffer);
 
-    written += buffer.push(&packetIdentifier, PACKET_IDENTIFIER_SIZE);
+    written += packetIdentifier.push(buffer);
     written += properties.push(buffer);
 
     for (auto &payload : payloads)
@@ -77,9 +77,9 @@ bool Subscription::readFromClient([[maybe_unused]] Client *client, [[maybe_unuse
     return false;
 }
 
-void Subscription::addPayload(SubscriptionPayload *payload)
+bool Subscription::addPayload(SubscriptionPayload *payload)
 {
-    payloads.push_back(payload);
+    return pushBack(payloads, payload);
 }
 
 void Subscription::setPacketIdentifier(uint16_t packetIdentifier)

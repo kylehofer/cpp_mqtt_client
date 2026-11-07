@@ -36,15 +36,8 @@ using namespace CppMqtt;
 #define BYTE_DATA 0
 #define UTF_8_DATA 1
 
-#define PROPERTY_SETTER(IDENTIFIER, CLASS)           \
-    if (!has(IDENTIFIER))                            \
-    {                                                \
-        addProperty(new CLASS(value));               \
-    }                                                \
-    else                                             \
-    {                                                \
-        ((CLASS *)get(IDENTIFIER))->setValue(value); \
-    }
+#define PROPERTY_SETTER(IDENTIFIER, CLASS) \
+    set<CLASS>(IDENTIFIER, value);
 
 WillProperties::WillProperties() : Properties()
 {
@@ -80,9 +73,9 @@ void WillProperties::setCorrelationData(EncodedString value)
     PROPERTY_SETTER(CORRELATION_DATA, CorrelationData)
 }
 
-// TODO: Implement
-void WillProperties::addUserProperty(__attribute__((unused)) EncodedString key, __attribute__((unused)) EncodedString value)
+void WillProperties::addUserProperty(EncodedString key, EncodedString value)
 {
+    add<UserProperty>(key, value);
 }
 
 void WillProperties::setWillTopic(EncodedString value)
@@ -95,10 +88,10 @@ void WillProperties::setWillTopic(const char *data, uint16_t length)
     topic = EncodedString(data, length);
 }
 
-void WillProperties::setUtf8Payload(EncodedString &payload)
+void WillProperties::setUtf8Payload(EncodedString &value)
 {
     setPayloadFormatIndicator(UTF_8_DATA);
-    payload = EncodedString(payload);
+    payload = value;
 }
 
 void WillProperties::setUtf8Payload(const char *data, uint16_t length)
@@ -107,10 +100,10 @@ void WillProperties::setUtf8Payload(const char *data, uint16_t length)
     payload = EncodedString(data, length);
 }
 
-void WillProperties::setBinaryPayload(BinaryData &payload)
+void WillProperties::setBinaryPayload(BinaryData &value)
 {
     setPayloadFormatIndicator(BYTE_DATA);
-    payload = BinaryData(payload);
+    payload = value;
 }
 
 void WillProperties::setBinaryPayload(const char *data, uint16_t length)

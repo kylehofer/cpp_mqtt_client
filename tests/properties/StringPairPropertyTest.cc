@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "gtest/gtest.h"
+#include "utils/TestPacketBuffer.h"
 #include "stdint.h"
 #include <string>
 
@@ -94,7 +95,7 @@ TYPED_TEST_P(StringPairPropertyTest, Encode)
 
         stringPairProperty->setKey(encodedKey);
         stringPairProperty->setValue(encodedValue);
-        PacketBuffer packetBuffer(stringPairProperty->size());
+        TestPacketBuffer packetBuffer;
         bytesWritten = stringPairProperty->push(packetBuffer);
 
         // char *writeBuffer = client.getWriteBuffer();

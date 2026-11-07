@@ -41,7 +41,7 @@ using namespace CppMqtt;
 
 Connect::Connect(uint8_t flags) : PropertiesPacket(PacketId::CONNECT | (flags & HEADER_BYTES_MASK))
 {
-    memset(connectFlags.data, 0, CONNECT_FLAGS_SIZE);
+    connectFlags.data = 0;
 }
 
 Connect::Connect(EncodedString id) : Connect()
@@ -72,7 +72,8 @@ size_t Connect::push(PacketBuffer &buffer)
 
     // Variable Header
     written += buffer.push(PROTOCOL_NAME, PROTOCOL_NAME_LENGTH);
-    written += buffer.push(connectFlags.data, CONNECT_FLAGS_SIZE);
+    written += buffer.push(connectFlags.data);
+    written += keepAliveInterval.push(buffer);
     written += properties.push(buffer);
 
     // Client Id
@@ -139,12 +140,52 @@ void Connect::setCleanStart(bool value)
 
 void Connect::setKeepAliveInterval(uint16_t value)
 {
-    connectFlags.keepAliveInterval = value;
+    keepAliveInterval = value;
 }
 
 uint16_t Connect::getKeepAliveInterval()
 {
-    return connectFlags.keepAliveInterval;
+    return keepAliveInterval;
+}
+
+void Connect::sessionExpiryInterval(uint32_t value)
+{
+    properties.set<SessionExpiryInterval>(SESSION_EXPIRY_INTERVAL, value);
+}
+
+void Connect::setReceiveMaximum(uint32_t value)
+{
+    properties.set<ReceiveMaxium>(RECEIVE_MAXIMUM, (uint16_t)value);
+}
+
+void Connect::setMaximumPacketSize(uint32_t value)
+{
+    properties.set<MaximumPacketSize>(MAXIMUM_PACKET_SIZE, value);
+}
+
+void Connect::setTopicAliasMaximum(uint16_t value)
+{
+    properties.set<TopicAliasMaximum>(TOPIC_ALIAS_MAXIMUM, value);
+}
+
+void Connect::setRequestResponseInformation(bool value)
+{
+    properties.set<RequestResponseInformation>(REQUEST_RESPONSE_INFORMATION, (uint8_t)value);
+}
+
+void Connect::setRequestProblemInformation(bool value)
+{
+    properties.set<RequestProblemInformation>(REQUEST_PROBLEM_INFORMATION, (uint8_t)value);
+}
+
+void Connect::addUserProperty(EncodedString key, EncodedString value)
+{
+    properties.add<UserProperty>(key, value);
+}
+
+void Connect::setAuthenticationMethod(EncodedString value)
+{
+    properties.set<AuthenticationMethod>(AUTHENTICATION_METHOD, value);
 }
 
 bool Connect::validate()
